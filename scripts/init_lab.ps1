@@ -21,7 +21,7 @@ if ($LASTEXITCODE -ne 0) {
 
 $GvmdContainer = "greenbone-community-edition-gvmd-1"
 
-# 2. Espera inteligente — espera el socket de gvmd
+# 2. Espera inteligente - espera el socket de gvmd
 Write-Host "Esperando a que OpenVAS inicie sus servicios (esto puede tardar 1-2 minutos)..."
 Write-Host "No cierres esto, estoy vigilando el arranque..."
 
@@ -61,14 +61,14 @@ if ($LASTEXITCODE -eq 0) {
 }
 
 # 4. Importar workflow en n8n
-$WorkflowFile = Join-Path $ProjectDir "workflows\workflowV3.json"
+$WorkflowFile = Join-Path $ProjectDir "workflows\workflowV4_windows.json"
 if (Test-Path $WorkflowFile) {
     Write-Host "Importando workflow en n8n..."
     Start-Sleep -Seconds 5
-    docker cp $WorkflowFile "n8n-security-lab:/home/node/.n8n/workflows/workflowV3.json" 2>$null
+    docker cp $WorkflowFile "n8n-security-lab:/home/node/.n8n/workflows/workflowV4_windows.json" 2>$null
     Write-Host "Workflow copiado. Abri n8n y configura las credenciales de Telegram."
 } else {
-    Write-Host "No se encontro workflows/workflowV3.json — importalo manualmente en n8n."
+    Write-Host "No se encontro workflows/workflowV3.json - importalo manualmente en n8n."
 }
 
 Write-Host ""

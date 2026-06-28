@@ -67,7 +67,7 @@
     },
     {
       "parameters": {
-        "chatId": "8381107402",
+        "chatId": "7434106099",
         "text": "=🛡️ Reporte de Red Unificado\n\n📋 Hosts: {{ $json.email_body.match(/Hosts Escaneados:<\\/strong> ([^<]+)/)[1] }}\n📅 Fecha: {{ $json.email_body.match(/Fecha:<\\/strong> ([^<]+)/)[1] }}\n📊 Total Hallazgos: {{ $json.email_body.match(/Total Hallazgos:<\\/strong> ([^<]+)/)[1] }}\n\n🔴 Crítica: {{ $json.email_body.match(/color: red[^>]+>(\\d+)/)[1] }}\n🟠 Alta: {{ $json.email_body.match(/color: orange[^>]+>(\\d+)/)[1] }}\n🟡 Media: {{ $json.email_body.match(/color: #d4a017[^>]+>(\\d+)/)[1] }}\n🟢 Baja: {{ $json.email_body.match(/color: green[^>]+>(\\d+)/)[1] }}\n\nThis message was sent automatically with n8n",
         "additionalFields": {}
       },
@@ -167,7 +167,7 @@
     },
     {
       "parameters": {
-        "chatId": "8381107402",
+        "chatId": "7434106099",
         "text": "✅ Red limpia — Nmap no encontró hosts activos en la subred.",
         "additionalFields": {}
       },
