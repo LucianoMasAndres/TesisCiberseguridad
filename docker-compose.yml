@@ -16,6 +16,8 @@ services:
       - NODE_FUNCTION_ALLOW_BUILTIN=child_process
       - N8N_RUNNERS_HEARTBEAT_INTERVAL=120
       - N8N_RUNNERS_TASK_TIMEOUT=7200
+      - GVM_USERNAME=admin
+      - GVM_PASSWORD=admin123
     volumes:
       - n8n_data:/home/node/.n8n
       - gvmd_socket_vol:/run/gvmd
