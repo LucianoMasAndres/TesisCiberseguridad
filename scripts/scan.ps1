@@ -17,12 +17,40 @@ if (-not (Get-Command nmap -ErrorAction SilentlyContinue)) {
 }
 
 Write-Host "Escaneando red: $Subnet"
+
+# Parsear el XML de nmap directamente en PowerShell y enviar solo las IPs
+[xml]$nmapOutput = nmap -sn -n -oX - $Subnet
+
+$hosts = @()
+if ($nmapOutput.nmaprun.host) {
+    $hostNodes = $nmapOutput.nmaprun.host
+    if ($hostNodes -isnot [System.Array]) { $hostNodes = @($hostNodes) }
+
+    foreach ($h in $hostNodes) {
+        if ($h.status.state -eq 'up') {
+            $addresses = $h.address
+            if ($addresses -isnot [System.Array]) { $addresses = @($addresses) }
+            $ipv4 = $addresses | Where-Object { $_.addrtype -eq 'ipv4' } | Select-Object -First 1
+            if ($ipv4) { $hosts += $ipv4.addr }
+        }
+    }
+}
+
+Write-Host "Hosts activos encontrados: $($hosts.Count)"
+if ($hosts.Count -gt 0) {
+    Write-Host "IPs: $($hosts -join ', ')"
+}
+
+$jsonBody = @{
+    hosts     = $hosts
+    subnet    = $Subnet
+    hostCount = $hosts.Count
+} | ConvertTo-Json
+
 Write-Host "Enviando resultados a: $N8nUrl"
 
-$xml = nmap -sn -n -oX - $Subnet | Out-String
-
 try {
-    Invoke-RestMethod -Uri $N8nUrl -Method POST -Body $xml -ContentType "application/xml"
+    Invoke-RestMethod -Uri $N8nUrl -Method POST -Body $jsonBody -ContentType "application/json"
     Write-Host "Resultados enviados a n8n correctamente."
 } catch {
     Write-Host "ERROR: No se pudo conectar a n8n en $N8nUrl"
