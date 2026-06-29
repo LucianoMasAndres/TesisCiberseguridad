@@ -5,7 +5,10 @@ Este proyecto despliega un entorno de orquestación de seguridad completamente a
 ## 🧱 Arquitectura
 
 ```
-[Trigger Manual]
+[Launcher GUI]  ← App de escritorio para controlar todo
+      │
+      ▼
+[Webhook n8n]  ← Recibe subred + perfil de escaneo
       │
       ▼
    [Nmap]  ← Descubre hosts activos en la red
@@ -19,7 +22,7 @@ Este proyecto despliega un entorno de orquestación de seguridad completamente a
             │
        [OpenVAS]  ← Crea Target + Task + inicia escaneo
             │
-         [Wait 30min]
+         [Poll]  ← Espera hasta que el escaneo termina
             │
        [Reporte]  ← Descarga y parsea resultados XML
             │
@@ -48,6 +51,7 @@ Este proyecto despliega un entorno de orquestación de seguridad completamente a
 | Linux (Ubuntu 20.04+) | ✅ Completo | Entorno recomendado |
 | Windows 11 | ⚠️ Parcial | Requiere configuración extra (ver abajo) |
 | Windows 10 | ❌ No soportado | Limitación de red de Docker Desktop |
+| macOS | ❌ No soportado | Misma limitación que Windows 10 |
 
 ### Dependencias del host
 
@@ -60,8 +64,7 @@ Estas son las únicas cosas que hay que instalar en la máquina. Todo lo demás 
 | **Usuario en grupo docker** | Que el launcher pueda correr Docker sin sudo | `sudo usermod -aG docker $USER` + cerrar sesión y volver a entrar |
 | **Python 3** | Correr el launcher GUI | Preinstalado en Ubuntu |
 | **python3-tk** | Interfaz gráfica del launcher | `sudo apt install python3-tk` |
-| **nmap** *(opcional)* | Escanear desde el launcher (solo workflow V4) | `sudo ./scripts/install_nmap.sh` |
-| macOS | ❌ No soportado | Misma limitación que Windows 10 |
+| **nmap** *(opcional)* | Solo necesario en Windows (workflow V4) | `sudo ./scripts/install_nmap.sh` |
 
 ### Instalar Docker en Linux
 ```bash
@@ -89,13 +92,9 @@ Luego reiniciá WSL2 desde PowerShell:
 wsl --shutdown
 ```
 
-Esto hace que los containers compartan la red real de Windows y nmap pueda alcanzar la red de la empresa.
-
 ---
 
 ## ⚙️ Configuración previa (OBLIGATORIO antes de ejecutar)
-
-Antes de levantar el lab, hay tres cosas que configurar:
 
 ### 1. Token y Chat ID de Telegram
 Creá un bot con [@BotFather](https://t.me/BotFather) en Telegram:
@@ -105,131 +104,124 @@ Creá un bot con [@BotFather](https://t.me/BotFather) en Telegram:
 4. Abrí en el browser: `https://api.telegram.org/bot<TOKEN>/getUpdates`
 5. Buscá `"chat":{"id": XXXXXXX}` — ese es tu **Chat ID**
 
-Luego en n8n:
+Luego en n8n (después de importar el workflow):
 - Editá la credencial **"Telegram account"** con tu token
-- En el nodo Telegram, reemplazá el campo **Chat ID** por el tuyo
-
-> ⚠️ El archivo `workflows/My_workflow.json` tiene un Chat ID de ejemplo. Reemplazalo por el tuyo en el nodo Telegram dentro de n8n después de importar el workflow.
+- En cada nodo Telegram, reemplazá el **Chat ID** por el tuyo
 
 ### 2. Red a escanear
-En el nodo **Nmap** del workflow, cambiá la red según tu entorno:
-```
-nmap -sn -n -oX - 192.168.100.0/24   ← cambiá esta subred
-```
+La subred se configura desde el launcher GUI al momento de escanear. No hace falta tocar el workflow.
 
-En el nodo **Code**, actualizá la lista de IPs a ignorar:
+En el nodo **Code** del workflow podés actualizar la lista de IPs a ignorar:
 ```js
 const ipsIgnoradas = ["192.168.X.1", "192.168.X.X"];  // router, host, etc.
 ```
 
 ### 3. Credenciales de email (opcional)
-Si querés recibir el reporte por email, editá el nodo **Send email** en n8n con tu dirección de origen y destino. Mailpit intercepta todos los emails localmente en `http://localhost:8025` sin necesidad de configurar nada extra.
+Editá el nodo **Send email** en n8n con tu dirección de origen y destino. Mailpit intercepta todos los emails localmente en `http://localhost:8025` sin necesidad de configurar nada extra.
 
 ---
 
-## 🚀 Instalación y Ejecución
+## 🚀 Instalación y primer uso
 
-### 1. Clonar / descomprimir el proyecto
+### 1. Clonar el proyecto
 ```bash
-cd ~/Desktop
-# Si es un zip:
-unzip entrega_final.zip
-cd entrega_final
+git clone https://github.com/LucianoMasAndres/TesisCiberseguridad.git
+cd TesisCiberseguridad
 ```
 
-### 2. Ejecutar el laboratorio
+### 2. Instalar el launcher en el escritorio
 
 **Linux:**
 ```bash
-chmod +x scripts/init_lab.sh
-sudo ./scripts/init_lab.sh
+bash scripts/install_launcher.sh
+```
+Crea un ícono **Security Lab** en el escritorio de GNOME.
+
+**Windows:**
+```powershell
+scripts\install_launcher.bat
+```
+Crea un acceso directo **SecurityLab.lnk** en el escritorio. Requiere Python 3 instalado desde [python.org](https://www.python.org/downloads/) con la opción **"Add Python to PATH"** marcada (tkinter viene incluido).
+
+En ambos casos también podés correrlo directamente desde la terminal:
+```bash
+python3 launcher.py   # Linux
+python launcher.py    # Windows
+```
+
+### 3. Importar el workflow en n8n
+
+Hay dos versiones del workflow según el OS:
+
+| Archivo | OS | Descripción |
+|---|---|---|
+| `workflows/workflowV3_linux.json` | Linux | nmap corre dentro del container n8n |
+| `workflows/workflowV4_windows.json` | Windows 11 | nmap corre en el host |
+
+**Pasos:**
+1. Levantá el laboratorio desde el launcher (botón **Iniciar laboratorio**)
+2. Abrí `http://localhost:5678`
+3. Menú izquierdo → **Workflows** → botón **"..."** → **Import from file**
+4. Seleccioná el archivo correspondiente a tu OS
+5. Configurá las credenciales de Telegram (ver sección anterior)
+
+> ⚠️ Este paso solo hace falta la primera vez. Los datos persisten en un volumen Docker.
+
+---
+
+## ▶️ Ejecutar el laboratorio y hacer un escaneo
+
+### Con el launcher GUI (recomendado)
+
+1. Abrí **Security Lab** desde el escritorio (o `python3 launcher.py`)
+2. Hacé clic en **Iniciar laboratorio** y esperá a que diga "¡Laboratorio operativo!"
+3. Abrí `http://localhost:5678`, abrí el workflow V3 y clickeá **"Listen for test event"** en el nodo Webhook
+4. En el launcher, ingresá la subred, elegí el perfil de escaneo y hacé clic en **Escanear red**
+5. Seguí la ejecución en tiempo real en n8n
+6. Revisá Telegram para el resumen y `http://localhost:8025` para el reporte completo
+
+**Perfiles de escaneo disponibles:**
+
+| Perfil | Velocidad | Profundidad |
+|---|---|---|
+| Discovery | Muy rápido | Solo descubre hosts |
+| Full & Fast | Moderado | Escaneo completo balanceado |
+| Full & Fast Ultimate | Lento | Máxima cobertura |
+| System Discovery | Rápido | Fingerprinting de SO y servicios |
+
+> ⚠️ La primera vez que levantás el lab, OpenVAS tarda **15-30 minutos** en sincronizar los feeds de vulnerabilidades. Si el workflow falla con `404 scan config not found`, esperá y reintentá.
+
+### Sin el launcher (alternativa por consola)
+
+**Linux:**
+```bash
+docker compose up -d --build
 ```
 
 **Windows 11** (PowerShell como Administrador):
 ```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\scripts\init_lab.ps1
 ```
 
-El script automáticamente:
-- Construye la imagen de n8n con nmap y gvm-tools instalados
-- Descarga todas las imágenes de Greenbone (~3-5GB, solo la primera vez)
-- Espera a que OpenVAS levante el socket Unix
-- Crea el usuario `admin` con password `admin123`
-
-Al finalizar verás:
-```
-✨ ¡Laboratorio Operativo!
----------------------------------------------------
-➡️  n8n:     http://localhost:5678
-➡️  OpenVAS: http://localhost:9392  (admin / admin123)
-➡️  Mailpit: http://localhost:8025
----------------------------------------------------
-```
-
-> ⚠️ **Importante:** La primera vez que levantás el lab, OpenVAS tarda **15-30 minutos** en sincronizar todos los feeds de vulnerabilidades. Si el workflow falla con error `404 scan config not found`, esperá unos minutos y volvé a ejecutarlo.
-
-### 4. Importar el workflow en n8n
-
-Hay dos versiones del workflow según el OS:
-
-| Archivo | OS | Cómo se dispara |
-|---|---|---|
-| `workflows/workflowV3_linux.json` | Linux (con WSL2 mirrored en Win11) | Botón "Execute workflow" en n8n |
-| `workflows/workflowV4_windows.json` | Windows / cualquier OS | Script `scan.sh` o `scan.ps1` desde el host |
-
-**Pasos para importar:**
-1. Abrí `http://localhost:5678`
-2. Menú izquierdo → **Workflows** → botón **"..."** → **Import from file**
-3. Seleccioná el archivo correspondiente a tu OS
-4. Configurá las credenciales de Telegram (ver sección anterior)
-5. Activá el workflow con el toggle (**obligatorio para V4 — el webhook no responde si está inactivo**)
-
----
-
-## ▶️ Ejecutar el escaneo
-
-**Linux — workflow V3 (nmap corre dentro del container):**
-1. Abrí `http://localhost:5678`
-2. Abrí el workflow V3
-3. Hacé clic en **"Execute workflow"**
-4. Esperá ~30 minutos (el escaneo de OpenVAS tarda)
-5. Revisá Telegram para el resumen y Mailpit (`http://localhost:8025`) para el reporte completo
-
-**Windows / cualquier OS — workflow V4 (nmap corre en el host):**
-1. Instalá nmap en tu máquina (solo la primera vez):
+Para escanear desde Windows con nmap en el host:
 ```powershell
-# Windows
-.\scripts\install_nmap.ps1
-```
-```bash
-# Linux
-sudo ./scripts/install_nmap.sh
-```
-2. Con el laboratorio corriendo y el workflow V4 activo, ejecutá el escaneo:
-```powershell
-# Windows — cambiá la subred por la de tu red
 .\scripts\scan.ps1 -Subnet 192.168.1.0/24
 ```
-```bash
-# Linux
-sudo ./scripts/scan.sh 192.168.1.0/24
-```
-3. n8n recibe los resultados automáticamente y lanza el escaneo en OpenVAS
-4. Esperá ~30 minutos y revisá Telegram y Mailpit
 
 ---
 
 ## 🛑 Apagar el laboratorio
 
-**Linux:**
+Desde el launcher: botón **Detener laboratorio**.
+
+O por consola:
 ```bash
-sudo ./scripts/stop_lab.sh
+docker compose down
 ```
 
-**Windows 11** (PowerShell como Administrador):
-```powershell
-.\scripts\stop_lab.ps1
+Para borrar todos los datos y empezar de cero (⚠️ irreversible):
+```bash
+docker compose down -v
 ```
 
 ---
@@ -237,23 +229,24 @@ sudo ./scripts/stop_lab.sh
 ## 🗂️ Estructura del proyecto
 
 ```
-entrega_final/
+TesisCiberseguridad/
 ├── docker-compose.yml             # Definición de todos los servicios
+├── launcher.py                    # App GUI de escritorio (Linux)
 ├── README.md                      # Este archivo
 ├── n8n_custom/
 │   └── Dockerfile                 # Imagen n8n con nmap + gvm-tools
 ├── scripts/
-│   ├── init_lab.sh                # Inicio del laboratorio (Linux)
-│   ├── init_lab.ps1               # Inicio del laboratorio (Windows)
-│   ├── stop_lab.sh                # Apagado del laboratorio (Linux)
-│   ├── stop_lab.ps1               # Apagado del laboratorio (Windows)
-│   ├── install_nmap.sh            # Instala nmap en el host (Linux)
-│   ├── install_nmap.ps1           # Instala nmap en el host (Windows)
-│   ├── scan.sh                    # Escanea la red y envía a n8n (Linux)
+│   ├── install_launcher.sh        # Instala el ícono del launcher en el escritorio (Linux)
+│   ├── install_launcher.bat       # Crea acceso directo del launcher (Windows)
+│   ├── install_nmap.sh            # Instala nmap en el host (Linux, solo V4)
+│   ├── install_nmap.ps1           # Instala nmap en el host (Windows, solo V4)
+│   ├── init_lab.ps1               # Inicio del laboratorio (Windows, alternativa)
+│   ├── stop_lab.sh                # Apagado del laboratorio (Linux, alternativa)
+│   ├── stop_lab.ps1               # Apagado del laboratorio (Windows, alternativa)
 │   └── scan.ps1                   # Escanea la red y envía a n8n (Windows)
 └── workflows/
-    ├── workflowV3_linux.json            # Workflow con nmap interno (Linux nativo)
-    └── workflowV4_windows.json    # Workflow con webhook (Windows / cualquier OS)
+    ├── workflowV3_linux.json      # Workflow Linux: nmap interno, trigger webhook
+    └── workflowV4_windows.json    # Workflow Windows: nmap en host, trigger webhook
 ```
 
 ---
@@ -262,13 +255,14 @@ entrega_final/
 
 | Problema | Solución |
 |---|---|
-| `permission denied` al correr el script | Usá `sudo ./scripts/init_lab.sh` |
-| `apk: not found` en el build | Verificá que el Dockerfile use `FROM n8nio/n8n:latest` |
+| `permission denied` al correr el launcher | Agregá tu usuario al grupo docker: `sudo usermod -aG docker $USER` y cerrá sesión |
+| El launcher no abre (Linux) | Instalá tkinter: `sudo apt install python3-tk` |
+| El launcher no abre (Windows) | Instalá Python desde python.org marcando "Add to PATH" y "tcl/tk and IDLE" |
 | `404: Failed to find config` en el workflow | Los feeds de OpenVAS no terminaron. Esperá 15 min y reintentá |
+| Webhook 404 al escanear | Abrí el workflow en n8n y clickeá "Listen for test event" en el nodo Webhook |
 | `chat not found` en Telegram | El Chat ID es incorrecto. Obtenelo con `/getUpdates` |
 | `Unauthorized` en Telegram | El token fue revocado. Generá uno nuevo con BotFather |
-| `Connection refused` al socket de gvmd | OpenVAS todavía está inicializando. Esperá y reintentá |
-| OpenVAS no levanta el socket | Revisá logs: `sudo docker logs greenbone-community-edition-gvmd-1` |
+| OpenVAS no levanta el socket | Revisá logs: `docker logs greenbone-community-edition-gvmd-1` |
 | GSA no carga en el browser | Usá `http://127.0.0.1:9392` (no localhost, no HTTPS) |
-| En Windows nmap no encuentra hosts | Verificá que configuraste `networkingMode=mirrored` en `.wslconfig` y reiniciaste WSL2 con `wsl --shutdown` |
-| En Windows el script no corre | Abrí PowerShell como Administrador y ejecutá `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` antes de correr el `.ps1` |
+| En Windows nmap no encuentra hosts | Verificá `networkingMode=mirrored` en `.wslconfig` y reiniciá WSL2 con `wsl --shutdown` |
+| En Windows el script no corre | Abrí PowerShell como Administrador y ejecutá `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` |

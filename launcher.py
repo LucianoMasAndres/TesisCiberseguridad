@@ -476,8 +476,13 @@ class Launcher(tk.Tk):
                 self._log(f"Error de conexión: {type(e).__name__}: {e}", "error")
         else:
             # V4: nmap corre en el host, enviamos el XML
-            if subprocess.run(["which", "nmap"], capture_output=True).returncode != 0:
-                self._log("nmap no está instalado. Corré: sudo ./scripts/install_nmap.sh", "error")
+            nmap_check = "where" if platform.system() == "Windows" else "which"
+            if subprocess.run([nmap_check, "nmap"], capture_output=True).returncode != 0:
+                self._log("nmap no está instalado.", "error")
+                if platform.system() == "Windows":
+                    self._log("Corré: scripts\\install_nmap.bat", "warn")
+                else:
+                    self._log("Corré: sudo ./scripts/install_nmap.sh", "warn")
                 return
             self._log("Modo externo: corriendo nmap en el host...", "info")
             result = subprocess.run(
@@ -489,7 +494,7 @@ class Launcher(tk.Tk):
                 return
             self._log("Nmap completado. Enviando resultados a n8n...", "info")
             try:
-                url = f"http://localhost:5678/webhook/nmap?scan_config={scan_config_uuid}"
+                url = f"http://localhost:5678/webhook-test/nmap?scan_config={scan_config_uuid}"
                 req = urllib.request.Request(
                     url, data=result.stdout,
                     headers={"Content-Type": "application/xml"},
@@ -499,9 +504,14 @@ class Launcher(tk.Tk):
                     self._log(f"Enviado a n8n (HTTP {resp.status}).", "done")
                     self._log("El escaneo OpenVAS tardará según el perfil elegido.", "info")
                     self._log("Revisá Telegram y Mailpit para los resultados.", "info")
+            except urllib.error.HTTPError as e:
+                body = e.read().decode(errors="replace")
+                self._log(f"HTTP {e.code} {e.reason}", "error")
+                self._log(f"  Respuesta: {body[:200]}", "error")
+                if e.code == 404:
+                    self._log("  Abrí el workflow V4 en n8n y clickeá 'Listen for test event'.", "warn")
             except Exception as e:
                 self._log(f"Error al enviar a n8n: {e}", "error")
-                self._log("¿El workflow V4 está importado y activo en n8n?", "warn")
 
 
 if __name__ == "__main__":
