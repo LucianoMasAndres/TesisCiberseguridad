@@ -10,7 +10,10 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-560, 96],
+      "position": [
+        -560,
+        96
+      ],
       "id": "webhook-nmap-input",
       "name": "Webhook Nmap",
       "webhookId": "webhook-nmap-scan"
@@ -21,7 +24,10 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [0, 96],
+      "position": [
+        0,
+        96
+      ],
       "id": "1a36633e-ea1b-4709-b384-8177042ee1be",
       "name": "Code"
     },
@@ -31,7 +37,10 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [624, 0],
+      "position": [
+        624,
+        0
+      ],
       "id": "d6c4ea46-fe82-4e91-a373-113d0a07a2cd",
       "name": "StartTask"
     },
@@ -41,7 +50,10 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [400, 0],
+      "position": [
+        400,
+        0
+      ],
       "id": "8f397ef1-3157-4bab-951f-9f530c8e260d",
       "name": "CreateTask"
     },
@@ -51,7 +63,10 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [420, -80],
+      "position": [
+        420,
+        -80
+      ],
       "id": "2842783d-e19b-4b72-acae-59a25ebfebca",
       "name": "CreateTarget"
     },
@@ -63,7 +78,10 @@
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1920, -32],
+      "position": [
+        1920,
+        -32
+      ],
       "id": "bea1260e-4f35-4356-8ed1-7b438317008f",
       "name": "Send a text message1",
       "webhookId": "aa6ca453-d92d-49c1-ac2a-4cb4d3d02ea0",
@@ -80,7 +98,10 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1040, 80],
+      "position": [
+        1040,
+        80
+      ],
       "id": "b7a5528e-4f22-48af-9841-877275b0c619",
       "name": "DownloadPDF"
     },
@@ -90,7 +111,10 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [832, 0],
+      "position": [
+        832,
+        0
+      ],
       "id": "poll-scan-status",
       "name": "PollStatus"
     },
@@ -118,7 +142,10 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1040, -80],
+      "position": [
+        1040,
+        -80
+      ],
       "id": "if-timeout",
       "name": "¿Timeout?"
     },
@@ -130,7 +157,10 @@
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1248, -240],
+      "position": [
+        1248,
+        -240
+      ],
       "id": "telegram-scan-timeout",
       "name": "Telegram Scan Timeout",
       "credentials": {
@@ -149,7 +179,10 @@
       },
       "type": "n8n-nodes-base.xml",
       "typeVersion": 1,
-      "position": [1248, 80],
+      "position": [
+        1248,
+        80
+      ],
       "id": "a5a674ac-dc9e-4ffc-bd81-af89f4053255",
       "name": "XML1"
     },
@@ -159,7 +192,10 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1664, 0],
+      "position": [
+        1664,
+        0
+      ],
       "id": "a7e6ce3c-a7c1-4683-8aa4-006d7dc7f4d3",
       "name": "Code in JavaScript2"
     },
@@ -169,7 +205,10 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1424, 80],
+      "position": [
+        1424,
+        80
+      ],
       "id": "00860938-5583-4d5e-acdb-c2896d37491d",
       "name": "parseo"
     },
@@ -197,7 +236,10 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [208, 96],
+      "position": [
+        208,
+        96
+      ],
       "id": "if-hay-hosts",
       "name": "¿Hay hosts?"
     },
@@ -209,7 +251,10 @@
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [420, 200],
+      "position": [
+        420,
+        200
+      ],
       "id": "telegram-red-limpia",
       "name": "Telegram Red Limpia",
       "credentials": {
@@ -227,7 +272,10 @@
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [728, -120],
+      "position": [
+        728,
+        -120
+      ],
       "id": "telegram-scan-iniciado",
       "name": "Telegram Scan Iniciado",
       "credentials": {
@@ -236,6 +284,42 @@
           "name": "Telegram account"
         }
       }
+    },
+    {
+      "parameters": {
+        "fromEmail": "lab@security.local",
+        "toEmail": "axel1mejias1@gmail.com",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "html",
+        "message": "={{ $json.email_body }}"
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1920,
+        120
+      ],
+      "id": "send-email-reporte",
+      "name": "Send Email",
+      "credentials": {
+        "smtp": {
+          "id": "smtp-mailpit",
+          "name": "Mailpit SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const { execSync } = require('child_process');\n\nconst createTaskOutput = $('CreateTask').first().json.stdout;\nconst taskMatch = createTaskOutput.match(/id=\\\"([^\\\"]+)\\\"/);\nconst taskId = taskMatch ? taskMatch[1] : null;\n\nconst createTargetOutput = $('CreateTarget').first().json.stdout;\nconst targetMatch = createTargetOutput.match(/id=\\\"([^\\\"]+)\\\"/);\nconst targetId = targetMatch ? targetMatch[1] : null;\n\nconst run = (xml) => {\n  const cmd = `/home/node/gvm-env/bin/gvm-cli --gmp-username ${process.env.GVM_USERNAME || 'admin'} --gmp-password ${process.env.GVM_PASSWORD || 'admin123'} socket --socketpath /run/gvmd/gvmd.sock --xml \"${xml}\"`;\n  try { execSync(cmd); } catch(e) {}\n};\n\nif (taskId) run(`<delete_task task_id='${taskId}' ultimate='0'/>`);\nif (targetId) run(`<delete_target target_id='${targetId}'/>`);\n\nreturn [{ json: { cleaned: true, task_id: taskId, target_id: targetId } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2176,
+        -32
+      ],
+      "id": "cleanup-task-target",
+      "name": "Cleanup"
     }
   ],
   "pinData": {},
@@ -382,6 +466,11 @@
             "node": "Send a text message1",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -391,6 +480,17 @@
         [
           {
             "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        [
+          {
+            "node": "Cleanup",
             "type": "main",
             "index": 0
           }
