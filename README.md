@@ -37,8 +37,8 @@ Este proyecto despliega un entorno de orquestación de seguridad completamente a
 
 ## 📋 Requisitos
 
-- **Docker** >= 24.0
-- **Docker Compose** >= 2.0
+### Hardware y sistema
+
 - **RAM:** mínimo 4GB (recomendado 8GB)
 - **Disco:** mínimo 20GB libres (las imágenes de Greenbone son pesadas)
 - Acceso a internet para descargar imágenes y feeds de vulnerabilidades
@@ -48,6 +48,19 @@ Este proyecto despliega un entorno de orquestación de seguridad completamente a
 | Linux (Ubuntu 20.04+) | ✅ Completo | Entorno recomendado |
 | Windows 11 | ⚠️ Parcial | Requiere configuración extra (ver abajo) |
 | Windows 10 | ❌ No soportado | Limitación de red de Docker Desktop |
+
+### Dependencias del host
+
+Estas son las únicas cosas que hay que instalar en la máquina. Todo lo demás (OpenVAS, n8n, Mailpit, PostgreSQL, Redis, etc.) son imágenes Docker que se descargan solas la primera vez.
+
+| Dependencia | Para qué | Instalación |
+|---|---|---|
+| **Docker** >= 24.0 | Correr los contenedores | Ver abajo |
+| **Docker Compose** v2 | Orquestar el stack | Viene incluido con Docker moderno |
+| **Usuario en grupo docker** | Que el launcher pueda correr Docker sin sudo | `sudo usermod -aG docker $USER` + cerrar sesión y volver a entrar |
+| **Python 3** | Correr el launcher GUI | Preinstalado en Ubuntu |
+| **python3-tk** | Interfaz gráfica del launcher | `sudo apt install python3-tk` |
+| **nmap** *(opcional)* | Escanear desde el launcher (solo workflow V4) | `sudo ./scripts/install_nmap.sh` |
 | macOS | ❌ No soportado | Misma limitación que Windows 10 |
 
 ### Instalar Docker en Linux
