@@ -174,11 +174,12 @@ Hay dos versiones del workflow según el OS:
 ### Con el launcher GUI (recomendado)
 
 1. Abrí **Security Lab** desde el escritorio (o `python3 launcher.py`)
-2. Hacé clic en **Iniciar laboratorio** y esperá a que diga "¡Laboratorio operativo!"
-3. Abrí `http://localhost:5678`, abrí el workflow V3 y clickeá **"Listen for test event"** en el nodo Webhook
-4. En el launcher, ingresá la subred, elegí el perfil de escaneo y hacé clic en **Escanear red**
-5. Seguí la ejecución en tiempo real en n8n
-6. Revisá Telegram para el resumen y `http://localhost:8025` para el reporte completo
+2. En la sección **CONFIG N8N** ingresá el email y password que configuraste la primera vez que entraste a `http://localhost:5678`
+3. Hacé clic en **Iniciar Lab** y esperá a que diga "¡Laboratorio operativo!" — el launcher activa el workflow V3 automáticamente
+4. Ingresá la subred, elegí el perfil de escaneo y hacé clic en **Escanear red**
+5. Revisá Telegram para el resumen y `http://localhost:8025` para el reporte completo
+
+> Si marcás **"Scan diario automático (5am)"**, el workflow V3 también se ejecutará todos los días a las 5:00 AM con la subred y perfil por defecto, sin intervención manual.
 
 **Perfiles de escaneo disponibles:**
 
@@ -259,7 +260,7 @@ TesisCiberseguridad/
 | El launcher no abre (Linux) | Instalá tkinter: `sudo apt install python3-tk` |
 | El launcher no abre (Windows) | Instalá Python desde python.org marcando "Add to PATH" y "tcl/tk and IDLE" |
 | `404: Failed to find config` en el workflow | Los feeds de OpenVAS no terminaron. Esperá 15 min y reintentá |
-| Webhook 404 al escanear | Abrí el workflow en n8n y clickeá "Listen for test event" en el nodo Webhook |
+| Webhook 404 al escanear | Verificá que ingresaste email/password de n8n en CONFIG N8N y que el launcher diga "Workflow V3 activado" al iniciar |
 | `chat not found` en Telegram | El Chat ID es incorrecto. Obtenelo con `/getUpdates` |
 | `Unauthorized` en Telegram | El token fue revocado. Generá uno nuevo con BotFather |
 | OpenVAS no levanta el socket | Revisá logs: `docker logs greenbone-community-edition-gvmd-1` |

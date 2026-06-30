@@ -5,11 +5,14 @@ Corre en el host, sin necesitar Docker previamente levantado.
 Requiere: python3-tk, docker, docker compose v2
 """
 import os
+import json
 import queue
 import subprocess
 import threading
 import time
 import urllib.request
+import urllib.error
+import http.cookiejar
 import platform
 import webbrowser
 import tkinter as tk
@@ -50,6 +53,10 @@ class Launcher(tk.Tk):
         self._q = queue.Queue()
         self._busy = False
 
+        self._n8n_email = tk.StringVar()
+        self._n8n_password = tk.StringVar()
+        self._daily_scan = tk.BooleanVar(value=True)
+
         self._build_ui()
         self._poll_queue()
         self._schedule_status()
@@ -80,6 +87,8 @@ class Launcher(tk.Tk):
         self._build_status(left)
         tk.Frame(left, bg=BG, height=10).pack()
         self._build_actions(left)
+        tk.Frame(left, bg=BG, height=10).pack()
+        self._build_n8n_config(left)
         tk.Frame(left, bg=BG, height=10).pack()
         self._build_links(left)
 
@@ -151,6 +160,35 @@ class Launcher(tk.Tk):
 
         self._btn(inner, "🔍  Diagnóstico n8n", SURFACE, MUTED,
                   lambda: self._run(self._do_diagnostico)).pack(fill="x", pady=(4, 0))
+
+    # ---- N8N Config ---------------------------------------------------
+
+    def _build_n8n_config(self, parent):
+        card = self._card(parent, "CONFIG N8N")
+        inner = tk.Frame(card, bg=SURFACE, padx=12, pady=8)
+        inner.pack(fill="x")
+
+        tk.Label(inner, text="Email:", bg=SURFACE, fg=MUTED,
+                 font=("Courier New", 8), anchor="w").pack(fill="x")
+        tk.Entry(inner, textvariable=self._n8n_email, bg=BG, fg=TEXT,
+                 font=("Courier New", 9), insertbackground=TEXT,
+                 relief="flat", bd=5).pack(fill="x", pady=(2, 6))
+
+        tk.Label(inner, text="Password:", bg=SURFACE, fg=MUTED,
+                 font=("Courier New", 8), anchor="w").pack(fill="x")
+        tk.Entry(inner, textvariable=self._n8n_password, show="*",
+                 bg=BG, fg=TEXT, font=("Courier New", 9),
+                 insertbackground=TEXT, relief="flat", bd=5).pack(fill="x", pady=(2, 6))
+
+        tk.Checkbutton(inner, text=" Scan diario automatico (5am)",
+                       variable=self._daily_scan,
+                       bg=SURFACE, fg=MUTED, selectcolor=BG,
+                       activebackground=SURFACE,
+                       font=("Courier New", 8)).pack(anchor="w")
+        tk.Label(inner, text="(requiere workflow V3 importado)",
+                 bg=SURFACE, fg=MUTED,
+                 font=("Courier New", 7)).pack(anchor="w")
+        tk.Frame(card, bg=SURFACE, height=4).pack()
 
     # ---- Links --------------------------------------------------------
 
@@ -369,6 +407,83 @@ class Launcher(tk.Tk):
         self._log("  OpenVAS → http://127.0.0.1:9392  (admin / admin123)", "info")
         self._log("  Mailpit → http://localhost:8025", "info")
         self._log("IMPORTANTE: la primera vez OpenVAS tarda 15-30 min en sincronizar feeds.", "warn")
+
+        self._log("Activando workflow V3 automaticamente...", "info")
+        time.sleep(3)
+        self._try_activate_workflow()
+
+    def _try_activate_workflow(self):
+        """Login to n8n and activate the V3 workflow via internal REST API."""
+        email = self._n8n_email.get().strip()
+        password = self._n8n_password.get().strip()
+
+        if not email or not password:
+            self._log("  Credenciales n8n vacias — activa el workflow manualmente.", "warn")
+            self._log("  Configura email/password en la seccion CONFIG N8N.", "info")
+            return
+
+        try:
+            jar = http.cookiejar.CookieJar()
+            opener = urllib.request.build_opener(
+                urllib.request.HTTPCookieProcessor(jar)
+            )
+
+            # 1. Login
+            body = json.dumps({"email": email, "password": password}).encode()
+            req = urllib.request.Request(
+                "http://localhost:5678/rest/login",
+                data=body,
+                headers={"Content-Type": "application/json",
+                         "Accept": "application/json"},
+            )
+            resp = opener.open(req, timeout=10)
+            login_data = json.loads(resp.read().decode())
+            token = login_data.get("data", {}).get("token", "")
+            auth = {"Authorization": f"Bearer {token}"} if token else {}
+
+            # 2. Find the V3 workflow by name or webhook path
+            req2 = urllib.request.Request(
+                "http://localhost:5678/rest/workflows",
+                headers={"Accept": "application/json", **auth},
+            )
+            raw = json.loads(opener.open(req2, timeout=10).read().decode())
+            wf_list = raw.get("data", raw) if isinstance(raw, dict) else raw
+
+            wf_id = None
+            for wf in wf_list:
+                name = wf.get("name", "")
+                nodes_str = str(wf.get("nodes", ""))
+                if "V3" in name or "linux" in name.lower() or "nmap-v3" in nodes_str:
+                    wf_id = wf["id"]
+                    break
+
+            if not wf_id:
+                self._log("  Workflow V3 no encontrado — importalo en n8n primero.", "warn")
+                return
+
+            # 3. Activate the workflow
+            req3 = urllib.request.Request(
+                f"http://localhost:5678/rest/workflows/{wf_id}/activate",
+                data=b"",
+                headers={"Accept": "application/json", **auth},
+                method="POST",
+            )
+            opener.open(req3, timeout=10)
+
+            if self._daily_scan.get():
+                self._log("  Workflow V3 activado (webhook + scan diario 5am).", "success")
+            else:
+                self._log("  Workflow V3 activado (solo webhook).", "success")
+            self._log("  Ya podes escanear sin abrir n8n manualmente.", "done")
+
+        except urllib.error.HTTPError as e:
+            body = e.read().decode(errors="replace")
+            if e.code == 401:
+                self._log("  Credenciales n8n incorrectas. Verifica email/password.", "error")
+            else:
+                self._log(f"  n8n API respondio HTTP {e.code}. Activa el workflow manualmente.", "warn")
+        except Exception as e:
+            self._log(f"  Auto-activacion fallo ({type(e).__name__}). Activa manualmente en n8n.", "warn")
 
     def _do_stop(self):
         delete = self._del_vol.get()

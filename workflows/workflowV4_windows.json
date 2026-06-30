@@ -72,7 +72,7 @@
     },
     {
       "parameters": {
-        "chatId": "7434106099",
+        "chatId": "TU_CHAT_ID_AQUI",
         "text": "=\ud83d\udee1\ufe0f Reporte de Red Unificado\n\n\ud83d\udccb Hosts: {{ $json.hosts_string }}\n\ud83d\udcc5 Fecha: {{ $json.scan_date }}\n\ud83d\udcca Total Hallazgos: {{ $json.total_hallazgos }}\n\n\ud83d\udd34 Cr\u00edtica: {{ $json.critical_count }}\n\ud83d\udfe0 Alta: {{ $json.high_count }}\n\ud83d\udfe1 Media: {{ $json.medium_count }}\n\ud83d\udfe2 Baja: {{ $json.low_count }}\n\nThis message was sent automatically with n8n",
         "additionalFields": {}
       },
@@ -151,7 +151,7 @@
     },
     {
       "parameters": {
-        "chatId": "7434106099",
+        "chatId": "TU_CHAT_ID_AQUI",
         "text": "=\u23f0 Timeout: el escaneo OpenVAS super\u00f3 los 90 minutos y fue detenido.\n\n\ud83c\udd94 Task ID: {{ $json.task_id }}\n\nRevis\u00e1 el estado manualmente en la interfaz de OpenVAS.",
         "additionalFields": {}
       },
@@ -245,7 +245,7 @@
     },
     {
       "parameters": {
-        "chatId": "7434106099",
+        "chatId": "TU_CHAT_ID_AQUI",
         "text": "\u2705 Red limpia \u2014 Nmap no encontr\u00f3 hosts activos en la subred.",
         "additionalFields": {}
       },
@@ -266,7 +266,7 @@
     },
     {
       "parameters": {
-        "chatId": "7434106099",
+        "chatId": "TU_CHAT_ID_AQUI",
         "text": "\ud83d\udd0d Escaneo OpenVAS iniciado. Te aviso cuando termine (puede tardar entre 15 y 90 min).",
         "additionalFields": {}
       },
