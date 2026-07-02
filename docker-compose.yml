@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # --- BLOQUE 1: n8n (Tu Orquestador) ---
   n8n:
@@ -14,6 +12,10 @@ services:
       - N8N_PROTOCOL=http
       - GENERIC_TIMEZONE=America/Argentina/Mendoza
       - NODE_FUNCTION_ALLOW_BUILTIN=child_process
+      - N8N_RUNNERS_HEARTBEAT_INTERVAL=120
+      - N8N_RUNNERS_TASK_TIMEOUT=7200
+      - GVM_USERNAME=admin
+      - GVM_PASSWORD=admin123
     volumes:
       - n8n_data:/home/node/.n8n
       - gvmd_socket_vol:/run/gvmd
@@ -213,6 +215,7 @@ services:
       - ospd-openvas
     networks:
       - greenbone-net
+
   mailpit:
     image: axllent/mailpit
     container_name: mailpit
