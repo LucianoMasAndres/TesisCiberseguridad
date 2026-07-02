@@ -15,6 +15,7 @@ import urllib.error
 import http.cookiejar
 import platform
 import webbrowser
+import xml.etree.ElementTree as ET
 import tkinter as tk
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -429,7 +430,7 @@ class Launcher(tk.Tk):
             )
 
             # 1. Login
-            body = json.dumps({"email": email, "password": password}).encode()
+            body = json.dumps({"emailOrLdapLoginId": email, "password": password}).encode()
             req = urllib.request.Request(
                 "http://localhost:5678/rest/login",
                 data=body,
@@ -562,7 +563,7 @@ class Launcher(tk.Tk):
 
         if IS_LINUX:
             self._log("Modo interno: n8n corre nmap dentro del container...", "info")
-            url = f"http://localhost:5678/webhook-test/nmap-v3?scan_config={scan_config_uuid}&subnet={subnet}"
+            url = f"http://localhost:5678/webhook/nmap-v3?scan_config={scan_config_uuid}&subnet={subnet}"
             self._log(f"  → URL: {url}", "wait")
 
             # Verificar que n8n responde antes de enviar
@@ -607,12 +608,28 @@ class Launcher(tk.Tk):
             if result.returncode != 0:
                 self._log(f"Error en nmap: {result.stderr.decode()}", "error")
                 return
-            self._log("Nmap completado. Enviando resultados a n8n...", "info")
+            self._log("Nmap completado. Parseando hosts activos...", "info")
             try:
-                url = f"http://localhost:5678/webhook-test/nmap?scan_config={scan_config_uuid}"
+                root = ET.fromstring(result.stdout)
+                hosts = []
+                for host in root.findall("host"):
+                    status = host.find("status")
+                    if status is None or status.get("state") != "up":
+                        continue
+                    addr = host.find("address[@addrtype='ipv4']")
+                    if addr is not None:
+                        hosts.append(addr.get("addr"))
+            except ET.ParseError as e:
+                self._log(f"Error parseando XML de nmap: {e}", "error")
+                return
+            self._log(f"  {len(hosts)} host(s) activo(s): {', '.join(hosts) if hosts else '(ninguno)'}", "info")
+            self._log("Enviando resultados a n8n...", "info")
+            try:
+                url = f"http://localhost:5678/webhook/nmap?scan_config={scan_config_uuid}"
+                body = json.dumps({"hosts": hosts}).encode()
                 req = urllib.request.Request(
-                    url, data=result.stdout,
-                    headers={"Content-Type": "application/xml"},
+                    url, data=body,
+                    headers={"Content-Type": "application/json"},
                     method="POST"
                 )
                 with urllib.request.urlopen(req, timeout=10) as resp:
