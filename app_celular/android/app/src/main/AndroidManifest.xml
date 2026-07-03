@@ -1,8 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- El laboratorio se sirve por HTTP plano en la LAN (sin TLS), no HTTPS -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="aura_mobile"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
