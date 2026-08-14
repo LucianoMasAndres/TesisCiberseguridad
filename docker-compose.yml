@@ -31,7 +31,7 @@ services:
 
   # --- BLOQUE 2: Greenbone Community Edition (El Escáner) ---
   vulnerability-tests:
-    image: registry.community.greenbone.net/community/vulnerability-tests
+    image: registry.community.greenbone.net/community/vulnerability-tests@sha256:f044dfd33537f79e57d394998d10e137ac67b245c571f42412fc763dc4151432
     environment:
       FEED_RELEASE: "24.10"
     volumes:
@@ -40,28 +40,28 @@ services:
       - greenbone-net
 
   notus-data:
-    image: registry.community.greenbone.net/community/notus-data
+    image: registry.community.greenbone.net/community/notus-data@sha256:38ab33b37658fa59e546f4ae40e8fef56003052bb0208d71d085a3b3038f16b2
     volumes:
       - notus_data_vol:/mnt
     networks:
       - greenbone-net
 
   scap-data:
-    image: registry.community.greenbone.net/community/scap-data
+    image: registry.community.greenbone.net/community/scap-data@sha256:3d5be56374de35163bae3097f51668c14942d2187229b821f44b45dd878b65ba
     volumes:
       - scap_data_vol:/mnt
     networks:
       - greenbone-net
 
   cert-bund-data:
-    image: registry.community.greenbone.net/community/cert-bund-data
+    image: registry.community.greenbone.net/community/cert-bund-data@sha256:7b195f11a3f5cd795a73d90e1d41257cc06b0a7ffb58c8aac0a3473515034cd8
     volumes:
       - cert_data_vol:/mnt
     networks:
       - greenbone-net
 
   dfn-cert-data:
-    image: registry.community.greenbone.net/community/dfn-cert-data
+    image: registry.community.greenbone.net/community/dfn-cert-data@sha256:37d61403a8e2be0957fda5247e9baff80f20b7b8b55f96d51e2e86e910068eb7
     volumes:
       - cert_data_vol:/mnt
     depends_on:
@@ -70,7 +70,7 @@ services:
       - greenbone-net
 
   data-objects:
-    image: registry.community.greenbone.net/community/data-objects
+    image: registry.community.greenbone.net/community/data-objects@sha256:a8923a7ec89e9d67f6a3da4ca2f017910147ccad67eac687ab4c421387edd1a6
     environment:
       FEED_RELEASE: "24.10"
     volumes:
@@ -79,7 +79,7 @@ services:
       - greenbone-net
 
   report-formats:
-    image: registry.community.greenbone.net/community/report-formats
+    image: registry.community.greenbone.net/community/report-formats@sha256:53574fa38cd7f33d14e01983dd5a40b4b4deccb8fcf88163f6f01789c1aa7f8b
     environment:
       FEED_RELEASE: "24.10"
     volumes:
@@ -90,14 +90,14 @@ services:
       - greenbone-net
 
   gpg-data:
-    image: registry.community.greenbone.net/community/gpg-data
+    image: registry.community.greenbone.net/community/gpg-data@sha256:836bd24bf820dc6eef57b109a9c9b1f88c8e651edcdf4a00c835b9524c132a7b
     volumes:
       - gpg_data_vol:/mnt
     networks:
       - greenbone-net
 
   redis-server:
-    image: registry.community.greenbone.net/community/redis-server
+    image: registry.community.greenbone.net/community/redis-server@sha256:6da6a7c7221aa3ab231961fd6ca001d552b6a2c7727ac6201c6d8a360baa963a
     restart: on-failure
     volumes:
       - redis_socket_vol:/run/redis/
@@ -105,7 +105,7 @@ services:
       - greenbone-net
 
   pg-gvm:
-    image: registry.community.greenbone.net/community/pg-gvm:stable
+    image: registry.community.greenbone.net/community/pg-gvm@sha256:9f33165496bfa2676cb37137bb9dfbc72438ecb92e4a7c07bcd18a0eedbac1a6
     restart: on-failure
     volumes:
       - psql_data_vol:/var/lib/postgresql
@@ -114,7 +114,7 @@ services:
       - greenbone-net
 
   gvmd:
-    image: registry.community.greenbone.net/community/gvmd:stable
+    image: registry.community.greenbone.net/community/gvmd@sha256:0c6357d0c4b6da462edf0c1d1429949e920a00693dc2aa18bbc85a9e17e34138
     container_name: greenbone-community-edition-gvmd-1 # Nombre fijo para que el script lo encuentre
     restart: on-failure
     volumes:
@@ -133,7 +133,7 @@ services:
       - greenbone-net
 
   gsa:
-    image: registry.community.greenbone.net/community/gsa:stable
+    image: registry.community.greenbone.net/community/gsa@sha256:94195849bc0324b568b94672bf1dd1ebf3381ebccd15d7ecfa05cf46d40b7b66
     restart: on-failure
     ports:
       - 127.0.0.1:9392:9392
@@ -145,7 +145,7 @@ services:
       - greenbone-net
 
   configure-openvas:
-    image: registry.community.greenbone.net/community/openvas-scanner:stable
+    image: registry.community.greenbone.net/community/openvas-scanner@sha256:ea77510c9fe89756d19eb40791d2e2b25dfb8e60e23615b97a5b98cb874d5bc5
     volumes:
       - openvas_data_vol:/mnt
       - openvas_log_data_vol:/var/log/openvas
@@ -154,7 +154,7 @@ services:
       - greenbone-net
 
   openvas:
-    image: registry.community.greenbone.net/community/openvas-scanner:stable
+    image: registry.community.greenbone.net/community/openvas-scanner@sha256:ea77510c9fe89756d19eb40791d2e2b25dfb8e60e23615b97a5b98cb874d5bc5
     restart: on-failure
     volumes:
       - openvas_data_vol:/etc/openvas
@@ -166,7 +166,7 @@ services:
       - greenbone-net
 
   openvasd:
-    image: registry.community.greenbone.net/community/openvas-scanner:stable
+    image: registry.community.greenbone.net/community/openvas-scanner@sha256:ea77510c9fe89756d19eb40791d2e2b25dfb8e60e23615b97a5b98cb874d5bc5
     restart: on-failure
     environment:
       OPENVASD_MODE: service_notus
@@ -185,7 +185,7 @@ services:
       - greenbone-net
 
   ospd-openvas:
-    image: registry.community.greenbone.net/community/ospd-openvas:stable
+    image: registry.community.greenbone.net/community/ospd-openvas@sha256:b8507be8e4cf34a84cc02c216817f86b347a984ecdbe0b68c759b094efd626c9
     restart: on-failure
     cap_add:
       - NET_ADMIN
@@ -212,7 +212,7 @@ services:
       - lab-net
 
   gvm-tools:
-    image: registry.community.greenbone.net/community/gvm-tools
+    image: registry.community.greenbone.net/community/gvm-tools@sha256:c632fa9367e0f64c0c67b989d96279b12eae811acfde5cc06602bf64b15deea6
     volumes:
       - gvmd_socket_vol:/run/gvmd
       - ospd_openvas_socket_vol:/run/ospd
@@ -223,7 +223,7 @@ services:
       - greenbone-net
 
   mailpit:
-    image: axllent/mailpit
+    image: axllent/mailpit@sha256:956d688cbd13dca36c72d8e94c34d6d1cdf4a005aa6aa4ff6edaaac56c34d8df
     container_name: mailpit
     restart: unless-stopped
     ports:

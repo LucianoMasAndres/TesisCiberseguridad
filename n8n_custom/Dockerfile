@@ -2,7 +2,9 @@
 FROM alpine:3.20 AS builder
 
 # --- Stage 2: Build the custom n8n image ---
-FROM n8nio/n8n:latest
+# Fijado por digest (no :latest) para reproducibilidad exacta — ver hallazgo
+# "Uso de :latest" de la auditoria 2026-08-04.
+FROM n8nio/n8n@sha256:cf11c96b0d0089bb24459bf97b445fd7008f41543b673cce4d955f7c0ed8752d
 
 USER root
 
