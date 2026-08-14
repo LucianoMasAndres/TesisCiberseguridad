@@ -18,10 +18,10 @@ if (-not (Get-Command nmap -ErrorAction SilentlyContinue)) {
 
 Write-Host "Escaneando red: $Subnet"
 
-# Parsear el XML de nmap directamente en PowerShell y enviar solo las IPs
+# --- Paso 1: Descubrimiento (host vivo / muerto) ---
 [xml]$nmapOutput = nmap -sn -n -oX - $Subnet
 
-$hosts = @()
+$ips = @()
 if ($nmapOutput.nmaprun.host) {
     $hostNodes = $nmapOutput.nmaprun.host
     if ($hostNodes -isnot [System.Array]) { $hostNodes = @($hostNodes) }
@@ -31,21 +31,59 @@ if ($nmapOutput.nmaprun.host) {
             $addresses = $h.address
             if ($addresses -isnot [System.Array]) { $addresses = @($addresses) }
             $ipv4 = $addresses | Where-Object { $_.addrtype -eq 'ipv4' } | Select-Object -First 1
-            if ($ipv4) { $hosts += $ipv4.addr }
+            if ($ipv4) { $ips += $ipv4.addr }
         }
     }
 }
 
-Write-Host "Hosts activos encontrados: $($hosts.Count)"
+Write-Host "Hosts activos encontrados: $($ips.Count)"
+
+# --- Paso 2: Filtrado (puertos relevantes para el algoritmo de clasificacion) ---
+# Solo se escanean los puertos catalogados en SERVICE_WEIGHTS (ver docs/anexo_e_f_v2.md);
+# son los que la organizacion considera con impacto real en la superficie de ataque.
+$puertosTcp = "21,22,23,25,80,389,443,445,587,3306,5432,6379,8080"
+$hosts = @()
+
+if ($ips.Count -gt 0) {
+    $ipsCsv = $ips -join ","
+    Write-Host "Escaneando puertos relevantes en: $ipsCsv"
+    [xml]$portScan = nmap -n -Pn --open -p "T:$puertosTcp,U:161" -sV -oX - $ipsCsv
+
+    $psHosts = $portScan.nmaprun.host
+    if ($psHosts -isnot [System.Array]) { $psHosts = @($psHosts) }
+
+    foreach ($h in $psHosts) {
+        if (-not $h) { continue }
+        $addresses = $h.address
+        if ($addresses -isnot [System.Array]) { $addresses = @($addresses) }
+        $ipv4 = $addresses | Where-Object { $_.addrtype -eq 'ipv4' } | Select-Object -First 1
+        if (-not $ipv4) { continue }
+
+        $openPorts = @()
+        if ($h.ports.port) {
+            $portNodes = $h.ports.port
+            if ($portNodes -isnot [System.Array]) { $portNodes = @($portNodes) }
+            foreach ($p in $portNodes) {
+                if ($p.state.state -eq 'open') { $openPorts += [int]$p.portid }
+            }
+        }
+
+        $hosts += [ordered]@{ ip = $ipv4.addr; ports = $openPorts }
+    }
+}
+
 if ($hosts.Count -gt 0) {
-    Write-Host "IPs: $($hosts -join ', ')"
+    Write-Host "Detalle de puertos por host:"
+    foreach ($h in $hosts) {
+        Write-Host "  $($h.ip): $($h.ports -join ', ')"
+    }
 }
 
 $jsonBody = @{
     hosts     = $hosts
     subnet    = $Subnet
     hostCount = $hosts.Count
-} | ConvertTo-Json
+} | ConvertTo-Json -Depth 5
 
 Write-Host "Enviando resultados a: $N8nUrl"
 

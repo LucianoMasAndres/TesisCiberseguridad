@@ -4,6 +4,9 @@ services:
     build: ./n8n_custom
     container_name: n8n-security-lab
     restart: unless-stopped
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
     ports:
       - "5678:5678"
     environment:
@@ -16,6 +19,7 @@ services:
       - N8N_RUNNERS_TASK_TIMEOUT=7200
       - GVM_USERNAME=admin
       - GVM_PASSWORD=admin123
+      - LAB_SUBNET=172.20.0.0/24
     volumes:
       - n8n_data:/home/node/.n8n
       - gvmd_socket_vol:/run/gvmd
@@ -23,6 +27,7 @@ services:
       - gvmd  # Espera a que OpenVAS arranque
     networks:
       - greenbone-net
+      - lab-net
 
   # --- BLOQUE 2: Greenbone Community Edition (El Escáner) ---
   vulnerability-tests:
@@ -204,6 +209,7 @@ services:
       - configure-openvas
     networks:
       - greenbone-net
+      - lab-net
 
   gvm-tools:
     image: registry.community.greenbone.net/community/gvm-tools
@@ -247,3 +253,5 @@ volumes:
 networks:
   greenbone-net:
     driver: bridge
+  lab-net:
+    external: true # creada por lab-targets/docker-compose.lab-targets.yml
