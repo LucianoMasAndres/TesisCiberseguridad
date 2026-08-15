@@ -1,10 +1,30 @@
 @echo off
-:: Crea un acceso directo a launcher.py en el escritorio de Windows
+:: Crea un acceso directo en el escritorio de Windows.
+:: Si existe el .exe compilado (dist\SecurityLabLauncher.exe) apunta a ese
+:: -- no requiere Python instalado. Si no, cae al modo "correr con python"
+:: (para desarrollo; requiere python + tkinter).
 
 set SCRIPT_DIR=%~dp0
 set PROJECT_DIR=%SCRIPT_DIR%..
+set EXE=%PROJECT_DIR%\dist\SecurityLabLauncher.exe
 set LAUNCHER=%PROJECT_DIR%\launcher.py
 set SHORTCUT=%USERPROFILE%\Desktop\SecurityLab.lnk
+
+if exist "%EXE%" (
+    echo Encontrado SecurityLabLauncher.exe -- creando acceso directo...
+    powershell -NoProfile -Command ^
+      "$ws = New-Object -ComObject WScript.Shell;" ^
+      "$s = $ws.CreateShortcut('%SHORTCUT%');" ^
+      "$s.TargetPath = '%EXE%';" ^
+      "$s.WorkingDirectory = '%PROJECT_DIR%';" ^
+      "$s.Description = 'Security Lab Launcher';" ^
+      "$s.Save()"
+    goto :done
+)
+
+echo No se encontro el .exe compilado. Modo desarrollo: se requiere Python.
+echo (Para generar el .exe: scripts\build_launcher_windows.bat)
+echo.
 
 :: Verificar que Python esté instalado
 python --version >nul 2>&1
@@ -26,7 +46,6 @@ if errorlevel 1 (
     exit /b 1
 )
 
-:: Crear acceso directo en el escritorio via PowerShell
 powershell -NoProfile -Command ^
   "$ws = New-Object -ComObject WScript.Shell;" ^
   "$s = $ws.CreateShortcut('%SHORTCUT%');" ^
@@ -36,13 +55,11 @@ powershell -NoProfile -Command ^
   "$s.Description = 'Security Lab Launcher';" ^
   "$s.Save()"
 
+:done
 if exist "%SHORTCUT%" (
     echo.
     echo Acceso directo creado en el escritorio: SecurityLab.lnk
-    echo También podés correrlo directamente con:
-    echo     python launcher.py
 ) else (
     echo ERROR: No se pudo crear el acceso directo.
 )
-
 pause

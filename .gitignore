@@ -4,3 +4,6 @@ Nuevo(3).md
 __pycache__/
 *.pyc
 *.pyo
+build/
+dist/
+*.spec

@@ -7,6 +7,7 @@ Requiere: python3-tk, docker, docker compose v2
 import os
 import json
 import queue
+import shutil
 import subprocess
 import threading
 import time
@@ -21,6 +22,13 @@ import tkinter as tk
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 GVMD_CONTAINER = "greenbone-community-edition-gvmd-1"
 IS_LINUX = platform.system() == "Linux"
+IS_WINDOWS = platform.system() == "Windows"
+
+DOCKER_DOWNLOAD_URL = {
+    "Windows": "https://www.docker.com/products/docker-desktop/",
+    "Darwin": "https://www.docker.com/products/docker-desktop/",
+    "Linux": "https://docs.docker.com/engine/install/",
+}
 
 SCAN_PROFILES = {
     "Rápido  — Solo descubrimiento (~5 min)":   "8715c877-47a0-438d-98a3-27c7a6ab2196",
@@ -58,15 +66,104 @@ class Launcher(tk.Tk):
         self._n8n_password = tk.StringVar()
         self._daily_scan = tk.BooleanVar(value=True)
 
-        self._build_ui()
         self._poll_queue()
-        self._schedule_status()
+        self._show_setup_or_dashboard()
+
+    # ------------------------------------------------------------------
+    # Verificación de requisitos (Docker / Docker Compose)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _cmd_ok(cmd):
+        try:
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=8)
+            return r.returncode == 0
+        except Exception:
+            return False
+
+    def _check_requirements(self):
+        docker_installed = shutil.which("docker") is not None
+        docker_daemon = docker_installed and self._cmd_ok(["docker", "info"])
+        compose_ok = docker_installed and self._cmd_ok(["docker", "compose", "version"])
+        return {
+            "docker": docker_installed,
+            "daemon": docker_daemon,
+            "compose": compose_ok,
+        }
+
+    def _show_setup_or_dashboard(self):
+        checks = self._check_requirements()
+        if all(checks.values()):
+            self._build_ui()
+            self._schedule_status()
+        else:
+            self._build_setup_screen(checks)
+
+    def _build_setup_screen(self, checks):
+        for w in self.winfo_children():
+            w.destroy()
+
+        hdr = tk.Frame(self, bg=BG, padx=20, pady=16)
+        hdr.pack(fill="x")
+        tk.Label(hdr, text="  Security Lab Launcher — Verificación de requisitos",
+                 bg=BG, fg=CYAN, font=("Courier New", 14, "bold")).pack(side="left")
+
+        sep = tk.Frame(self, bg=BORDER, height=1)
+        sep.pack(fill="x", padx=20)
+
+        body = tk.Frame(self, bg=BG, padx=30, pady=20)
+        body.pack(fill="both", expand=True)
+
+        card = self._card(body, "REQUISITOS DEL SISTEMA")
+        inner = tk.Frame(card, bg=SURFACE, padx=16, pady=10)
+        inner.pack(fill="x")
+
+        rows = [
+            ("docker", "Docker instalado", checks["docker"]),
+            ("daemon", "Docker corriendo (daemon activo)", checks["daemon"]),
+            ("compose", "Docker Compose v2", checks["compose"]),
+        ]
+        for _, label, ok in rows:
+            row = tk.Frame(inner, bg=SURFACE)
+            row.pack(fill="x", pady=4)
+            color = GREEN if ok else RED
+            symbol = "✓" if ok else "✗"
+            tk.Label(row, text=symbol, bg=SURFACE, fg=color,
+                     font=("Courier New", 12, "bold"), width=2).pack(side="left")
+            tk.Label(row, text=label, bg=SURFACE, fg=TEXT,
+                     font=("Courier New", 10)).pack(side="left")
+
+        msg = tk.Frame(body, bg=BG, pady=14)
+        msg.pack(fill="x")
+        if not checks["docker"]:
+            txt = ("Docker no está instalado en este equipo. Es el único requisito externo:\n"
+                   "una vez instalado, el laboratorio completo se levanta solo.")
+        elif not checks["daemon"]:
+            txt = ("Docker está instalado pero el servicio (Docker Desktop) no está\n"
+                   "corriendo. Abrilo y esperá a que termine de iniciar.")
+        else:
+            txt = ("Docker Compose v2 no está disponible. Actualizá Docker Desktop, o en\n"
+                   "Linux instalá el plugin: sudo apt-get install docker-compose-plugin")
+        tk.Label(msg, text=txt, bg=BG, fg=MUTED, font=("Courier New", 9),
+                 justify="left", anchor="w").pack(fill="x")
+
+        btn_row = tk.Frame(body, bg=BG)
+        btn_row.pack(fill="x", pady=(6, 0))
+        if not checks["docker"]:
+            url = DOCKER_DOWNLOAD_URL.get(platform.system(), DOCKER_DOWNLOAD_URL["Linux"])
+            self._btn(btn_row, "⬇  Descargar Docker", BLUE, "white",
+                      lambda: webbrowser.open(url)).pack(side="left", padx=(0, 10))
+        self._btn(btn_row, "↻  Verificar de nuevo", SURFACE, TEXT,
+                  lambda: self._show_setup_or_dashboard()).pack(side="left")
 
     # ------------------------------------------------------------------
     # UI
     # ------------------------------------------------------------------
 
     def _build_ui(self):
+        for w in self.winfo_children():
+            w.destroy()
+
         # Header
         hdr = tk.Frame(self, bg=BG, padx=20, pady=12)
         hdr.pack(fill="x")
