@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Polygon
 from matplotlib.path import Path
 
-fig, ax = plt.subplots(figsize=(7, 9))
+fig, ax = plt.subplots(figsize=(7, 6.2))
 ax.set_xlim(0, 10)
-ax.set_ylim(0, 15)
+ax.set_ylim(2.8, 15)
 ax.axis('off')
 
 def box(x, y, w, h, text, fc='#dbe9f6', fontsize=9.5):
@@ -45,7 +45,7 @@ arrow(bot2, (5, 10))
 
 # Rama Critico
 box(7.2, 8.6, 2.4, 1.0, "Crítico", fc='#f5b7b1')
-arrow((5.8, 9.2), (7.2, 9.1), "sí")
+arrow((5.8, 9.2), (7.15, 9.1), "sí", offset=(0, 0.28))
 
 # Decision 2 (si no)
 diamond(5, 6.6, 3.6, 1.6, "score > 10 ?")
@@ -53,7 +53,7 @@ arrow((5, 8.4), (5, 7.4), "no")
 
 # Rama Alto
 box(7.2, 6.0, 2.4, 1.0, "Alto", fc='#fad7a0')
-arrow((5.8, 6.6), (7.2, 6.5), "sí")
+arrow((5.8, 6.6), (7.15, 6.5), "sí", offset=(0, 0.28))
 
 # Rama Normal
 box(2.6, 3.8, 2.4, 1.0, "Normal", fc='#a9dfbf')

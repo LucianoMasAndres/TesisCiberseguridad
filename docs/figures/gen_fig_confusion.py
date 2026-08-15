@@ -12,7 +12,7 @@ matrix = np.array([
     [0, 4, 11],
 ])
 
-fig, ax = plt.subplots(figsize=(5.5, 5))
+fig, ax = plt.subplots(figsize=(6.5, 5))
 im = ax.imshow(matrix, cmap='Blues')
 
 ax.set_xticks(range(3))

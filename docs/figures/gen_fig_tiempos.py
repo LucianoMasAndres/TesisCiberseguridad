@@ -24,7 +24,8 @@ ax.set_xlabel('Repetición')
 ax.set_ylabel('Tiempo total del ciclo (minutos)')
 ax.set_title('Tiempo total del ciclo completo por repetición\n(manual vs. automatizado, n=5 cada condición)')
 ax.set_xticks(reps)
-ax.legend()
+ax.set_ylim(0, 85)
+ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), ncol=2, frameon=False)
 ax.grid(axis='y', linestyle='--', alpha=0.4)
 
 for bars in (bars1, bars2):

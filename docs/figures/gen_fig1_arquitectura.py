@@ -5,9 +5,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
-fig, ax = plt.subplots(figsize=(9, 7))
-ax.set_xlim(0, 12)
-ax.set_ylim(0, 10)
+fig, ax = plt.subplots(figsize=(9, 7.5))
+ax.set_xlim(0, 13)
+ax.set_ylim(0, 10.2)
 ax.axis('off')
 
 def box(x, y, w, h, text, fc='#dbe9f6', ec='#2471a3', fontsize=9):
@@ -16,12 +16,13 @@ def box(x, y, w, h, text, fc='#dbe9f6', ec='#2471a3', fontsize=9):
     ax.text(x + w/2, y + h/2, text, ha='center', va='center', fontsize=fontsize)
     return b
 
-def arrow(p1, p2, text=None, offset=(0, 0.15), fc='#333333'):
+def arrow(p1, p2, fc='#333333'):
     a = FancyArrowPatch(p1, p2, arrowstyle='-|>', mutation_scale=13, color=fc, linewidth=1.2)
     ax.add_patch(a)
-    if text:
-        mx, my = (p1[0]+p2[0])/2, (p1[1]+p2[1])/2
-        ax.text(mx + offset[0], my + offset[1], text, fontsize=7.5, color='#333333', ha='center')
+
+def label(pos, text, ha='center'):
+    ax.text(pos[0], pos[1], text, fontsize=7.3, color='#333333', ha=ha, va='center',
+             bbox=dict(boxstyle='round,pad=0.2', fc='white', ec='#999999', alpha=0.9))
 
 # Capa 1: contenedor n8n personalizado
 box(0.4, 6.6, 4.6, 2.6,
@@ -33,23 +34,28 @@ box(6.9, 5.8, 4.7, 3.4,
     "Pila Greenbone Community Edition\n(17 servicios Docker Compose)\n\ngvmd  ·  ospd-openvas  ·  notus\npg-gvm (PostgreSQL)  ·  redis-server\nvulnerability-tests  ·  configure-openvas",
     fc='#fdebd0', ec='#b9770e', fontsize=8)
 
-# Socket Unix GMP
-arrow((5.0, 8.0), (6.9, 8.0), "GMP sobre socket Unix\n(gvmd_socket_vol)")
+# Socket Unix GMP (etiqueta bien despegada de la flecha, con fondo blanco)
+arrow((5.0, 8.6), (6.9, 8.6))
+label((5.95, 9.0), "GMP sobre socket Unix\n(gvmd_socket_vol)")
 
 # Red lab-net y objetivos (desplazada a la derecha, bajo Greenbone)
 box(5.4, 3.2, 4.6, 1.6,
     "Red Docker 'lab-net'\n12 activos objetivo (lab-targets)\nSSH, FTP, SMB, HTTP, MySQL, SNMP, etc.",
     fc='#eaf2e3', ec='#2e7d32', fontsize=8)
 
-arrow((3.5, 6.6), (5.9, 4.8), "Nmap\n(descubrimiento + puertos)")
-arrow((9.0, 5.8), (8.4, 4.8), "OpenVAS\n(análisis de vulnerabilidades)")
+arrow((3.5, 6.6), (5.9, 4.8))
+label((1.9, 5.7), "Nmap\n(descubrimiento y puertos)", ha='center')
+
+arrow((9.0, 5.8), (8.4, 4.8))
+label((11.0, 5.35), "OpenVAS\n(análisis de\nvulnerabilidades)", ha='left')
 
 # Notificaciones (a la izquierda, sin cruzar la red lab-net)
 box(0.4, 0.5, 2.4, 1.6, "Telegram\n(bot API)", fc='#f5e0f5', ec='#8e44ad', fontsize=8.3)
 box(3.1, 0.5, 2.4, 1.6, "Mailpit\n(SMTP local)", fc='#f5e0f5', ec='#8e44ad', fontsize=8.3)
 
-arrow((1.6, 6.6), (1.6, 2.1), "resultados", offset=(-1.0, 0))
-arrow((4.3, 6.6), (4.3, 2.1), "resultados", offset=(1.0, 0))
+arrow((1.6, 6.6), (1.6, 2.1))
+arrow((4.3, 6.6), (4.3, 2.1))
+label((2.95, 4.35), "resultados\n(Telegram + Mailpit)")
 
 ax.set_title("Arquitectura de despliegue de dos capas\n(4.1 — elaboración propia a partir de docker-compose.yml)", fontsize=11)
 
