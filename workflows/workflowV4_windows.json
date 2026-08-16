@@ -1,0 +1,563 @@
+{
+  "name": "workflowV4_webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nmap",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        96
+      ],
+      "id": "webhook-nmap-input",
+      "name": "Webhook Nmap",
+      "webhookId": "webhook-nmap-scan"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ClassifyAsset embebido (ver docs/anexo_e_f_v2.md para la justificacion de pesos)\nconst SERVICE_WEIGHTS = {\n  21: 7, 22: 9, 23: 12, 25: 4, 80: 5, 161: 6, 389: 7, 443: 4,\n  445: 8, 587: 4, 3306: 10, 5432: 10, 6379: 10, 8080: 5,\n};\n\nfunction classifyAsset(openPorts) {\n  const score = (openPorts || []).reduce((sum, port) => sum + (SERVICE_WEIGHTS[port] || 1), 0);\n  let classification;\n  if (score > 20) classification = 'Critico';\n  else if (score > 10) classification = 'Alto';\n  else classification = 'Normal';\n  return { score, classification };\n}\n\nconst raw = items[0].json;\n// n8n guarda el body bajo $json.body cuando recibe application/json\nconst payload = raw.hosts !== undefined ? raw : raw.body !== undefined ? raw.body : raw;\nconst hostsRaw = Array.isArray(payload.hosts) ? payload.hosts : [];\n\nconst ignoradas = [\"172.20.0.1\", \"172.20.0.2\", \"172.20.0.3\"];\n\n// Soporta formato viejo (array de strings, solo IP) y nuevo (array de {ip, ports})\n// para no romper compatibilidad si algun caller viejo todavia manda solo IPs.\nconst hosts = hostsRaw\n  .map(h => (typeof h === 'string') ? { ip: h, ports: [] } : h)\n  .filter(h => h && h.ip && ignoradas.indexOf(h.ip) === -1);\n\nconst clasificados = hosts.map(h => {\n  const { score, classification } = classifyAsset(h.ports);\n  return { ip: h.ip, ports: h.ports || [], score, classification };\n});\n\n// OE4: solo Alto y Critico pasan al analisis profundo de Greenbone.\n// Los Normales quedan excluidos por diseno (no es un bug, es la priorizacion declarada).\nconst objetivo = clasificados.filter(h => h.classification === 'Alto' || h.classification === 'Critico');\nconst normales = clasificados.filter(h => h.classification === 'Normal');\n\nif (objetivo.length === 0) {\n  return [{ json: {\n    all_ips: \"\", ip_objetivo: \"\", cantidad_hosts: 0, encontrados: false,\n    clasificacion: clasificados, objetivo: [], normales\n  } }];\n}\n\nconst lista = objetivo.map(h => h.ip).join(\", \");\nreturn [{ json: {\n  all_ips: lista,\n  ip_objetivo: lista,\n  cantidad_hosts: objetivo.length,\n  encontrados: true,\n  clasificacion: clasificados,\n  objetivo,\n  normales\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        96
+      ],
+      "id": "1a36633e-ea1b-4709-b384-8177042ee1be",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { execSync } = require('child_process');\n\n// 1. Get the previous output (Task Creation Result)\nconst prevOutput = items[0].json.stdout;\n\n// 2. Extract the Task ID using Regex\nconst match = prevOutput.match(/id=\"([^\"]+)\"/);\nconst taskId = match ? match[1] : null;\n\nif (!taskId) {\n  throw new Error(\"Could not find Task ID in previous output\");\n}\n\n// 3. Construct Command\nconst xml = `<start_task task_id='${taskId}'/>`;\nconst cmd = `/home/node/gvm-env/bin/gvm-cli --gmp-username admin --gmp-password admin123 socket --socketpath /run/gvmd/gvmd.sock --xml \"${xml}\"`;\n\ntry {\n  const stdout = execSync(cmd).toString();\n  return [{ json: { stdout } }];\n} catch (error) {\n  throw new Error(error.message);\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "d6c4ea46-fe82-4e91-a373-113d0a07a2cd",
+      "name": "StartTask"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { execSync } = require('child_process');\n\n// 1. Get the previous output (Target Creation Result)\nconst prevOutput = items[0].json.stdout;\n\n// 2. Extract the Target ID using Regex\nconst match = prevOutput.match(/id=\"([^\"]+)\"/);\nconst targetId = match ? match[1] : null;\n\nif (!targetId) {\n  throw new Error(\"Could not find Target ID in previous output\");\n}\n\n// 3. Get the IP list from the earlier 'Code' node\nconst ipObjetivo = $('Code').first().json.ip_objetivo;\n\n// 4. Read scan config from launcher (passed as webhook query param)\n// Bug preexistente corregido: el nodo se llama 'Webhook Nmap', no 'Webhook'.\n// Ademas, si el disparo fue por Manual Trigger (escaneo interno), ese nodo no\n// corre en absoluto, asi que el acceso debe tolerar que no exista (fallback al\n// perfil de descubrimiento rapido).\nlet configId;\ntry {\n  configId = $('Webhook Nmap').first().json.query?.scan_config;\n} catch (e) {\n  configId = undefined;\n}\nconfigId = configId || '8715c877-47a0-438d-98a3-27c7a6ab2196';\n\n// 5. Construct Command\nconst xml = `<create_task><name>Scan ${ipObjetivo}</name><config id='${configId}'/><target id='${targetId}'/><scanner id='08b69003-5fc2-4037-a479-93b440211c73'/></create_task>`;\nconst cmd = `/home/node/gvm-env/bin/gvm-cli --gmp-username admin --gmp-password admin123 socket --socketpath /run/gvmd/gvmd.sock --xml \"${xml}\"`;\n\ntry {\n  const stdout = execSync(cmd).toString();\n  return [{ json: { stdout } }];\n} catch (error) {\n  throw new Error(error.message);\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        0
+      ],
+      "id": "8f397ef1-3157-4bab-951f-9f530c8e260d",
+      "name": "CreateTask"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { execSync } = require('child_process');\n\n// 1. Get data from previous node\nconst hosts = items[0].json.all_ips;\nconst count = items[0].json.cantidad_hosts;\nconst now = new Date().toISOString();\n\n// 2. Construct Command\nconst xml = `<create_target><name>Target Masivo (${count} hosts) - ${now}</name><hosts>${hosts}</hosts><port_list id='33d0cd82-57c6-11e1-8ed1-406186ea4fc5'/></create_target>`;\nconst cmd = `/home/node/gvm-env/bin/gvm-cli --gmp-username admin --gmp-password admin123 socket --socketpath /run/gvmd/gvmd.sock --xml \"${xml}\"`;\n\ntry {\n  const stdout = execSync(cmd).toString();\n  return [{ json: { stdout } }];\n} catch (error) {\n  throw new Error(error.message);\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        -80
+      ],
+      "id": "2842783d-e19b-4b72-acae-59a25ebfebca",
+      "name": "CreateTarget"
+    },
+    {
+      "parameters": {
+        "chatId": "TU_CHAT_ID_AQUI",
+        "text": "=ðŸ›¡ï¸ Reporte de Red Unificado\n\nðŸ“‹ Hosts: {{ $json.hosts_string }}\nðŸ“… Fecha: {{ $json.scan_date }}\nðŸ“Š Total Hallazgos: {{ $json.total_hallazgos }}\n\nðŸ”´ CrÃ­tica: {{ $json.critical_count }}\nðŸŸ  Alta: {{ $json.high_count }}\nðŸŸ¡ Media: {{ $json.medium_count }}\nðŸŸ¢ Baja: {{ $json.low_count }}\n\nThis message was sent automatically with n8n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1920,
+        -32
+      ],
+      "id": "bea1260e-4f35-4356-8ed1-7b438317008f",
+      "name": "Send a text message1",
+      "webhookId": "aa6ca453-d92d-49c1-ac2a-4cb4d3d02ea0",
+      "credentials": {
+        "telegramApi": {
+          "id": "OggisG1wxv3LolCR",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { execSync } = require('child_process');\n\n// 1. Get the previous output (Start Task Result)\nconst prevOutput = items[0].json.stdout;\n\n// 2. Extract Report ID using Regex\nconst match = prevOutput.match(/<report_id>([^<]+)<\\/report_id>/);\nconst reportId = match ? match[1] : null;\n\nif (!reportId) {\n  throw new Error(\"Could not find Report ID in StartTask output\");\n}\n\n// 3. Construct Command to get full report\nconst xml = `<get_reports report_id='${reportId}' format_id='a994b278-1f62-11e1-96ac-406186ea4fc5' details='1'/>`;\nconst cmd = `/home/node/gvm-env/bin/gvm-cli --gmp-username admin --gmp-password admin123 socket --socketpath /run/gvmd/gvmd.sock --xml \"${xml}\"`;\n\ntry {\n  const stdout = execSync(cmd).toString();\n  return [{ json: { stdout } }];\n} catch (error) {\n  throw new Error(error.message);\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        80
+      ],
+      "id": "b7a5528e-4f22-48af-9841-877275b0c619",
+      "name": "DownloadPDF"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { exec } = require('child_process');\n\n// exec con timeout de 30s por llamada para evitar que gvm-cli se cuelgue\nconst execAsync = (cmd) => new Promise((resolve, reject) => {\n  exec(cmd, { timeout: 30000 }, (error, stdout) => {\n    if (error) reject(error);\n    else resolve({ stdout });\n  });\n});\nconst sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));\n\nconst createTaskOutput = $('CreateTask').first().json.stdout;\nconst taskMatch = createTaskOutput.match(/id=\"([^\"]+)\"/);\nconst taskId = taskMatch ? taskMatch[1] : null;\n\nif (!taskId) {\n  throw new Error('No se pudo obtener el Task ID para verificar el estado del escaneo');\n}\n\nconst MAX_WAIT_MS = 90 * 60 * 1000; // 90 minutos en tiempo de reloj real\nconst POLL_INTERVAL = 60000; // 60 segundos entre consultas\n\nconst startTime = Date.now();\n\nwhile (Date.now() - startTime < MAX_WAIT_MS) {\n  const xml = `<get_tasks task_id='${taskId}'/>`;\n  const cmd = `/home/node/gvm-env/bin/gvm-cli --gmp-username admin --gmp-password admin123 socket --socketpath /run/gvmd/gvmd.sock --xml \"${xml}\"`;\n\n  const { stdout: output } = await execAsync(cmd);\n  const statusMatch = output.match(/<status>([^<]+)<\\/status>/);\n  const status = statusMatch ? statusMatch[1] : 'Unknown';\n\n  if (status === 'Done') {\n    return [{ json: { stdout: $('StartTask').first().json.stdout, timed_out: false } }];\n  }\n\n  if (status === 'Stopped' || status === 'Interrupted') {\n    throw new Error(`El escaneo terminÃ³ con estado inesperado: ${status}`);\n  }\n\n  await sleep(POLL_INTERVAL);\n}\n\n// Timeout alcanzado: retornamos flag en vez de lanzar error para poder notificar por Telegram\nreturn [{ json: { timed_out: true, task_id: taskId } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "poll-scan-status",
+      "name": "PollStatus"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-timeout",
+              "leftValue": "={{ $json.timed_out }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        -80
+      ],
+      "id": "if-timeout",
+      "name": "Â¿Timeout?"
+    },
+    {
+      "parameters": {
+        "chatId": "TU_CHAT_ID_AQUI",
+        "text": "=â° Timeout: el escaneo OpenVAS superÃ³ los 90 minutos y fue detenido.\n\nðŸ†” Task ID: {{ $json.task_id }}\n\nRevisÃ¡ el estado manualmente en la interfaz de OpenVAS.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        -240
+      ],
+      "id": "telegram-scan-timeout",
+      "name": "Telegram Scan Timeout",
+      "credentials": {
+        "telegramApi": {
+          "id": "OggisG1wxv3LolCR",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "dataPropertyName": "stdout",
+        "options": {
+          "mergeAttrs": true
+        }
+      },
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        80
+      ],
+      "id": "a5a674ac-dc9e-4ffc-bd81-af89f4053255",
+      "name": "XML1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Obtenemos todos los resultados crudos\nconst vulns = items.map(item => item.json);\n\nif (!vulns.length) {\n  return [{ json: { email_body: \"Sin resultados\", subject: \"Scan vacÃ­o\" } }];\n}\n\n// --- HELPERS ---\nconst toText = (val) => {\n    if (!val) return \"N/A\";\n    if (typeof val === 'string') return val;\n    if (typeof val === 'object' && val._) return val._;\n    return JSON.stringify(val);\n};\n\nconst getIP = (v) => {\n    if (v.host && v.host._) return v.host._;\n    if (typeof v.host === 'string') return v.host;\n    return \"Desconocido\";\n};\n\n// 2. LÃ³gica Multi-Host\nconst uniqueHosts = [...new Set(vulns.map(v => getIP(v)))];\nconst hostsString = uniqueHosts.join(', ');\n\nconst scanDate = vulns[0].timestamp || new Date().toISOString();\n\n// 3. EstadÃ­sticas Globales\nconst critical = vulns.filter(v => v.severity >= 9.0);\nconst high = vulns.filter(v => v.severity >= 7.0 && v.severity < 9.0);\nconst medium = vulns.filter(v => v.severity >= 4.0 && v.severity < 7.0);\nconst low = vulns.filter(v => v.severity < 4.0);\n\n// 4. Armado del HTML\nconst htmlReport = `\n<div style=\"font-family: sans-serif; color: #222;\">\n  <h2 style=\"border-bottom: 2px solid #444;\">ðŸ›¡ï¸ Reporte de Red Unificado</h2>\n  <div style=\"background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 20px;\">\n    <p style=\"margin: 0;\">\n      <strong>Hosts Escaneados:</strong> ${hostsString}<br>\n      <strong>Fecha:</strong> ${scanDate}<br>\n      <strong>Total Hallazgos:</strong> ${vulns.length}\n    </p>\n  </div>\n\n  <table style=\"width: 100%; border-collapse: collapse; margin-bottom: 20px;\">\n    <tr style=\"background: #333; color: white;\">\n       <th style=\"padding: 8px;\">CrÃ­tica</th>\n       <th style=\"padding: 8px;\">Alta</th>\n       <th style=\"padding: 8px;\">Media</th>\n       <th style=\"padding: 8px;\">Baja</th>\n    </tr>\n    <tr style=\"text-align: center; font-size: 1.2em;\">\n       <td style=\"border: 1px solid #ccc; color: red; font-weight: bold; padding: 10px;\">${critical.length}</td>\n       <td style=\"border: 1px solid #ccc; color: orange; font-weight: bold; padding: 10px;\">${high.length}</td>\n       <td style=\"border: 1px solid #ccc; color: #d4a017; padding: 10px;\">${medium.length}</td>\n       <td style=\"border: 1px solid #ccc; color: green; padding: 10px;\">${low.length}</td>\n    </tr>\n  </table>\n\n  <h3>ðŸš¨ Hallazgos CrÃ­ticos y Altos</h3>\n  ${[...critical, ...high].length === 0 ? '<p>No hay vulnerabilidades crÃ­ticas o altas en la red.</p>' : ''}\n\n  ${[...critical, ...high].map(v => `\n    <div style=\"border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-left: 5px solid ${v.severity >= 9 ? 'red' : 'orange'}; background-color: #fff;\">\n      <div style=\"display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;\">\n         <h3 style=\"margin: 0; color: #333;\">${toText(v.name)}</h3>\n         <span style=\"background-color: #333; color: #fff; padding: 3px 8px; border-radius: 3px; font-size: 0.8em;\">ðŸ–¥ï¸ ${getIP(v)}</span>\n      </div>\n      <div style=\"font-size: 0.9em; color: #555; margin-bottom: 10px;\">\n        <strong>Severidad:</strong> ${v.severity} | <strong>Puerto:</strong> ${toText(v.port)} | <strong>CVE:</strong> ${toText(v.cve)}\n      </div>\n      <p style=\"margin: 0 0 10px 0;\"><strong>DescripciÃ³n:</strong><br> ${toText(v.description).substring(0, 300)}...</p>\n      <div style=\"background: #f1f1f1; padding: 8px; border-radius: 4px; font-size: 0.9em;\">\n        <strong>ðŸ’¡ SoluciÃ³n:</strong> ${toText(v.solution).substring(0, 250)}...\n      </div>\n    </div>\n  `).join('')}\n\n  <hr>\n  <small>Reporte automÃ¡tico N8N - Hosts: ${uniqueHosts.length}</small>\n</div>\n`;\n\nreturn [{\n  json: {\n    email_body: htmlReport,\n    subject: `Reporte de Red (${uniqueHosts.length} Hosts) - ${critical.length > 0 ? 'ðŸ”´ CRITICO' : 'ðŸ”µ INFO'}`,\n    hosts_string: hostsString,\n    scan_date: scanDate,\n    total_hallazgos: vulns.length,\n    critical_count: critical.length,\n    high_count: high.length,\n    medium_count: medium.length,\n    low_count: low.length\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1664,
+        0
+      ],
+      "id": "a7e6ce3c-a7c1-4683-8aa4-006d7dc7f4d3",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const reportData = items[0].json;\n\nlet rawResults = [];\ntry {\n  rawResults = reportData.get_reports_response.report.report.results.result;\n} catch (error) {\n  return [];\n}\n\n// Bug corregido: si el escaneo no encuentra nada, \"results\" existe pero sin\n// la propiedad \"result\" (no es un array vacio, es undefined). El codigo\n// original lo envolvia en [undefined] y reventaba al leer vuln.host.\nif (!rawResults) {\n  rawResults = [];\n} else if (!Array.isArray(rawResults)) {\n  rawResults = [rawResults];\n}\n\nconst cleanVulnerabilities = rawResults.map(vuln => {\n  return {\n    json: {\n      scan_id: reportData.get_reports_response.report.id,\n      timestamp: reportData.get_reports_response.report.creation_time,\n      host: (vuln.host && vuln.host['#text']) || (vuln.host && vuln.host._) || vuln.host || 'Desconocido',\n      port: vuln.port,\n      severity: parseFloat(vuln.severity),\n      name: vuln.name,\n      description: vuln.description,\n      cve: vuln.nvt?.cve || 'N/A',\n      solution: vuln.nvt?.solution || 'No solution provided',\n      solution_type: vuln.nvt?.solution_type || 'Unspecified'\n    }\n  };\n});\n\nreturn cleanVulnerabilities.filter(item => item.json.severity > 0.0);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        80
+      ],
+      "id": "00860938-5583-4d5e-acdb-c2896d37491d",
+      "name": "parseo"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-hosts-encontrados",
+              "leftValue": "={{ $json.encontrados }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        208,
+        96
+      ],
+      "id": "if-hay-hosts",
+      "name": "Â¿Hay hosts?"
+    },
+    {
+      "parameters": {
+        "chatId": "TU_CHAT_ID_AQUI",
+        "text": "âœ… Red limpia â€” Nmap no encontrÃ³ hosts activos en la subred.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        420,
+        200
+      ],
+      "id": "telegram-red-limpia",
+      "name": "Telegram Red Limpia",
+      "credentials": {
+        "telegramApi": {
+          "id": "OggisG1wxv3LolCR",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "TU_CHAT_ID_AQUI",
+        "text": "=Escaneo OpenVAS iniciado sobre {{ $(\"Code\").item.json.cantidad_hosts }} activo(s) clasificados Alto/Critico (de {{ $(\"Code\").item.json.clasificacion.length }} descubiertos). Te aviso cuando termine (puede tardar entre 15 y 90 min).",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        728,
+        -120
+      ],
+      "id": "telegram-scan-iniciado",
+      "name": "Telegram Scan Iniciado",
+      "credentials": {
+        "telegramApi": {
+          "id": "OggisG1wxv3LolCR",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fromEmail": "lab@security.local",
+        "toEmail": "axel1mejias1@gmail.com",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "html",
+        "message": "={{ $json.email_body }}"
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1920,
+        120
+      ],
+      "id": "send-email-reporte",
+      "name": "Send Email",
+      "credentials": {
+        "smtp": {
+          "id": "smtp-mailpit",
+          "name": "Mailpit SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const { execSync } = require('child_process');\n\nconst createTaskOutput = $('CreateTask').first().json.stdout;\nconst taskMatch = createTaskOutput.match(/id=\\\"([^\\\"]+)\\\"/);\nconst taskId = taskMatch ? taskMatch[1] : null;\n\nconst createTargetOutput = $('CreateTarget').first().json.stdout;\nconst targetMatch = createTargetOutput.match(/id=\\\"([^\\\"]+)\\\"/);\nconst targetId = targetMatch ? targetMatch[1] : null;\n\nconst run = (xml) => {\n  const cmd = `/home/node/gvm-env/bin/gvm-cli --gmp-username admin --gmp-password admin123 socket --socketpath /run/gvmd/gvmd.sock --xml \"${xml}\"`;\n  try { execSync(cmd); } catch(e) {}\n};\n\nif (taskId) run(`<delete_task task_id='${taskId}' ultimate='0'/>`);\nif (targetId) run(`<delete_target target_id='${targetId}'/>`);\n\nreturn [{ json: { cleaned: true, task_id: taskId, target_id: targetId } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2176,
+        -32
+      ],
+      "id": "cleanup-task-target",
+      "name": "Cleanup"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { execSync } = require('child_process');\n\n// Subred fija del laboratorio (ver lab-targets/docker-compose.lab-targets.yml).\n// No se usa $env/process.env: el sandbox del JS Task Runner de n8n bloquea\n// el acceso a variables de entorno en Code nodes por defecto.\nconst subnet = '172.20.0.0/24';\nconst relevantPorts = 'T:21,22,23,25,80,389,443,445,587,3306,5432,6379,8080,U:161';\n\n// 1. Descubrimiento (host vivo / muerto)\nconst discoveryXml = execSync(`nmap -sn -n -oX - ${subnet}`, { maxBuffer: 1024 * 1024 * 20 }).toString();\nconst discBlocks = discoveryXml.match(/<host[\\s\\S]*?<\\/host>/g) || [];\nconst upIps = [];\nfor (const block of discBlocks) {\n  if (/<status state=\"up\"/.test(block)) {\n    const m = block.match(/addr=\"([\\d.]+)\" addrtype=\"ipv4\"/);\n    if (m) upIps.push(m[1]);\n  }\n}\n\nif (upIps.length === 0) {\n  return [{ json: { hosts: [], subnet, hostCount: 0 } }];\n}\n\n// 2. Escaneo de puertos relevantes (los catalogados en SERVICE_WEIGHTS, ver\n//    docs/anexo_e_f_v2.md) sobre los hosts descubiertos. Requiere -sS/-sU\n//    (raw sockets); el Dockerfile de n8n_custom otorga el bit setuid a nmap\n//    para que funcione con el usuario no privilegiado 'node'.\nconst ipsArg = upIps.join(' ');\nconst portScanXml = execSync(\n  `nmap -n -Pn --open -p ${relevantPorts} -sS -sU -sV -oX - ${ipsArg}`,\n  { maxBuffer: 1024 * 1024 * 20 }\n).toString();\n\nconst hosts = [];\nconst psBlocks = portScanXml.match(/<host[\\s\\S]*?<\\/host>/g) || [];\nfor (const block of psBlocks) {\n  const ipMatch = block.match(/addr=\"([\\d.]+)\" addrtype=\"ipv4\"/);\n  if (!ipMatch) continue;\n  const ip = ipMatch[1];\n  const ports = [];\n  const portBlocks = block.match(/<port protocol=\"(?:tcp|udp)\" portid=\"\\d+\">[\\s\\S]*?<\\/port>/g) || [];\n  for (const pb of portBlocks) {\n    const stateMatch = pb.match(/<state state=\"open\"/);\n    const portIdMatch = pb.match(/portid=\"(\\d+)\"/);\n    if (stateMatch && portIdMatch) ports.push(parseInt(portIdMatch[1], 10));\n  }\n  hosts.push({ ip, ports });\n}\n\nreturn [{ json: { hosts, subnet, hostCount: hosts.length } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        -96
+      ],
+      "id": "nmapscan-node-v2-2026",
+      "name": "NmapScan"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -864,
+        -96
+      ],
+      "id": "manualtrigger-node-v2-2026",
+      "name": "Manual Trigger (escaneo interno)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Nmap": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Â¿Hay hosts?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Â¿Hay hosts?": {
+      "main": [
+        [
+          {
+            "node": "CreateTarget",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Red Limpia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CreateTask": {
+      "main": [
+        [
+          {
+            "node": "StartTask",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "StartTask": {
+      "main": [
+        [
+          {
+            "node": "Telegram Scan Iniciado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Scan Iniciado": {
+      "main": [
+        [
+          {
+            "node": "PollStatus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CreateTarget": {
+      "main": [
+        [
+          {
+            "node": "CreateTask",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PollStatus": {
+      "main": [
+        [
+          {
+            "node": "Â¿Timeout?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Â¿Timeout?": {
+      "main": [
+        [
+          {
+            "node": "Telegram Scan Timeout",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "DownloadPDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DownloadPDF": {
+      "main": [
+        [
+          {
+            "node": "XML1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML1": {
+      "main": [
+        [
+          {
+            "node": "parseo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "parseo": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        [
+          {
+            "node": "Cleanup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger (escaneo interno)": {
+      "main": [
+        [
+          {
+            "node": "NmapScan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NmapScan": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "04a4ab40-e633-4038-b2d6-fb33cc17374c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9af0faa360a281c41701df76dd364e53ef2f601ac209fddff27b71dfcb630d24"
+  },
+  "id": "Dg1asgeWQqs32Cp6",
+  "tags": []
+}

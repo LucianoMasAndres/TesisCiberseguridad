@@ -1,0 +1,9 @@
+CHANGELOG.md
+CONTEXTO_CLAUDE.md
+Nuevo(3).md
+__pycache__/
+*.pyc
+*.pyo
+build/
+dist/
+*.spec

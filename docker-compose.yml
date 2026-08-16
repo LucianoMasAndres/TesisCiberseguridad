@@ -1,0 +1,260 @@
+services:
+  # --- BLOQUE 1: n8n (Tu Orquestador) ---
+  n8n:
+    build: ./n8n_custom
+    container_name: n8n-security-lab
+    restart: unless-stopped
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - GENERIC_TIMEZONE=America/Argentina/Mendoza
+      - NODE_FUNCTION_ALLOW_BUILTIN=child_process
+      - N8N_RUNNERS_HEARTBEAT_INTERVAL=120
+      - N8N_RUNNERS_TASK_TIMEOUT=7200
+      - GVM_USERNAME=admin
+      - GVM_PASSWORD=admin123
+      - LAB_SUBNET=172.20.0.0/24
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - gvmd_socket_vol:/run/gvmd
+    depends_on:
+      - gvmd  # Espera a que OpenVAS arranque
+    networks:
+      - greenbone-net
+      - lab-net
+
+  # --- BLOQUE 2: Greenbone Community Edition (El Escáner) ---
+  vulnerability-tests:
+    image: registry.community.greenbone.net/community/vulnerability-tests@sha256:7007b95759ea66637414439f3a4c08ee6c5a8cdbffea3a0ee5dfa0499729e297
+    environment:
+      FEED_RELEASE: "24.10"
+    volumes:
+      - vt_data_vol:/mnt
+    networks:
+      - greenbone-net
+
+  notus-data:
+    image: registry.community.greenbone.net/community/notus-data@sha256:966bd65ec76a71e4ba3a0b8509434545ef2e3b77a15b4dd360aaa7b959e80290
+    volumes:
+      - notus_data_vol:/mnt
+    networks:
+      - greenbone-net
+
+  scap-data:
+    image: registry.community.greenbone.net/community/scap-data@sha256:def1298f305c69b7b928aaf9e6e1f0a65b60d04d0040c6f215eac3c6fb3aeff7
+    volumes:
+      - scap_data_vol:/mnt
+    networks:
+      - greenbone-net
+
+  cert-bund-data:
+    image: registry.community.greenbone.net/community/cert-bund-data@sha256:dbd95594910d41c41480cf0e511f707cbfead93a77990851675bb9256aecab8e
+    volumes:
+      - cert_data_vol:/mnt
+    networks:
+      - greenbone-net
+
+  dfn-cert-data:
+    image: registry.community.greenbone.net/community/dfn-cert-data@sha256:0e572475b82337980ad208a1c0b36fd97e78006f3c2ebf4ef311f725535ff305
+    volumes:
+      - cert_data_vol:/mnt
+    depends_on:
+      - cert-bund-data
+    networks:
+      - greenbone-net
+
+  data-objects:
+    image: registry.community.greenbone.net/community/data-objects@sha256:de3dfa4bc86745e67c6c767fa54edd5dc99063f23b7b31e2e52a7fdc5eca1d7e
+    environment:
+      FEED_RELEASE: "24.10"
+    volumes:
+      - data_objects_vol:/mnt
+    networks:
+      - greenbone-net
+
+  report-formats:
+    image: registry.community.greenbone.net/community/report-formats@sha256:9c92421ad4134cb6187333e9e02ff157b3096d36339d7f9831d7cc78bf17a6f6
+    environment:
+      FEED_RELEASE: "24.10"
+    volumes:
+      - data_objects_vol:/mnt
+    depends_on:
+      - data-objects
+    networks:
+      - greenbone-net
+
+  gpg-data:
+    image: registry.community.greenbone.net/community/gpg-data@sha256:c18618252f7d874cd1fe09413b043cfc40b57e6464d8c5973d4a93b074d5d91a
+    volumes:
+      - gpg_data_vol:/mnt
+    networks:
+      - greenbone-net
+
+  redis-server:
+    image: registry.community.greenbone.net/community/redis-server@sha256:6da6a7c7221aa3ab231961fd6ca001d552b6a2c7727ac6201c6d8a360baa963a
+    restart: on-failure
+    volumes:
+      - redis_socket_vol:/run/redis/
+    networks:
+      - greenbone-net
+
+  pg-gvm:
+    image: registry.community.greenbone.net/community/pg-gvm@sha256:b81bc5d7a750203ea25c6e4dd086751ecee8e388d1cb2501c60b3805e0056204
+    restart: on-failure
+    volumes:
+      - psql_data_vol:/var/lib/postgresql
+      - psql_socket_vol:/var/run/postgresql
+    networks:
+      - greenbone-net
+
+  gvmd:
+    image: registry.community.greenbone.net/community/gvmd@sha256:cb82c501ca93809405a8d0ed4c21846703466802ce6462536e985625f102b497
+    container_name: greenbone-community-edition-gvmd-1 # Nombre fijo para que el script lo encuentre
+    restart: on-failure
+    volumes:
+      - gvmd_data_vol:/var/lib/gvm
+      - scap_data_vol:/var/lib/gvm/scap-data/
+      - cert_data_vol:/var/lib/gvm/cert-data
+      - data_objects_vol:/var/lib/gvm/data-objects/gvmd
+      - vt_data_vol:/var/lib/openvas/plugins
+      - psql_data_vol:/var/lib/postgresql
+      - gvmd_socket_vol:/run/gvmd
+      - ospd_openvas_socket_vol:/run/ospd
+      - psql_socket_vol:/var/run/postgresql
+    depends_on:
+      - pg-gvm
+    networks:
+      - greenbone-net
+
+  gsa:
+    image: registry.community.greenbone.net/community/gsa@sha256:6e342f5454ef34db1462b2abc1eebc65f1951ddeeb7477e67a9a335ee82caee1
+    restart: on-failure
+    ports:
+      - 127.0.0.1:9392:9392
+    volumes:
+      - gvmd_socket_vol:/run/gvmd
+    depends_on:
+      - gvmd
+    networks:
+      - greenbone-net
+
+  configure-openvas:
+    image: registry.community.greenbone.net/community/openvas-scanner@sha256:ad3331443d8d4e2516e0087389961ac65f508ce4fab89104150f1e8e20cc4668
+    volumes:
+      - openvas_data_vol:/mnt
+      - openvas_log_data_vol:/var/log/openvas
+    command: ["/bin/sh", "-c", "printf \"table_driven_lsc = yes\\nopenvasd_server = http://openvasd:80\\n\" > /mnt/openvas.conf && sed \"s/127/128/\" /etc/openvas/openvas_log.conf | sed 's/gvm/openvas/' > /mnt/openvas_log.conf && chmod 644 /mnt/openvas.conf && chmod 644 /mnt/openvas_log.conf && touch /var/log/openvas/openvas.log && chmod 666 /var/log/openvas/openvas.log"]
+    networks:
+      - greenbone-net
+
+  openvas:
+    image: registry.community.greenbone.net/community/openvas-scanner@sha256:ad3331443d8d4e2516e0087389961ac65f508ce4fab89104150f1e8e20cc4668
+    restart: on-failure
+    volumes:
+      - openvas_data_vol:/etc/openvas
+      - openvas_log_data_vol:/var/log/openvas
+    command: ["/bin/sh", "-c", "cat /etc/openvas/openvas.conf && tail -f /var/log/openvas/openvas.log"]
+    depends_on:
+      - configure-openvas
+    networks:
+      - greenbone-net
+
+  openvasd:
+    image: registry.community.greenbone.net/community/openvas-scanner@sha256:ad3331443d8d4e2516e0087389961ac65f508ce4fab89104150f1e8e20cc4668
+    restart: on-failure
+    environment:
+      OPENVASD_MODE: service_notus
+      GNUPGHOME: /etc/openvas/gnupg
+      LISTENING: 0.0.0.0:80
+    volumes:
+      - openvas_data_vol:/etc/openvas
+      - openvas_log_data_vol:/var/log/openvas
+      - gpg_data_vol:/etc/openvas/gnupg
+      - notus_data_vol:/var/lib/notus
+    depends_on:
+      - vulnerability-tests
+      - configure-openvas
+      - gpg-data
+    networks:
+      - greenbone-net
+
+  ospd-openvas:
+    image: registry.community.greenbone.net/community/ospd-openvas@sha256:39775048190f97c06789e7b20a953145b9bbd53a64c8ba890ecf5ff00f564479
+    restart: on-failure
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    security_opt:
+      - seccomp=unconfined
+      - apparmor=unconfined
+    command: ["ospd-openvas", "-f", "--config", "/etc/gvm/ospd-openvas.conf", "--notus-feed-dir", "/var/lib/notus/advisories", "-m", "666"]
+    volumes:
+      - gpg_data_vol:/etc/openvas/gnupg
+      - vt_data_vol:/var/lib/openvas/plugins
+      - notus_data_vol:/var/lib/notus
+      - ospd_openvas_socket_vol:/run/ospd
+      - redis_socket_vol:/run/redis/
+      - openvas_data_vol:/etc/openvas/
+      - openvas_log_data_vol:/var/log/openvas
+    depends_on:
+      - redis-server
+      - gpg-data
+      - vulnerability-tests
+      - configure-openvas
+    networks:
+      - greenbone-net
+      - lab-net
+
+  gvm-tools:
+    image: registry.community.greenbone.net/community/gvm-tools@sha256:e5257e43fa164dea118c2b96477381a7d03b9fc46ab71e4ae7bf56d2919ef9b7
+    volumes:
+      - gvmd_socket_vol:/run/gvmd
+      - ospd_openvas_socket_vol:/run/ospd
+    depends_on:
+      - gvmd
+      - ospd-openvas
+    networks:
+      - greenbone-net
+
+  mailpit:
+    image: axllent/mailpit@sha256:956d688cbd13dca36c72d8e94c34d6d1cdf4a005aa6aa4ff6edaaac56c34d8df
+    container_name: mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - greenbone-net
+# --- Volúmenes (Persistencia de datos) ---
+volumes:
+  n8n_data:
+  gpg_data_vol:
+  scap_data_vol:
+  cert_data_vol:
+  data_objects_vol:
+  gvmd_data_vol:
+  psql_data_vol:
+  vt_data_vol:
+  notus_data_vol:
+  psql_socket_vol:
+  gvmd_socket_vol:
+  ospd_openvas_socket_vol:
+  redis_socket_vol:
+  openvas_data_vol:
+  openvas_log_data_vol:
+
+# --- Redes ---
+networks:
+  greenbone-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/24 # fijado para no chocar con lab-net (172.20.0.0/24)
+  lab-net:
+    external: true # creada por lab-targets/docker-compose.lab-targets.yml

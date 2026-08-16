@@ -1,0 +1,56 @@
+=== RESUMEN POR REPETICION ===
+Rep 1: 1761.5s total | descubrimiento 170.3s | greenbone 1591.1s | 9 hosts Alto/Critico | 24 hallazgos
+Rep 2: 1731.9s total | descubrimiento 19.3s | greenbone 1712.5s | 8 hosts Alto/Critico | 22 hallazgos
+Rep 3: 1672.2s total | descubrimiento 19.2s | greenbone 1652.9s | 7 hosts Alto/Critico | 19 hallazgos
+Rep 4: 1733.8s total | descubrimiento 19.4s | greenbone 1714.2s | 7 hosts Alto/Critico | 19 hallazgos
+Rep 5: 1944.3s total | descubrimiento 170.6s | greenbone 1773.5s | 9 hosts Alto/Critico | 24 hallazgos
+
+=== CONSISTENCIA DE CLASIFICACION (excluyendo host fantasma 172.20.0.3) ===
+Rep 1: 10/11 activos coinciden con ground truth
+Rep 2: 9/11 activos coinciden con ground truth
+Rep 3: 8/11 activos coinciden con ground truth
+Rep 4: 8/11 activos coinciden con ground truth
+Rep 5: 11/11 activos coinciden con ground truth
+TOTAL: 46/55 (83.6%)
+Errores por host (todos atribuibles a caidas documentadas de telnet-17/mail-16/ftp-19, no al algoritmo): { '172.20.0.17': 4, '172.20.0.16': 3, '172.20.0.19': 2 }
+
+=== VERIFICACION: el algoritmo SIEMPRE clasifica correctamente cuando tiene los puertos completos ===
+Errores de algoritmo con puertos completos: 0 (deberia ser 0)
+
+=== TIEMPOS (segundos) ===
+Media: 1768.7 s ( 29.5 min) | Desv. estandar: 92.5 s | CV: 5.23 %
+Min: 1672.2 | Max: 1944.3
+Descubrimiento - media: 79.8 s (rango: 19.2 - 170.6 )
+
+=== HALLAZGOS TOTALES POR REPETICION ===
+Rep 1: 24 hallazgos, severidad maxima 7.5
+Rep 2: 22 hallazgos, severidad maxima 7.5
+Rep 3: 19 hallazgos, severidad maxima 7.5
+Rep 4: 19 hallazgos, severidad maxima 7.5
+Rep 5: 24 hallazgos, severidad maxima 7.5
+
+=== HALLAZGOS UNICOS AGREGADOS (nombre + host) ===
+Total combinaciones host+hallazgo unicas en las 5 repeticiones: 23
+  172.20.0.12 | ICMP Timestamp Reply Information Disclosure
+  172.20.0.12 | TCP Timestamps Information Disclosure
+  172.20.0.13 | ICMP Timestamp Reply Information Disclosure
+  172.20.0.13 | SSL/TLS: Renegotiation DoS Vulnerability (CVE-2011-1473, CVE-2011-5094)
+  172.20.0.13 | TCP Timestamps Information Disclosure
+  172.20.0.14 | ICMP Timestamp Reply Information Disclosure
+  172.20.0.14 | TCP Timestamps Information Disclosure
+  172.20.0.15 | ICMP Timestamp Reply Information Disclosure
+  172.20.0.15 | SSL/TLS: Certificate In Chain Expired
+  172.20.0.15 | TCP Timestamps Information Disclosure
+  172.20.0.16 | ICMP Timestamp Reply Information Disclosure
+  172.20.0.16 | TCP Timestamps Information Disclosure
+  172.20.0.17 | ICMP Timestamp Reply Information Disclosure
+  172.20.0.17 | TCP Timestamps Information Disclosure
+  172.20.0.19 | FTP Unencrypted Cleartext Login
+  172.20.0.19 | ICMP Timestamp Reply Information Disclosure
+  172.20.0.19 | TCP Timestamps Information Disclosure
+  172.20.0.20 | ICMP Timestamp Reply Information Disclosure
+  172.20.0.20 | TCP Timestamps Information Disclosure
+  172.20.0.21 | FTP Unencrypted Cleartext Login
+  172.20.0.21 | ICMP Timestamp Reply Information Disclosure
+  172.20.0.21 | Redis Server No Password (TCP)
+  172.20.0.21 | TCP Timestamps Information Disclosure

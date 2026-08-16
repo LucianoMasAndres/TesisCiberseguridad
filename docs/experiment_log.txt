@@ -1,0 +1,57 @@
+[2026-08-14T19:16:32.279Z] ===== REPETICION 1/5: inicio =====
+[2026-08-14T19:16:32.281Z] T0->T1: descubrimiento + escaneo de puertos (nmap real)
+WARNING: Running Nmap setuid, as you are doing, is a major security risk.
+
+WARNING: Running Nmap setuid, as you are doing, is a major security risk.
+
+[2026-08-14T19:19:22.579Z] Clasificacion: 12 hosts descubiertos, 9 Alto/Critico enviados a Greenbone
+[2026-08-14T19:19:22.579Z] T1->T2: disparando webhook con perfil Full and fast
+[2026-08-14T19:19:38.644Z] Tarea Greenbone: 57395bc8-9eae-43df-9120-850ff7bf5ff4
+[2026-08-14T19:19:38.645Z] T2->T3: esperando a que Greenbone termine (polling cada 60s)...
+[2026-08-14T19:45:54.847Z] ===== REPETICION 1/5: fin (1761.5s total, 0 hallazgos) =====
+[2026-08-14T19:45:54.854Z] ===== REPETICION 2/5: inicio =====
+[2026-08-14T19:45:54.854Z] T0->T1: descubrimiento + escaneo de puertos (nmap real)
+WARNING: Running Nmap setuid, as you are doing, is a major security risk.
+
+WARNING: Running Nmap setuid, as you are doing, is a major security risk.
+
+[2026-08-14T19:46:14.195Z] Clasificacion: 12 hosts descubiertos, 8 Alto/Critico enviados a Greenbone
+[2026-08-14T19:46:14.198Z] T1->T2: disparando webhook con perfil Full and fast
+[2026-08-14T19:46:30.150Z] Tarea Greenbone: ab82b996-c5cb-4098-bf45-a245f129cfce
+[2026-08-14T19:46:30.150Z] T2->T3: esperando a que Greenbone termine (polling cada 60s)...
+[2026-08-14T20:14:47.414Z] ===== REPETICION 2/5: fin (1731.9s total, 0 hallazgos) =====
+[2026-08-14T20:14:47.417Z] ===== REPETICION 3/5: inicio =====
+[2026-08-14T20:14:47.417Z] T0->T1: descubrimiento + escaneo de puertos (nmap real)
+WARNING: Running Nmap setuid, as you are doing, is a major security risk.
+
+WARNING: Running Nmap setuid, as you are doing, is a major security risk.
+
+[2026-08-14T20:15:06.601Z] Clasificacion: 12 hosts descubiertos, 7 Alto/Critico enviados a Greenbone
+[2026-08-14T20:15:06.601Z] T1->T2: disparando webhook con perfil Full and fast
+[2026-08-14T20:15:22.520Z] Tarea Greenbone: 4ce11c6f-7acf-42f6-a7eb-d66c1943c7c4
+[2026-08-14T20:15:22.520Z] T2->T3: esperando a que Greenbone termine (polling cada 60s)...
+[2026-08-14T20:42:40.564Z] ===== REPETICION 3/5: fin (1672.2s total, 0 hallazgos) =====
+[2026-08-14T20:42:40.569Z] ===== REPETICION 4/5: inicio =====
+[2026-08-14T20:42:40.569Z] T0->T1: descubrimiento + escaneo de puertos (nmap real)
+WARNING: Running Nmap setuid, as you are doing, is a major security risk.
+
+WARNING: Running Nmap setuid, as you are doing, is a major security risk.
+
+[2026-08-14T20:42:59.991Z] Clasificacion: 12 hosts descubiertos, 7 Alto/Critico enviados a Greenbone
+[2026-08-14T20:42:59.992Z] T1->T2: disparando webhook con perfil Full and fast
+[2026-08-14T20:43:16.021Z] Tarea Greenbone: f5714c99-2348-4cad-9b47-f8078fbb7695
+[2026-08-14T20:43:16.022Z] T2->T3: esperando a que Greenbone termine (polling cada 60s)...
+[2026-08-14T21:11:34.968Z] ===== REPETICION 4/5: fin (1733.8s total, 0 hallazgos) =====
+[2026-08-14T21:11:34.971Z] ===== REPETICION 5/5: inicio =====
+[2026-08-14T21:11:34.971Z] T0->T1: descubrimiento + escaneo de puertos (nmap real)
+WARNING: Running Nmap setuid, as you are doing, is a major security risk.
+
+WARNING: Running Nmap setuid, as you are doing, is a major security risk.
+
+[2026-08-14T21:14:25.598Z] Clasificacion: 12 hosts descubiertos, 9 Alto/Critico enviados a Greenbone
+[2026-08-14T21:14:25.599Z] T1->T2: disparando webhook con perfil Full and fast
+[2026-08-14T21:14:41.676Z] Tarea Greenbone: 140917e1-000f-4171-8013-ca3925fe368b
+[2026-08-14T21:14:41.676Z] T2->T3: esperando a que Greenbone termine (polling cada 60s)...
+[2026-08-14T21:43:59.890Z] ===== REPETICION 5/5: fin (1944.3s total, 0 hallazgos) =====
+[2026-08-14T21:43:59.895Z] ===== EXPERIMENTO COMPLETO: 5 repeticiones procesadas =====
+EXPERIMENT_DONE
