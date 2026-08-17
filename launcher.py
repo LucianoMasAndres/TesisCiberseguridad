@@ -16,13 +16,11 @@ import urllib.error
 import http.cookiejar
 import platform
 import webbrowser
-import xml.etree.ElementTree as ET
 import tkinter as tk
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+LAB_TARGETS_COMPOSE = os.path.join(SCRIPT_DIR, "lab-targets", "docker-compose.lab-targets.yml")
 GVMD_CONTAINER = "greenbone-community-edition-gvmd-1"
-IS_LINUX = platform.system() == "Linux"
-IS_WINDOWS = platform.system() == "Windows"
 
 DOCKER_DOWNLOAD_URL = {
     "Windows": "https://www.docker.com/products/docker-desktop/",
@@ -234,12 +232,8 @@ class Launcher(tk.Tk):
                        bg=SURFACE, fg=MUTED, selectcolor=BG, activebackground=SURFACE,
                        font=("Courier New", 7)).pack(side="left", padx=(6, 0))
 
-        tk.Label(inner, text="Subred a escanear:", bg=SURFACE, fg=MUTED,
-                 font=("Courier New", 8), anchor="w").pack(fill="x")
-        self._subnet = tk.StringVar(value="192.168.1.0/24")
-        tk.Entry(inner, textvariable=self._subnet, bg=BG, fg=TEXT,
-                 font=("Courier New", 9), insertbackground=TEXT,
-                 relief="flat", bd=5).pack(fill="x", pady=(2, 6))
+        tk.Label(inner, text="Laboratorio: 172.20.0.0/24 (fijo)", bg=SURFACE, fg=MUTED,
+                 font=("Courier New", 8), anchor="w").pack(fill="x", pady=(0, 6))
 
         tk.Label(inner, text="Perfil de escaneo:", bg=SURFACE, fg=MUTED,
                  font=("Courier New", 8), anchor="w").pack(fill="x")
@@ -252,7 +246,7 @@ class Launcher(tk.Tk):
                              activebackground=BORDER, activeforeground=CYAN)
         om.pack(fill="x", pady=(2, 8))
 
-        self.btn_scan = self._btn(inner, "⚡  Escanear red", BLUE, "white",
+        self.btn_scan = self._btn(inner, "⚡  Escanear laboratorio", BLUE, "white",
                                   lambda: self._run(self._do_scan))
         self.btn_scan.pack(fill="x")
 
@@ -647,100 +641,92 @@ class Launcher(tk.Tk):
 
         self._log("Diagnóstico completo.", "done")
 
-    def _do_scan(self):
-        subnet = self._subnet.get().strip()
-        if not subnet:
-            self._log("Ingresá una subred válida (ej: 192.168.1.0/24).", "error")
-            return
+    def _wait_lab_targets_ready(self, timeout=60):
+        """Espera a que los contenedores de lab-targets con healthcheck
+        reporten 'healthy' antes de disparar el escaneo. Corrige la condición
+        de carrera real detrás de que 172.20.0.10 nunca fuera detectado por
+        Nmap en el experimento: el escaneo arrancaba antes de que web-10-http/
+        web-10-https terminaran de levantar. Si lab-targets no está corriendo
+        (compose file inexistente o sin containers), no bloquea: loguea un
+        aviso y deja seguir, para no romper setups sin lab-targets.
+        """
+        if not os.path.exists(LAB_TARGETS_COMPOSE):
+            return True
 
+        self._log("Esperando a que lab-targets esté listo (healthchecks)...", "wait")
+        elapsed = 0
+        interval = 2
+        while elapsed <= timeout:
+            try:
+                result = subprocess.run(
+                    ["docker", "compose", "-f", LAB_TARGETS_COMPOSE, "ps", "--format", "json"],
+                    capture_output=True, text=True, timeout=10
+                )
+            except Exception as e:
+                self._log(f"  No se pudo consultar lab-targets: {e}", "warn")
+                return True
+
+            lines = [l for l in result.stdout.splitlines() if l.strip()]
+            if not lines:
+                self._log("  lab-targets no está corriendo, sigo sin esperar.", "warn")
+                return True
+
+            healths = []
+            for line in lines:
+                try:
+                    healths.append(json.loads(line).get("Health", ""))
+                except json.JSONDecodeError:
+                    continue
+            declared = [h for h in healths if h]  # ignora contenedores sin healthcheck
+
+            if declared and all(h == "healthy" for h in declared):
+                self._log("  lab-targets: todos los healthchecks OK.", "success")
+                return True
+
+            time.sleep(interval)
+            elapsed += interval
+
+        self._log(f"  TIMEOUT esperando lab-targets ({timeout}s). Sigo igual, pero .10 puede fallar.", "warn")
+        return False
+
+    def _do_scan(self):
+        # El nodo NmapScan corre DENTRO del contenedor de n8n (Linux, sea cual
+        # sea el SO del host) y escanea la subred fija del laboratorio
+        # (172.20.0.0/24, ver lab-targets/docker-compose.lab-targets.yml) —
+        # por eso no hace falta pedir subred, y el mismo webhook funciona
+        # igual en Windows y Linux.
         profile_name = self._profile.get()
         scan_config_uuid = SCAN_PROFILES[profile_name]
-        self._log(f"--- Escaneo iniciado: {subnet} ---", "info")
+        self._log("--- Escaneo del laboratorio iniciado ---", "info")
         self._log(f"Perfil: {profile_name.strip()}", "info")
 
-        if IS_LINUX:
-            self._log("Modo interno: n8n corre nmap dentro del container...", "info")
-            url = f"http://localhost:5678/webhook/nmap-v3?scan_config={scan_config_uuid}&subnet={subnet}"
-            self._log(f"  → URL: {url}", "wait")
+        self._wait_lab_targets_ready()
 
-            # Verificar que n8n responde antes de enviar
-            try:
-                urllib.request.urlopen("http://localhost:5678/healthz", timeout=5)
-                self._log("  n8n: OK (healthz responde)", "success")
-            except Exception as e:
-                self._log(f"  n8n no responde al healthz: {e}", "error")
-                self._log("  ¿El laboratorio está corriendo?", "warn")
-                return
+        try:
+            urllib.request.urlopen("http://localhost:5678/healthz", timeout=5)
+            self._log("  n8n: OK (healthz responde)", "success")
+        except Exception as e:
+            self._log(f"  n8n no responde al healthz: {e}", "error")
+            self._log("  ¿El laboratorio está corriendo?", "warn")
+            return
 
-            try:
-                req = urllib.request.Request(url, data=b"", method="POST")
-                with urllib.request.urlopen(req, timeout=10) as resp:
-                    self._log(f"Workflow V3 disparado (HTTP {resp.status}).", "done")
-                    self._log("El escaneo OpenVAS tardará según el perfil elegido.", "info")
-                    self._log("Revisá Telegram y Mailpit para los resultados.", "info")
-            except urllib.error.HTTPError as e:
-                body = e.read().decode(errors="replace")
-                self._log(f"HTTP {e.code} {e.reason}", "error")
-                self._log(f"  Respuesta: {body[:200]}", "error")
-                if e.code == 404:
-                    self._log("  El webhook-test no responde.", "warn")
-                    self._log("  Abrí el workflow V3 en n8n y clickeá 'Listen for test event'.", "warn")
-            except Exception as e:
-                self._log(f"Error de conexión: {type(e).__name__}: {e}", "error")
-        else:
-            # V4: nmap corre en el host, enviamos el XML
-            nmap_check = "where" if platform.system() == "Windows" else "which"
-            if subprocess.run([nmap_check, "nmap"], capture_output=True).returncode != 0:
-                self._log("nmap no está instalado.", "error")
-                if platform.system() == "Windows":
-                    self._log("Corré: scripts\\install_nmap.bat", "warn")
-                else:
-                    self._log("Corré: sudo ./scripts/install_nmap.sh", "warn")
-                return
-            self._log("Modo externo: corriendo nmap en el host...", "info")
-            result = subprocess.run(
-                ["nmap", "-sn", "-n", "-oX", "-", subnet],
-                capture_output=True
-            )
-            if result.returncode != 0:
-                self._log(f"Error en nmap: {result.stderr.decode()}", "error")
-                return
-            self._log("Nmap completado. Parseando hosts activos...", "info")
-            try:
-                root = ET.fromstring(result.stdout)
-                hosts = []
-                for host in root.findall("host"):
-                    status = host.find("status")
-                    if status is None or status.get("state") != "up":
-                        continue
-                    addr = host.find("address[@addrtype='ipv4']")
-                    if addr is not None:
-                        hosts.append(addr.get("addr"))
-            except ET.ParseError as e:
-                self._log(f"Error parseando XML de nmap: {e}", "error")
-                return
-            self._log(f"  {len(hosts)} host(s) activo(s): {', '.join(hosts) if hosts else '(ninguno)'}", "info")
-            self._log("Enviando resultados a n8n...", "info")
-            try:
-                url = f"http://localhost:5678/webhook/nmap?scan_config={scan_config_uuid}"
-                body = json.dumps({"hosts": hosts}).encode()
-                req = urllib.request.Request(
-                    url, data=body,
-                    headers={"Content-Type": "application/json"},
-                    method="POST"
-                )
-                with urllib.request.urlopen(req, timeout=10) as resp:
-                    self._log(f"Enviado a n8n (HTTP {resp.status}).", "done")
-                    self._log("El escaneo OpenVAS tardará según el perfil elegido.", "info")
-                    self._log("Revisá Telegram y Mailpit para los resultados.", "info")
-            except urllib.error.HTTPError as e:
-                body = e.read().decode(errors="replace")
-                self._log(f"HTTP {e.code} {e.reason}", "error")
-                self._log(f"  Respuesta: {body[:200]}", "error")
-                if e.code == 404:
-                    self._log("  Abrí el workflow V4 en n8n y clickeá 'Listen for test event'.", "warn")
-            except Exception as e:
-                self._log(f"Error al enviar a n8n: {e}", "error")
+        url = f"http://localhost:5678/webhook/nmap-interno?scan_config={scan_config_uuid}"
+        try:
+            req = urllib.request.Request(url, data=b"", method="POST")
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                self._log(f"Escaneo disparado (HTTP {resp.status}).", "done")
+                self._log("Nmap corre adentro del contenedor de n8n contra 172.20.0.0/24.", "info")
+                self._log("El análisis de Greenbone tardará según el perfil elegido.", "info")
+                self._log("Revisá Telegram y Mailpit para los resultados.", "info")
+        except urllib.error.HTTPError as e:
+            body = e.read().decode(errors="replace")
+            self._log(f"HTTP {e.code} {e.reason}", "error")
+            self._log(f"  Respuesta: {body[:200]}", "error")
+            if e.code == 404:
+                self._log("  El webhook 'nmap-interno' no existe en el workflow importado.", "warn")
+                self._log("  Reimportá workflows/workflowV4_windows.json en n8n.", "warn")
+        except Exception as e:
+            self._log(f"Error de conexión: {type(e).__name__}: {e}", "error")
 
 
 if __name__ == "__main__":

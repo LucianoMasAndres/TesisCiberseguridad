@@ -46,7 +46,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const { execSync } = require('child_process');\n\n// 1. Get the previous output (Target Creation Result)\nconst prevOutput = items[0].json.stdout;\n\n// 2. Extract the Target ID using Regex\nconst match = prevOutput.match(/id=\"([^\"]+)\"/);\nconst targetId = match ? match[1] : null;\n\nif (!targetId) {\n  throw new Error(\"Could not find Target ID in previous output\");\n}\n\n// 3. Get the IP list from the earlier 'Code' node\nconst ipObjetivo = $('Code').first().json.ip_objetivo;\n\n// 4. Read scan config from launcher (passed as webhook query param)\n// Bug preexistente corregido: el nodo se llama 'Webhook Nmap', no 'Webhook'.\n// Ademas, si el disparo fue por Manual Trigger (escaneo interno), ese nodo no\n// corre en absoluto, asi que el acceso debe tolerar que no exista (fallback al\n// perfil de descubrimiento rapido).\nlet configId;\ntry {\n  configId = $('Webhook Nmap').first().json.query?.scan_config;\n} catch (e) {\n  configId = undefined;\n}\nconfigId = configId || '8715c877-47a0-438d-98a3-27c7a6ab2196';\n\n// 5. Construct Command\nconst xml = `<create_task><name>Scan ${ipObjetivo}</name><config id='${configId}'/><target id='${targetId}'/><scanner id='08b69003-5fc2-4037-a479-93b440211c73'/></create_task>`;\nconst cmd = `/home/node/gvm-env/bin/gvm-cli --gmp-username admin --gmp-password admin123 socket --socketpath /run/gvmd/gvmd.sock --xml \"${xml}\"`;\n\ntry {\n  const stdout = execSync(cmd).toString();\n  return [{ json: { stdout } }];\n} catch (error) {\n  throw new Error(error.message);\n}"
+        "jsCode": "const { execSync } = require('child_process');\n\n// 1. Get the previous output (Target Creation Result)\nconst prevOutput = items[0].json.stdout;\n\n// 2. Extract the Target ID using Regex\nconst match = prevOutput.match(/id=\"([^\"]+)\"/);\nconst targetId = match ? match[1] : null;\n\nif (!targetId) {\n  throw new Error(\"Could not find Target ID in previous output\");\n}\n\n// 3. Get the IP list from the earlier 'Code' node\nconst ipObjetivo = $('Code').first().json.ip_objetivo;\n\n// 4. Read scan config from launcher (passed as webhook query param)\n// Bug preexistente corregido: el nodo se llama 'Webhook Nmap', no 'Webhook'.\n// El disparo puede venir de 3 fuentes: Webhook Nmap (externo), Webhook Escaneo\n// Interno (launcher, escaneo del lab), o Manual Trigger (sin query params en\n// absoluto). Se prueban en orden y se cae al perfil de descubrimiento rapido\n// solo si ninguno aporto scan_config.\nlet configId;\ntry {\n  configId = $('Webhook Nmap').first().json.query?.scan_config;\n} catch (e) {\n  configId = undefined;\n}\nif (!configId) {\n  try {\n    configId = $('Webhook Escaneo Interno').first().json.query?.scan_config;\n  } catch (e) {\n    configId = undefined;\n  }\n}\nconfigId = configId || '8715c877-47a0-438d-98a3-27c7a6ab2196';\n\n// 5. Construct Command\nconst xml = `<create_task><name>Scan ${ipObjetivo}</name><config id='${configId}'/><target id='${targetId}'/><scanner id='08b69003-5fc2-4037-a479-93b440211c73'/></create_task>`;\nconst cmd = `/home/node/gvm-env/bin/gvm-cli --gmp-username admin --gmp-password admin123 socket --socketpath /run/gvmd/gvmd.sock --xml \"${xml}\"`;\n\ntry {\n  const stdout = execSync(cmd).toString();\n  return [{ json: { stdout } }];\n} catch (error) {\n  throw new Error(error.message);\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -348,6 +348,23 @@
       ],
       "id": "manualtrigger-node-v2-2026",
       "name": "Manual Trigger (escaneo interno)"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nmap-interno",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -864,
+        -200
+      ],
+      "id": "webhook-nmap-interno-v2-2026",
+      "name": "Webhook Escaneo Interno",
+      "webhookId": "webhook-nmap-interno"
     }
   ],
   "pinData": {},
@@ -541,6 +558,17 @@
         [
           {
             "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Escaneo Interno": {
+      "main": [
+        [
+          {
+            "node": "NmapScan",
             "type": "main",
             "index": 0
           }

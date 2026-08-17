@@ -33,11 +33,23 @@ services:
     network_mode: "service:anchor-10"
     depends_on: [anchor-10]
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "--timeout=2", "http://127.0.0.1:80"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
   web-10-https:
     build: ./nginx-tls
     network_mode: "service:anchor-10"
     depends_on: [anchor-10]
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "--no-check-certificate", "--timeout=2", "https://127.0.0.1:443"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
 
   # ===== 172.20.0.11 — Landing interna (Normal) =====
   anchor-11:
