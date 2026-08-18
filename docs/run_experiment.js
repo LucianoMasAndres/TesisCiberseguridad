@@ -56,7 +56,24 @@ function runDiscoveryAndPortScan() {
     { maxBuffer: 1024 * 1024 * 20 }
   ).toString();
   const hosts = [];
-  const psBlocks = portScanXml.match(/<host[\s\S]*?<\/host>/g) || [];
+  // Bug real encontrado y corregido (2026-08-17): nmap emite un bloque
+  // <hosthint>...</hosthint> por host ANTES de los bloques <host>...</host>
+  // reales cuando se escanean varios targets a la vez. Como "<hosthint>"
+  // tambien empieza con el literal "<host", una regex sin el espacio
+  // obligatorio despues de "host" hace match desde el primer <hosthint> y,
+  // al no tener este su propio cierre "</host>" (cierra con "</hosthint>"),
+  // el match no-greedy sigue consumiendo texto a traves de TODOS los demas
+  // hosthints hasta el primer "</host>" real -- fusionando el hosthint del
+  // primer host listado con el bloque <host> real del primer host que nmap
+  // termina de escanear. Resultado: un host pierde su propia identidad (su
+  // IP queda "tapada" por la del hosthint que aparecio primero) mientras sus
+  // puertos reales quedan atribuidos a esa otra IP. Esto es lo que hacia que
+  // 172.20.0.10 (o cualquier host que resultara primero en terminar) nunca
+  // apareciera en los resultados, run tras run, de forma deterministica (ver
+  // notas-privadas/Pendientes_Correccion_TFI.txt punto 1.3). El fix: exigir
+  // el espacio que solo tienen los <host ...> reales ("<host starttime=..."),
+  // que "<hosthint>" nunca tiene.
+  const psBlocks = portScanXml.match(/<host [\s\S]*?<\/host>/g) || [];
   for (const block of psBlocks) {
     const ipMatch = block.match(/addr="([\d.]+)" addrtype="ipv4"/);
     if (!ipMatch) continue;
@@ -74,7 +91,13 @@ function runDiscoveryAndPortScan() {
 }
 
 function findNewestTaskSince(sinceIsoMinusSlack) {
-  const xml = gmp('<get_tasks/>');
+  // Bug real encontrado y corregido (2026-08-17): get_tasks pagina a 10
+  // resultados por defecto igual que get_reports (ver comentario en
+  // getReportSummary). Sin filter=rows explicito, una vez que se acumulan
+  // mas de 10 tareas historicas en la instancia de Greenbone, la tarea
+  // recien creada puede quedar fuera de la pagina por defecto y esta
+  // funcion no la encuentra aunque exista.
+  const xml = gmp("<get_tasks filter='rows=1000'/>");
   const blocks = xml.match(/<task id="[^"]*">[\s\S]*?<\/task>/g) || [];
   let newest = null;
   for (const block of blocks) {
@@ -143,14 +166,25 @@ async function runRepetition(n) {
 
   log('T1->T2: disparando webhook con perfil Full and fast');
   execSync(
-    `wget -q -O - --header="Content-Type: application/json" --post-file=/tmp/webhook_payload.json "http://localhost:5678/webhook/nmap?scan_config=${SCAN_CONFIG_FULL_AND_FAST}"`
+    `wget -q -O - --header="Content-Type: application/json" --post-file=/tmp/webhook_payload.json "http://localhost:5678/webhook/nmap-v3?scan_config=${SCAN_CONFIG_FULL_AND_FAST}"`
   ).toString();
   const t2 = new Date();
 
-  await sleep(15000); // dar tiempo a que CreateTarget/CreateTask/StartTask corran
-  const task = findNewestTaskSince(new Date(t0.getTime() - 5000));
+  // Bug real encontrado y corregido (2026-08-17): un unico sleep(15000) mas
+  // una sola lectura de get_tasks no alcanza -- CreateTarget/CreateTask/
+  // StartTask (mas la ronda de espera/reintento de n8n) puede tardar varios
+  // minutos, no 15 segundos. Se reintenta con polling en vez de un check
+  // unico.
+  let task = null;
+  const findTaskTimeoutMs = 5 * 60 * 1000;
+  const findTaskStart = Date.now();
+  while (Date.now() - findTaskStart < findTaskTimeoutMs) {
+    task = findNewestTaskSince(new Date(t0.getTime() - 5000));
+    if (task) break;
+    await sleep(10000);
+  }
   if (!task) {
-    throw new Error('No se encontro la tarea recien creada en Greenbone');
+    throw new Error('No se encontro la tarea recien creada en Greenbone (timeout 5 min)');
   }
   log(`Tarea Greenbone: ${task.id}`);
 
