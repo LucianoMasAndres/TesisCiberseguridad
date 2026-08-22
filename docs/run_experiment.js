@@ -165,8 +165,15 @@ async function runRepetition(n) {
   fs.writeFileSync('/tmp/webhook_payload.json', JSON.stringify(payload));
 
   log('T1->T2: disparando webhook con perfil Full and fast');
+  // Bug real encontrado y corregido (2026-08-22): el nodo "Nmap" del workflow
+  // n8n hace su PROPIO descubrimiento interno (independiente del payload JSON
+  // enviado aca) leyendo la subred desde el query param "subnet" de la URL del
+  // webhook, con fallback a 192.168.122.0/24 si no se pasa. El payload JSON
+  // (variable payload de arriba) NO alimenta ese nodo -- solo query params lo
+  // hacen. Sin este parametro, el workflow escanea la subred incorrecta (la
+  // del host, no la del lab-net docker) y siempre reporta 0 hallazgos.
   execSync(
-    `wget -q -O - --header="Content-Type: application/json" --post-file=/tmp/webhook_payload.json "http://localhost:5678/webhook/nmap-v3?scan_config=${SCAN_CONFIG_FULL_AND_FAST}"`
+    `wget -q -O - --header="Content-Type: application/json" --post-file=/tmp/webhook_payload.json "http://localhost:5678/webhook/nmap-v3?scan_config=${SCAN_CONFIG_FULL_AND_FAST}&subnet=172.20.0.0/24"`
   ).toString();
   const t2 = new Date();
 
