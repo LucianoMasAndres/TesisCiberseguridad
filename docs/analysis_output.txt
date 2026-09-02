@@ -2,25 +2,37 @@
 Rep 1: 1761.5s total | descubrimiento 170.3s | greenbone 1591.1s | 9 hosts Alto/Critico | 24 hallazgos
 Rep 2: 1731.9s total | descubrimiento 19.3s | greenbone 1712.5s | 8 hosts Alto/Critico | 22 hallazgos
 Rep 3: 1672.2s total | descubrimiento 19.2s | greenbone 1652.9s | 7 hosts Alto/Critico | 19 hallazgos
-Rep 4: 1733.8s total | descubrimiento 19.4s | greenbone 1714.2s | 7 hosts Alto/Critico | 19 hallazgos
+Rep 4: 1733.8s total | descubrimiento 19.4s | greenbone 1714.2s | 7 hosts Alto/Critico | 19 hallazgos [EXCLUIDA del analisis principal]
 Rep 5: 1944.3s total | descubrimiento 170.6s | greenbone 1773.5s | 9 hosts Alto/Critico | 24 hallazgos
 
 === CONSISTENCIA DE CLASIFICACION (excluyendo host fantasma 172.20.0.3) ===
 Rep 1: 10/11 activos coinciden con ground truth
 Rep 2: 9/11 activos coinciden con ground truth
 Rep 3: 8/11 activos coinciden con ground truth
-Rep 4: 8/11 activos coinciden con ground truth
+Rep 4: 8/11 activos coinciden con ground truth [EXCLUIDA del total]
 Rep 5: 11/11 activos coinciden con ground truth
-TOTAL: 46/55 (83.6%)
-Errores por host (todos atribuibles a caidas documentadas de telnet-17/mail-16/ftp-19, no al algoritmo): { '172.20.0.17': 4, '172.20.0.16': 3, '172.20.0.19': 2 }
+TOTAL (excluyendo repeticion(es) 4): 38/44 (86.4%)
+Errores por host (todos atribuibles a caidas documentadas de telnet-17/mail-16/ftp-19, no al algoritmo): { '172.20.0.17': 3, '172.20.0.16': 2, '172.20.0.19': 1 }
 
 === VERIFICACION: el algoritmo SIEMPRE clasifica correctamente cuando tiene los puertos completos ===
 Errores de algoritmo con puertos completos: 0 (deberia ser 0)
 
-=== TIEMPOS (segundos) ===
-Media: 1768.7 s ( 29.5 min) | Desv. estandar: 92.5 s | CV: 5.23 %
+=== TIEMPOS (segundos) - excluyendo repeticion(es) 4 ===
+Media: 1777.5 s ( 29 min 37 s ) | Desv. estandar: 101.5 s | CV: 5.71 %
 Min: 1672.2 | Max: 1944.3
-Descubrimiento - media: 79.8 s (rango: 19.2 - 170.6 )
+Descubrimiento - media: 94.9 s (rango: 19.2 - 170.6 )
+
+=== MATRIZ DE CONFUSION (clasificacion de criticidad, excluyendo repeticion(es) 4 y host fantasma) ===
+Filas: clase esperada (Anexo F) | Columnas: clase obtenida
+             Normal  Alto  Critico
+  Normal        8     0     0
+  Alto          3    21     0
+  Critico       0     3     9
+
+=== PRECISION, RECALL, F1 POR CLASE ===
+Normal: precision 0.727, recall 1.000, F1 0.842 (TP=8 FP=3 FN=0)
+Alto: precision 0.875, recall 0.875, F1 0.875 (TP=21 FP=3 FN=3)
+Critico: precision 1.000, recall 0.750, F1 0.857 (TP=9 FP=0 FN=3)
 
 === HALLAZGOS TOTALES POR REPETICION ===
 Rep 1: 24 hallazgos, severidad maxima 7.5
