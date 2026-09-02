@@ -58,16 +58,23 @@ else
 fi
 
 # 4. Importar workflow en n8n (si existe el archivo)
-WORKFLOW_FILE="$PROJECT_DIR/workflows/My_workflow.json"
+# Este script es el de Linux, así que importa la variante Linux (workflowV3_linux.json,
+# nmap corre dentro del contenedor de n8n). La variante Windows (workflowV4_windows.json)
+# la importa scripts/init_lab.ps1.
+WORKFLOW_NAME="workflowV3_linux.json"
+WORKFLOW_FILE="$PROJECT_DIR/workflows/$WORKFLOW_NAME"
 if [ -f "$WORKFLOW_FILE" ]; then
     echo "📋 Importando workflow en n8n..."
     sleep 5
+    # Primero se copia el archivo adentro del contenedor y recién después se
+    # intenta el import por CLI (al revés el import siempre fallaba porque el
+    # archivo todavía no existía dentro del contenedor).
+    docker cp "$WORKFLOW_FILE" "n8n-security-lab:/home/node/.n8n/workflows/$WORKFLOW_NAME" 2>/dev/null && \
     docker exec n8n-security-lab \
-        n8n import:workflow --input=/home/node/.n8n/workflows/My_workflow.json 2>/dev/null || \
-    docker cp "$WORKFLOW_FILE" n8n-security-lab:/home/node/.n8n/workflows/My_workflow.json 2>/dev/null
-    echo "✅ Workflow importado. Abrí n8n y configurá las credenciales de Telegram."
+        n8n import:workflow --input="/home/node/.n8n/workflows/$WORKFLOW_NAME" 2>/dev/null
+    echo "✅ Workflow copiado. Abrí n8n, importá/activá $WORKFLOW_NAME y configurá las credenciales de Telegram."
 else
-    echo "⚠️  No se encontró workflows/My_workflow.json — importalo manualmente en n8n."
+    echo "⚠️  No se encontró workflows/$WORKFLOW_NAME — importalo manualmente en n8n."
 fi
 
 echo ""

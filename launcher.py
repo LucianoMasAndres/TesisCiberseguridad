@@ -500,12 +500,18 @@ class Launcher(tk.Tk):
         self._log("  Mailpit → http://localhost:8025", "info")
         self._log("IMPORTANTE: la primera vez OpenVAS tarda 15-30 min en sincronizar feeds.", "warn")
 
-        self._log("Activando workflow V3 automaticamente...", "info")
+        self._log("Activando workflow V4 automaticamente...", "info")
         time.sleep(3)
         self._try_activate_workflow()
 
     def _try_activate_workflow(self):
-        """Login to n8n and activate the V3 workflow via internal REST API."""
+        """Login to n8n and activate the V4 workflow via internal REST API.
+
+        Se activa V4 (workflowV4_webhook) y no V3 porque el boton de escaneo de
+        este launcher dispara /webhook/nmap-interno, que es el webhook de V4.
+        Antes se activaba V3 y se disparaba V4: el escaneo devolvia 404 salvo
+        que el usuario activara V4 a mano en n8n.
+        """
         email = self._n8n_email.get().strip()
         password = self._n8n_password.get().strip()
 
@@ -533,7 +539,7 @@ class Launcher(tk.Tk):
             token = login_data.get("data", {}).get("token", "")
             auth = {"Authorization": f"Bearer {token}"} if token else {}
 
-            # 2. Find the V3 workflow by name or webhook path
+            # 2. Find the V4 workflow by name or webhook path
             req2 = urllib.request.Request(
                 "http://localhost:5678/rest/workflows",
                 headers={"Accept": "application/json", **auth},
@@ -545,12 +551,13 @@ class Launcher(tk.Tk):
             for wf in wf_list:
                 name = wf.get("name", "")
                 nodes_str = str(wf.get("nodes", ""))
-                if "V3" in name or "linux" in name.lower() or "nmap-v3" in nodes_str:
+                if "V4" in name or "windows" in name.lower() or "nmap-interno" in nodes_str:
                     wf_id = wf["id"]
                     break
 
             if not wf_id:
-                self._log("  Workflow V3 no encontrado — importalo en n8n primero.", "warn")
+                self._log("  Workflow V4 no encontrado — importalo en n8n primero.", "warn")
+                self._log("  Archivo: workflows/workflowV4_windows.json", "info")
                 return
 
             # 3. Activate the workflow
@@ -562,10 +569,11 @@ class Launcher(tk.Tk):
             )
             opener.open(req3, timeout=10)
 
+            self._log("  Workflow V4 activado (webhook /webhook/nmap-interno).", "success")
             if self._daily_scan.get():
-                self._log("  Workflow V3 activado (webhook + scan diario 5am).", "success")
-            else:
-                self._log("  Workflow V3 activado (solo webhook).", "success")
+                # El Schedule Trigger de las 5am vive solo en workflowV3_linux.json;
+                # V4 es webhook puro, asi que no se puede prometer scan diario aca.
+                self._log("  Scan diario 5am: vive en workflowV3 — activalo aparte en n8n.", "info")
             self._log("  Ya podes escanear sin abrir n8n manualmente.", "done")
 
         except urllib.error.HTTPError as e:
@@ -606,8 +614,10 @@ class Launcher(tk.Tk):
             self._log("  → El laboratorio no está corriendo.", "warn")
             return
 
-        # 2. Webhook de producción
-        wh_url = "http://localhost:5678/webhook-test/nmap-v3"
+        # 2. Webhook del workflow V4 — el mismo que dispara el boton de escaneo
+        #    (/webhook/nmap-interno). Se usa el prefijo webhook-test para no
+        #    lanzar un escaneo real desde el diagnostico.
+        wh_url = "http://localhost:5678/webhook-test/nmap-interno"
         try:
             req = urllib.request.Request(wh_url, data=b"", method="POST")
             with urllib.request.urlopen(req, timeout=5) as r:
@@ -615,10 +625,10 @@ class Launcher(tk.Tk):
         except urllib.error.HTTPError as e:
             body = e.read().decode(errors="replace")
             if e.code == 404:
-                self._log(f"  [FAIL] Webhook-test /webhook-test/nmap-v3 → 404", "error")
+                self._log(f"  [FAIL] Webhook-test /webhook-test/nmap-interno → 404", "error")
                 self._log(f"  Detalle: {body[:250]}", "warn")
-                self._log("  → El workflow V3 no está activo en n8n.", "warn")
-                self._log("  → Solución: http://localhost:5678 → abrí el workflow V3", "info")
+                self._log("  → El workflow V4 no está activo / no está escuchando en modo test.", "warn")
+                self._log("  → Solución: http://localhost:5678 → abrí el workflow V4 (workflowV4_webhook)", "info")
                 self._log("             → activalo con el toggle de la esquina superior derecha.", "info")
             else:
                 self._log(f"  [INFO] Webhook respondió HTTP {e.code}: {body[:150]}", "warn")

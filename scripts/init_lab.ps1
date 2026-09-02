@@ -68,7 +68,7 @@ if (Test-Path $WorkflowFile) {
     docker cp $WorkflowFile "n8n-security-lab:/home/node/.n8n/workflows/workflowV4_windows.json" 2>$null
     Write-Host "Workflow copiado. Abri n8n y configura las credenciales de Telegram."
 } else {
-    Write-Host "No se encontro workflows/workflowV3.json - importalo manualmente en n8n."
+    Write-Host "No se encontro workflows/workflowV4_windows.json - importalo manualmente en n8n."
 }
 
 Write-Host ""

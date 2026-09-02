@@ -1,5 +1,11 @@
 {
-  "name": "workflowV4_webhook",
+  "updatedAt": "2026-09-02T03:51:57.000Z",
+  "createdAt": "2026-08-17T18:54:34.969Z",
+  "id": "eDVdZXBv46uBYF3M",
+  "name": "workflowV4_webhook (nmap-interno)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
   "nodes": [
     {
       "parameters": {
@@ -72,25 +78,16 @@
     },
     {
       "parameters": {
-        "chatId": "TU_CHAT_ID_AQUI",
-        "text": "=ðŸ›¡ï¸ Reporte de Red Unificado\n\nðŸ“‹ Hosts: {{ $json.hosts_string }}\nðŸ“… Fecha: {{ $json.scan_date }}\nðŸ“Š Total Hallazgos: {{ $json.total_hallazgos }}\n\nðŸ”´ CrÃ­tica: {{ $json.critical_count }}\nðŸŸ  Alta: {{ $json.high_count }}\nðŸŸ¡ Media: {{ $json.medium_count }}\nðŸŸ¢ Baja: {{ $json.low_count }}\n\nThis message was sent automatically with n8n",
-        "additionalFields": {}
+        "jsCode": "\nconst TG_TOKEN = 'TU_TELEGRAM_BOT_TOKEN_AQUI';\nconst { execSync } = require('child_process');\n// Modulo 'https' bloqueado por el sandbox del Task Runner (mismo motivo que\n// impide leer process.env, ver K2 en la tesis) -- se usa curl via child_process,\n// que si esta permitido (NODE_FUNCTION_ALLOW_BUILTIN=child_process).\nfunction sendTelegram(chatId, text) {\n  const payload = JSON.stringify({ chat_id: String(chatId), text });\n  try {\n    const out = execSync(\n      `curl -s -X POST https://api.telegram.org/bot${TG_TOKEN}/sendMessage -H \"Content-Type: application/json\" --data-binary @-`,\n      { input: payload, maxBuffer: 1024 * 1024 }\n    ).toString();\n    return JSON.parse(out);\n  } catch (e) {\n    return { ok: false, description: e.message };\n  }\n}\n\nconst text = `🛡️ Reporte de Red Unificado\n\n📋 Hosts: ${$json.hosts_string}\n📅 Fecha: ${$json.scan_date}\n📊 Total Hallazgos: ${$json.total_hallazgos}\n\n🔴 Crítica: ${$json.critical_count}\n🟠 Alta: ${$json.high_count}\n🟡 Media: ${$json.medium_count}\n🟢 Baja: ${$json.low_count}\n\nThis message was sent automatically with n8n`;\n\nconst result = await sendTelegram('7434106099', text);\nreturn [{ json: result }];\n"
       },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         1920,
         -32
       ],
       "id": "bea1260e-4f35-4356-8ed1-7b438317008f",
       "name": "Send a text message1",
-      "webhookId": "aa6ca453-d92d-49c1-ac2a-4cb4d3d02ea0",
-      "credentials": {
-        "telegramApi": {
-          "id": "OggisG1wxv3LolCR",
-          "name": "Telegram account"
-        }
-      },
       "onError": "continueRegularOutput"
     },
     {
@@ -108,7 +105,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const { exec } = require('child_process');\n\n// exec con timeout de 30s por llamada para evitar que gvm-cli se cuelgue\nconst execAsync = (cmd) => new Promise((resolve, reject) => {\n  exec(cmd, { timeout: 30000 }, (error, stdout) => {\n    if (error) reject(error);\n    else resolve({ stdout });\n  });\n});\nconst sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));\n\nconst createTaskOutput = $('CreateTask').first().json.stdout;\nconst taskMatch = createTaskOutput.match(/id=\"([^\"]+)\"/);\nconst taskId = taskMatch ? taskMatch[1] : null;\n\nif (!taskId) {\n  throw new Error('No se pudo obtener el Task ID para verificar el estado del escaneo');\n}\n\nconst MAX_WAIT_MS = 90 * 60 * 1000; // 90 minutos en tiempo de reloj real\nconst POLL_INTERVAL = 60000; // 60 segundos entre consultas\n\nconst startTime = Date.now();\n\nwhile (Date.now() - startTime < MAX_WAIT_MS) {\n  const xml = `<get_tasks task_id='${taskId}'/>`;\n  const cmd = `/home/node/gvm-env/bin/gvm-cli --gmp-username admin --gmp-password admin123 socket --socketpath /run/gvmd/gvmd.sock --xml \"${xml}\"`;\n\n  const { stdout: output } = await execAsync(cmd);\n  const statusMatch = output.match(/<status>([^<]+)<\\/status>/);\n  const status = statusMatch ? statusMatch[1] : 'Unknown';\n\n  if (status === 'Done') {\n    return [{ json: { stdout: $('StartTask').first().json.stdout, timed_out: false } }];\n  }\n\n  if (status === 'Stopped' || status === 'Interrupted') {\n    throw new Error(`El escaneo terminÃ³ con estado inesperado: ${status}`);\n  }\n\n  await sleep(POLL_INTERVAL);\n}\n\n// Timeout alcanzado: retornamos flag en vez de lanzar error para poder notificar por Telegram\nreturn [{ json: { timed_out: true, task_id: taskId } }];"
+        "jsCode": "const { exec } = require('child_process');\n\n// exec con timeout de 30s por llamada para evitar que gvm-cli se cuelgue\nconst execAsync = (cmd) => new Promise((resolve, reject) => {\n  exec(cmd, { timeout: 30000 }, (error, stdout) => {\n    if (error) reject(error);\n    else resolve({ stdout });\n  });\n});\nconst sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));\n\nconst createTaskOutput = $('CreateTask').first().json.stdout;\nconst taskMatch = createTaskOutput.match(/id=\"([^\"]+)\"/);\nconst taskId = taskMatch ? taskMatch[1] : null;\n\nif (!taskId) {\n  throw new Error('No se pudo obtener el Task ID para verificar el estado del escaneo');\n}\n\nconst MAX_WAIT_MS = 90 * 60 * 1000; // 90 minutos en tiempo de reloj real\nconst POLL_INTERVAL = 60000; // 60 segundos entre consultas\n\nconst startTime = Date.now();\n\nwhile (Date.now() - startTime < MAX_WAIT_MS) {\n  const xml = `<get_tasks task_id='${taskId}'/>`;\n  const cmd = `/home/node/gvm-env/bin/gvm-cli --gmp-username admin --gmp-password admin123 socket --socketpath /run/gvmd/gvmd.sock --xml \"${xml}\"`;\n\n  const { stdout: output } = await execAsync(cmd);\n  const statusMatch = output.match(/<status>([^<]+)<\\/status>/);\n  const status = statusMatch ? statusMatch[1] : 'Unknown';\n\n  if (status === 'Done') {\n    return [{ json: { stdout: $('StartTask').first().json.stdout, timed_out: false, scan_status: 'Done' } }];\n  }\n\n  if (status === 'Stopped' || status === 'Interrupted') {\n    return [{ json: { timed_out: true, task_id: taskId, scan_status: status, motivo: `Escaneo termino con estado ${status}` } }];\n  }\n\n  await sleep(POLL_INTERVAL);\n}\n\n// Timeout alcanzado: retornamos flag en vez de lanzar error para poder notificar por Telegram\nreturn [{ json: { timed_out: true, task_id: taskId, scan_status: 'Timeout', motivo: 'Supero los 90 minutos' } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -152,24 +149,16 @@
     },
     {
       "parameters": {
-        "chatId": "TU_CHAT_ID_AQUI",
-        "text": "=â° Timeout: el escaneo OpenVAS superÃ³ los 90 minutos y fue detenido.\n\nðŸ†” Task ID: {{ $json.task_id }}\n\nRevisÃ¡ el estado manualmente en la interfaz de OpenVAS.",
-        "additionalFields": {}
+        "jsCode": "\nconst TG_TOKEN = 'TU_TELEGRAM_BOT_TOKEN_AQUI';\nconst { execSync } = require('child_process');\n// Modulo 'https' bloqueado por el sandbox del Task Runner (mismo motivo que\n// impide leer process.env, ver K2 en la tesis) -- se usa curl via child_process,\n// que si esta permitido (NODE_FUNCTION_ALLOW_BUILTIN=child_process).\nfunction sendTelegram(chatId, text) {\n  const payload = JSON.stringify({ chat_id: String(chatId), text });\n  try {\n    const out = execSync(\n      `curl -s -X POST https://api.telegram.org/bot${TG_TOKEN}/sendMessage -H \"Content-Type: application/json\" --data-binary @-`,\n      { input: payload, maxBuffer: 1024 * 1024 }\n    ).toString();\n    return JSON.parse(out);\n  } catch (e) {\n    return { ok: false, description: e.message };\n  }\n}\n\nconst text = `⏰ Escaneo no completado (${$json.scan_status})\n\n🆔 Task ID: ${$json.task_id}\nMotivo: ${$json.motivo}\n\nRevisá el estado manualmente en la interfaz de OpenVAS.`;\n\nconst result = await sendTelegram('7434106099', text);\nreturn [{ json: result }];\n"
       },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         1248,
         -240
       ],
       "id": "telegram-scan-timeout",
       "name": "Telegram Scan Timeout",
-      "credentials": {
-        "telegramApi": {
-          "id": "OggisG1wxv3LolCR",
-          "name": "Telegram account"
-        }
-      },
       "onError": "continueRegularOutput"
     },
     {
@@ -247,52 +236,36 @@
     },
     {
       "parameters": {
-        "chatId": "TU_CHAT_ID_AQUI",
-        "text": "âœ… Red limpia â€” Nmap no encontrÃ³ hosts activos en la subred.",
-        "additionalFields": {}
+        "jsCode": "\nconst TG_TOKEN = 'TU_TELEGRAM_BOT_TOKEN_AQUI';\nconst { execSync } = require('child_process');\n// Modulo 'https' bloqueado por el sandbox del Task Runner (mismo motivo que\n// impide leer process.env, ver K2 en la tesis) -- se usa curl via child_process,\n// que si esta permitido (NODE_FUNCTION_ALLOW_BUILTIN=child_process).\nfunction sendTelegram(chatId, text) {\n  const payload = JSON.stringify({ chat_id: String(chatId), text });\n  try {\n    const out = execSync(\n      `curl -s -X POST https://api.telegram.org/bot${TG_TOKEN}/sendMessage -H \"Content-Type: application/json\" --data-binary @-`,\n      { input: payload, maxBuffer: 1024 * 1024 }\n    ).toString();\n    return JSON.parse(out);\n  } catch (e) {\n    return { ok: false, description: e.message };\n  }\n}\n\nconst text = '✅ Red limpia — Nmap no encontró hosts activos en la subred.';\n\nconst result = await sendTelegram('7434106099', text);\nreturn [{ json: result }];\n"
       },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         420,
         200
       ],
       "id": "telegram-red-limpia",
       "name": "Telegram Red Limpia",
-      "credentials": {
-        "telegramApi": {
-          "id": "OggisG1wxv3LolCR",
-          "name": "Telegram account"
-        }
-      },
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "chatId": "TU_CHAT_ID_AQUI",
-        "text": "=Escaneo OpenVAS iniciado sobre {{ $(\"Code\").item.json.cantidad_hosts }} activo(s) clasificados Alto/Critico (de {{ $(\"Code\").item.json.clasificacion.length }} descubiertos). Te aviso cuando termine (puede tardar entre 15 y 90 min).",
-        "additionalFields": {}
+        "jsCode": "\nconst TG_TOKEN = 'TU_TELEGRAM_BOT_TOKEN_AQUI';\nconst { execSync } = require('child_process');\n// Modulo 'https' bloqueado por el sandbox del Task Runner (mismo motivo que\n// impide leer process.env, ver K2 en la tesis) -- se usa curl via child_process,\n// que si esta permitido (NODE_FUNCTION_ALLOW_BUILTIN=child_process).\nfunction sendTelegram(chatId, text) {\n  const payload = JSON.stringify({ chat_id: String(chatId), text });\n  try {\n    const out = execSync(\n      `curl -s -X POST https://api.telegram.org/bot${TG_TOKEN}/sendMessage -H \"Content-Type: application/json\" --data-binary @-`,\n      { input: payload, maxBuffer: 1024 * 1024 }\n    ).toString();\n    return JSON.parse(out);\n  } catch (e) {\n    return { ok: false, description: e.message };\n  }\n}\n\nconst cantidadHosts = $(\"Code\").item.json.cantidad_hosts;\nconst totalDescubiertos = $(\"Code\").item.json.clasificacion.length;\nconst text = `Escaneo OpenVAS iniciado sobre ${cantidadHosts} activo(s) clasificados Alto/Critico (de ${totalDescubiertos} descubiertos). Te aviso cuando termine (puede tardar entre 15 y 90 min).`;\n\nconst result = await sendTelegram('7434106099', text);\nreturn [{ json: result }];\n"
       },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         728,
         -120
       ],
       "id": "telegram-scan-iniciado",
       "name": "Telegram Scan Iniciado",
-      "credentials": {
-        "telegramApi": {
-          "id": "OggisG1wxv3LolCR",
-          "name": "Telegram account"
-        }
-      },
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "fromEmail": "lab@security.local",
-        "toEmail": "axel1mejias1@gmail.com",
+        "toEmail": "TU_EMAIL_AQUI",
         "subject": "={{ $json.subject }}",
         "emailFormat": "html",
         "message": "={{ $json.email_body }}"
@@ -307,10 +280,11 @@
       "name": "Send Email",
       "credentials": {
         "smtp": {
-          "id": "smtp-mailpit",
+          "id": "S9DipsS82gdEzcbP",
           "name": "Mailpit SMTP"
         }
-      }
+      },
+      "webhookId": "94da0b53-41cc-493c-b46a-858ed2c3bc34"
     },
     {
       "parameters": {
@@ -367,7 +341,6 @@
       "webhookId": "webhook-nmap-interno"
     }
   ],
-  "pinData": {},
   "connections": {
     "Webhook Nmap": {
       "main": [
@@ -574,18 +547,42 @@
           }
         ]
       ]
+    },
+    "Telegram Scan Timeout": {
+      "main": [
+        [
+          {
+            "node": "Cleanup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "main": [
+        [
+          {
+            "node": "Cleanup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "04a4ab40-e633-4038-b2d6-fb33cc17374c",
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "9af0faa360a281c41701df76dd364e53ef2f601ac209fddff27b71dfcb630d24"
-  },
-  "id": "Dg1asgeWQqs32Cp6",
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "24c19ee3-790a-4a69-a5d3-240422b390a5",
+  "activeVersionId": "24c19ee3-790a-4a69-a5d3-240422b390a5",
+  "versionCounter": 4,
+  "triggerCount": 2,
+  "sourceWorkflowId": null,
   "tags": []
 }
