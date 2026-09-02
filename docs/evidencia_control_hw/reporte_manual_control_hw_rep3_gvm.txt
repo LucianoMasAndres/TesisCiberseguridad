@@ -1,0 +1,50 @@
+REPORTE FINAL — CORRIDA DE CONTROL BRAZO MANUAL, FASE GVM (repeticion 3, hallazgo R1)
+Operador: Axel Mejias (solitario, sin separacion de roles)
+Fecha: 2026-08-20
+Host de ejecucion: AMD Ryzen 7 3800XT, 8 nucleos, 3.9 GHz, 16 GB RAM (mismo host que la
+re-ejecucion automatizada del 14/08/2026 y que la repeticion 2 de este mismo control)
+Proposito: completar el control de hardware del hallazgo R1 cubriendo el componente
+dominante del brazo manual (fase "Manual GVM + reporte", 55:08 min promedio en la Tabla 5),
+que la repeticion 2 (solo Nmap+clasificacion) no cubria.
+
+Metodo: operacion manual de Greenbone/GVM via gvm-cli (equivalente humano de usar la
+interfaz GSA), replicando los mismos parametros que usa el sistema automatizado:
+  - Activos objetivo: los 9 hosts Alto/Critico segun la clasificacion de la repeticion 2
+    (172.20.0.12,13,14,15,16,17,19,20,21)
+  - port_list: 33d0cd82-57c6-11e1-8ed1-406186ea4fc5 (mismo que usa el workflow real)
+  - scan config: daba56c8-73ec-11df-a475-002264764cea ("Full and fast", mismo que el sistema)
+  - scanner: 08b69003-5fc2-4037-a479-93b440211c73 (default OpenVAS)
+
+Cronometro (manual_timer.sh, repeticion 3):
+  Start:  2026-08-20T12:08:53.714Z
+  create_target + create_task + start_task: ejecutados en los primeros segundos
+  Polling cada 60s (igual que hace el sistema real, ver Sec5.7) hasta status Done
+  GMP status "Done" detectado en el intento 28 del polling, a las 12:36:43 UTC
+  Duracion total (T0 a Done, sin contar redaccion del reporte): aproximadamente 27:50 min
+    (2026-08-20T12:08:53Z a 2026-08-20T12:36:43Z)
+
+Resultado del escaneo: 10 resultados individuales (severidad 0.0, hallazgos de
+configuracion/enumeracion: "Allowed HTTP Methods Enumeration", "Axway SecureTransport MFT
+Detection", "Check open ports"), sobre los 9 activos objetivo. El conteo de hallazgos no es
+directamente comparable con el de las 5 repeticiones oficiales del experimento (23
+combinaciones unicas, Tabla 4/§5.4) porque esta es una unica corrida de control fuera de la
+serie formal, no una repeticion mas del experimento — no se agrega a la Tabla 4 ni a la Tabla 5.
+
+CONCLUSION PARA EL HALLAZGO R1:
+El analisis de Greenbone en este host (AMD Ryzen 7 3800XT) tardo ~27:50 min para 9 activos
+Alto/Critico, un tiempo del mismo orden de magnitud que el promedio "Auto Greenbone" ya
+reportado en la Tabla 5 (28:09 min, tambien medido en este mismo host el 14/08/2026). Esto es
+la evidencia esperable: ambas mediciones invocan el mismo motor OpenVAS/GVM sobre el mismo
+host, disparadas por un humano via gvm-cli en un caso y por n8n via GMP en el otro — la via
+de activacion (humana vs. automatizada) no cambia la duracion del escaneo en si, que esta
+dominada por el trabajo real del motor de analisis, no por el operador.
+
+Esto NO permite determinar si el host viejo (Intel, campana original) habria tardado mas o
+menos en la misma fase Greenbone/GVM — ese dato no existe y no se puede recuperar. Pero si
+permite descartar una hipotesis alternativa: que la diferencia entre el "Manual GVM + reporte"
+heredado (55:08 min) y el "Auto Greenbone" actual (28:09 min) se deba a que un operador humano
+opera GVM de forma inherentemente mas lenta que n8n en el mismo hardware. Los datos de esta
+corrida muestran que NO es asi: operado manualmente en este host, GVM tarda practicamente lo
+mismo (~27:50 min) que activado por n8n (28:09 min). La diferencia entre 55:08 min (heredado)
+y 28:09 min (automatizado) es consistente con el confundido de hardware ya declarado en
+§5.1/§6.2, no con una diferencia de eficiencia humano-vs-maquina en la operacion de GVM.

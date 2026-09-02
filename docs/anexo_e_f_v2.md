@@ -101,7 +101,7 @@ para que Greenbone tenga algo real que detectar.
 | 172.20.0.10 | Web pública | 80, 443 | 5+4 | 9 | Normal | nginx actualizado, TLS autofirmado — control, sin hallazgo esperado |
 | 172.20.0.11 | Landing interna | 80 | 5 | 5 | Normal | httpd actualizado — control, sin hallazgo esperado |
 | 172.20.0.12 | Panel admin interno | 80, 22 | 5+9 | 14 | Alto | OpenSSH desactualizado (8.0) con `PasswordAuthentication` habilitado |
-| 172.20.0.13 | BD de desarrollo | 3306, 22, 445 | 10+9+8 | 27 | Crítico | MySQL 5.7 (CVE conocidas) + Samba 4.6 vulnerable a CVE-2017-7494 (SambaCry) |
+| 172.20.0.13 | BD de desarrollo | 3306, 22, 445 | 10+9+8 | 27 | Crítico | MySQL 5.7 (CVE conocidas) + Samba con *guest access* habilitado (sin RCE conocido en la versión instalada — 4.13 sobre `debian:11-slim`, parcheada contra CVE-2017-7494) |
 | 172.20.0.14 | Réplica de BD | 5432, 22 | 10+9 | 19 | Alto | PostgreSQL 9.6 desactualizado |
 | 172.20.0.15 | Directorio corporativo | 389, 80 | 7+5 | 12 | Alto | OpenLDAP con *bind* anónimo habilitado |
 | 172.20.0.16 | Servidor de correo | 25, 587, 22 | 4+4+9 | 17 | Alto | Postfix configurado como *open relay* |

@@ -1,0 +1,35 @@
+REPORTE FINAL — CORRIDA DE CONTROL BRAZO MANUAL (repeticion 2, hallazgo R1)
+Operador: Axel Mejias (solitario, sin separacion de roles)
+Fecha: 2026-08-20
+Host de ejecucion: AMD Ryzen 7 3800XT, 8 nucleos, 3.9 GHz, 16 GB RAM (mismo host que la re-ejecucion automatizada del 14/08/2026)
+Proposito: corrida de control para el hallazgo R1 de la Devolucion 2 (confundido de hardware
+entre el brazo manual heredado y el brazo automatizado re-ejecutado). n=1, exploratoria.
+
+Protocolo seguido: T0 (primer comando Nmap) - T1 (fin descubrimiento) - T2 (fin clasificacion)
+- T3 (guardado de este reporte), segun §3.6/§3.7 de la tesis.
+
+Comando de descubrimiento: docker exec n8n-security-lab nmap -sn -n 172.20.0.0/24
+Comando de escaneo: docker exec n8n-security-lab nmap -n -Pn --open
+  -p T:21,22,23,25,80,389,443,445,587,3306,5432,6379,8080,U:161 -sS -sU -sV <12 hosts>
+
+RESULTADOS (clasificacion hecha a mano, antes de comparar con ground truth):
+
+Host          Puertos abiertos              Puntaje  Clasificacion  Ground truth  Coincide
+172.20.0.10   80,443                        9        Normal         Normal        Si
+172.20.0.11   80                            5        Normal         Normal        Si
+172.20.0.12   22,80                         14       Alto           Alto          Si
+172.20.0.13   22,445,3306                   27       Critico        Critico       Si
+172.20.0.14   22,5432                       19       Alto           Alto          Si
+172.20.0.15   80,389                        12       Alto           Alto          Si
+172.20.0.16   22,25,587                     17       Alto           Alto          Si
+172.20.0.17   23,445,161/udp                26       Critico        Critico       Si
+172.20.0.18   8080                          5        Normal         Normal        Si
+172.20.0.19   21,22                         16       Alto           Alto          Si
+172.20.0.20   22,445                        17       Alto           Alto          Si
+172.20.0.21   21,80,6379                    22       Critico        Critico       Si
+
+Resultado: 12/12 coincidencias. Distribucion: 3 Normal / 6 Alto / 3 Critico.
+Sin discrepancias respecto del ground truth (Anexo F).
+
+Observaciones / incidentes: ninguno. Los 12 activos respondieron en el primer intento
+de descubrimiento (no se reprodujo el bug historico de .10, ya corregido — ver 1.3).

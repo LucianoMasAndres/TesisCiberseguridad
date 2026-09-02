@@ -1,0 +1,9 @@
+{"repeticion":1,"evento":"start","timestamp":"2026-08-20T10:13:41.593Z"}
+{"repeticion":1,"evento":"mark","etiqueta":"fin-descubrimiento","timestamp":"2026-08-20T10:13:55.679Z"}
+{"repeticion":1,"evento":"stop","timestamp":"2026-08-20T10:17:00.649Z","duracion_segundos":198.4}
+{"repeticion":2,"evento":"start","timestamp":"2026-08-20T10:18:55.797Z"}
+{"repeticion":2,"evento":"mark","etiqueta":"fin-descubrimiento-T1","timestamp":"2026-08-20T10:19:07.905Z"}
+{"repeticion":2,"evento":"mark","etiqueta":"fin-clasificacion-T2","timestamp":"2026-08-20T10:22:02.558Z"}
+{"repeticion":2,"evento":"stop","timestamp":"2026-08-20T10:22:19.098Z","duracion_segundos":203.0}
+{"repeticion":3,"evento":"start","timestamp":"2026-08-20T12:08:53.690Z"}
+{"repeticion":3,"evento":"stop","timestamp":"2026-08-20T12:37:40.926Z","duracion_segundos":1727.0}
