@@ -9,9 +9,9 @@ const SERVICE_WEIGHTS = {
   443: 4,   // HTTPS
   445: 8,   // SMB
   587: 4,   // SMTP submission
-  3306: 10, // MySQL
-  5432: 10, // PostgreSQL
-  6379: 10, // Redis
+  3306: 11, // MySQL
+  5432: 11, // PostgreSQL
+  6379: 11, // Redis
   8080: 5,  // HTTP alt
 };
 

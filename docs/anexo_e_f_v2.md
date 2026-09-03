@@ -31,9 +31,9 @@ se declara a mano. Cualquiera puede reproducir la tabla completa corriendo
 | 443 | HTTPS | 4 | Igual superficie que HTTP pero con cifrado de transporte (riesgo levemente menor) |
 | 445 | SMB | 8 | Historial de RCE críticos (EternalBlue, SambaCry); vector de movimiento lateral |
 | 587 | SMTP (submission) | 4 | Igual que 25 |
-| 3306 | MySQL | 10 | Exposición directa de motor de base de datos |
-| 5432 | PostgreSQL | 10 | Exposición directa de motor de base de datos |
-| 6379 | Redis | 10 | Sin autenticación por defecto en versiones antiguas; RCE vía `CONFIG SET` documentado |
+| 3306 | MySQL | 11 | Exposición directa de motor de base de datos |
+| 5432 | PostgreSQL | 11 | Exposición directa de motor de base de datos |
+| 6379 | Redis | 11 | Sin autenticación por defecto en versiones antiguas; RCE vía `CONFIG SET` documentado |
 | 8080 | HTTP alternativo | 5 | Igual que HTTP |
 | (no listado) | — | 1 | Piso mínimo para puertos no catalogados, evita puntaje cero |
 
@@ -48,8 +48,9 @@ Para evitar la ambigüedad del hallazgo A4 (prosa decía "10–20 → Alto", có
 - `10 < score ≤ 20` → **Alto**
 - `score > 20` → **Crítico**
 
-Ningún activo del laboratorio tiene un puntaje exactamente igual a 10 o 20 (ver tabla),
-así que no hay casos límite que dependan de `>` vs `≥`.
+El activo 172.20.0.14 tiene puntaje exactamente igual a 20 (ver tabla); con el umbral
+`10 < score ≤ 20 → Alto`, ese caso límite cae en Alto sin ambigüedad. Ningún activo
+tiene puntaje exactamente igual a 10.
 
 ## Código (`classifyAsset`)
 
@@ -65,9 +66,9 @@ const SERVICE_WEIGHTS = {
   443: 4,   // HTTPS
   445: 8,   // SMB
   587: 4,   // SMTP submission
-  3306: 10, // MySQL
-  5432: 10, // PostgreSQL
-  6379: 10, // Redis
+  3306: 11, // MySQL
+  5432: 11, // PostgreSQL
+  6379: 11, // Redis
   8080: 5,  // HTTP alt
 };
 
@@ -101,18 +102,18 @@ para que Greenbone tenga algo real que detectar.
 | 172.20.0.10 | Web pública | 80, 443 | 5+4 | 9 | Normal | nginx actualizado, TLS autofirmado — control, sin hallazgo esperado |
 | 172.20.0.11 | Landing interna | 80 | 5 | 5 | Normal | httpd actualizado — control, sin hallazgo esperado |
 | 172.20.0.12 | Panel admin interno | 80, 22 | 5+9 | 14 | Alto | OpenSSH desactualizado (8.0) con `PasswordAuthentication` habilitado |
-| 172.20.0.13 | BD de desarrollo | 3306, 22, 445 | 10+9+8 | 27 | Crítico | MySQL 5.7 (CVE conocidas) + Samba con *guest access* habilitado (sin RCE conocido en la versión instalada — 4.13 sobre `debian:11-slim`, parcheada contra CVE-2017-7494) |
-| 172.20.0.14 | Réplica de BD | 5432, 22 | 10+9 | 19 | Alto | PostgreSQL 9.6 desactualizado |
+| 172.20.0.13 | BD de desarrollo | 3306, 22, 445 | 11+9+8 | 28 | Crítico | MySQL 5.7 (CVE conocidas) + Samba con *guest access* habilitado (sin RCE conocido en la versión instalada — 4.13 sobre `debian:11-slim`, parcheada contra CVE-2017-7494) |
+| 172.20.0.14 | Réplica de BD | 5432, 22 | 11+9 | 20 | Alto | PostgreSQL 9.6 desactualizado |
 | 172.20.0.15 | Directorio corporativo | 389, 80 | 7+5 | 12 | Alto | OpenLDAP con *bind* anónimo habilitado |
 | 172.20.0.16 | Servidor de correo | 25, 587, 22 | 4+4+9 | 17 | Alto | Postfix configurado como *open relay* |
 | 172.20.0.17 | Dispositivo de red | 161/udp, 23, 445 | 6+12+8 | 26 | Crítico | SNMP *community string* `public` de lectura/escritura + Telnet con credenciales por defecto |
 | 172.20.0.18 | Servicio de reportes | 8080 | 5 | 5 | Normal | App interna actualizada — control, sin hallazgo esperado |
 | 172.20.0.19 | Servidor FTP | 21, 22 | 7+9 | 16 | Alto | vsftpd con login anónimo habilitado |
 | 172.20.0.20 | File server SMB | 22, 445 | 9+8 | 17 | Alto | Samba con *guest access* habilitado (sin RCE) |
-| 172.20.0.21 | Cache expuesto | 6379, 80, 21 | 10+5+7 | 22 | Crítico | Redis sin autenticación (`requirepass` vacío) — RCE vía `CONFIG SET dir` + `MODULE LOAD` documentado |
+| 172.20.0.21 | Cache expuesto | 6379, 80, 21 | 11+5+7 | 23 | Crítico | Redis sin autenticación (`requirepass` vacío) — RCE vía `CONFIG SET dir` + `MODULE LOAD` documentado |
 
 Distribución resultante: **3 Normal, 6 Alto, 3 Crítico** — las tres clases son alcanzables
-(máximo posible en este laboratorio: 27, muy por encima del umbral de 20), a diferencia
+(máximo posible en este laboratorio: 28, muy por encima del umbral de 20), a diferencia
 de la versión auditada donde "Crítico" era inalcanzable por diseño.
 
 ## Verificación del laboratorio (2026-08-14) — hallazgo arquitectónico

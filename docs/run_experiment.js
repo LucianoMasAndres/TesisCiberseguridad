@@ -15,7 +15,7 @@ const GVM_CLI = '/home/node/gvm-env/bin/gvm-cli --gmp-username admin --gmp-passw
 const RESULTS_PATH = '/tmp/experiment_results.jsonl';
 const SERVICE_WEIGHTS = {
   21: 7, 22: 9, 23: 12, 25: 4, 80: 5, 161: 6, 389: 7, 443: 4,
-  445: 8, 587: 4, 3306: 10, 5432: 10, 6379: 10, 8080: 5,
+  445: 8, 587: 4, 3306: 11, 5432: 11, 6379: 11, 8080: 5,
 };
 
 function classify(ports) {
