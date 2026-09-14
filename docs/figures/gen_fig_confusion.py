@@ -35,5 +35,5 @@ for i in range(3):
 
 plt.colorbar(im, ax=ax, label='Cantidad de casos')
 plt.tight_layout()
-plt.savefig('fig3_matriz_confusion.png', dpi=150)
-print("OK: fig3_matriz_confusion.png generada")
+plt.savefig('fig7_matriz_confusion.png', dpi=150)
+print("OK: fig7_matriz_confusion.png generada")

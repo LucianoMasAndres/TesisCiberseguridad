@@ -22,7 +22,7 @@ bars2 = ax.bar(reps + width/2, auto_min, width, label='Automatizado (re-ejecutad
 
 ax.set_xlabel('Repetición')
 ax.set_ylabel('Tiempo total del ciclo (minutos)')
-ax.set_title('Tiempo total del ciclo completo por repetición\n(manual vs. automatizado, n=5 cada condición)')
+ax.set_title('Tiempo total del ciclo completo por repetición\n(manual vs. automatizado; 5 repeticiones mostradas, análisis estadístico principal con n=4 en la condición automatizada)')
 ax.set_xticks(reps)
 ax.set_ylim(0, 85)
 ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), ncol=2, frameon=False)
@@ -35,5 +35,5 @@ for bars in (bars1, bars2):
                     xytext=(0, 3), textcoords='offset points', ha='center', fontsize=8)
 
 plt.tight_layout()
-plt.savefig('fig7_tiempos_por_repeticion.png', dpi=150)
-print("OK: fig7_tiempos_por_repeticion.png generada")
+plt.savefig('fig8_tiempos_por_repeticion.png', dpi=150)
+print("OK: fig8_tiempos_por_repeticion.png generada")

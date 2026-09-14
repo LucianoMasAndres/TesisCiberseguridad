@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 """Inserta las 5 figuras generadas en Tesis-Final 4.0.docx, con el mismo
 formato de leyenda usado para las tablas (N en negrita, título en cursiva,
-Nota en cursiva)."""
+Nota en cursiva). NOTA: este script documenta la inserción original; ya fue
+ejecutado una vez. Los numeros de figura (7, 9, 8 para las tres ultimas) y
+los nombres de archivo reflejan la numeracion final del documento, que
+quedo corrida respecto de la numeracion interna original de los scripts
+gen_fig_*.py porque se insertaron 4 capturas de pantalla (Figuras 3-6)
+entre la Figura 2 y lo que originalmente era "Figura 3" (hallazgo menor,
+ronda 10 de auditoria independiente)."""
 import docx
 from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -67,7 +73,7 @@ insert_figure_before(
 # 3. Matriz de confusion (heatmap) -> antes de "Tabla 3"
 anchor3 = find_para('Tabla 3')
 insert_figure_before(
-    anchor3, 3, 'fig3_matriz_confusion.png',
+    anchor3, 7, 'fig7_matriz_confusion.png',
     'Matriz de confusión de la clasificación de criticidad (mapa de calor)',
     'Elaboración propia a partir de docs/experiment_results.jsonl y docs/analyze_results.js (repositorio del proyecto).'
 )
@@ -75,7 +81,7 @@ insert_figure_before(
 # 4. Flujo del algoritmo classifyAsset -> antes del inicio del codigo en Anexo E
 anchor4 = find_para('Tabla de pesos por servicio para clasificacion')
 insert_figure_before(
-    anchor4, 4, 'fig4_flujo_algoritmo.png',
+    anchor4, 9, 'fig9_flujo_algoritmo.png',
     'Diagrama de flujo del algoritmo de clasificación de criticidad (classifyAsset)',
     'Elaboración propia a partir de docs/classify_asset.js, verificado con docs/test_classify.js (repositorio del proyecto).'
 )
@@ -83,7 +89,7 @@ insert_figure_before(
 # 5. Tiempos por repeticion -> antes de "Tabla 5"
 anchor5 = find_para('Tabla 5')
 insert_figure_before(
-    anchor5, 5, 'fig7_tiempos_por_repeticion.png',
+    anchor5, 8, 'fig8_tiempos_por_repeticion.png',
     'Tiempo total del ciclo por repetición, manual vs. automatizado',
     'Elaboración propia a partir de docs/experiment_results.jsonl (repositorio del proyecto).'
 )

@@ -62,5 +62,5 @@ arrow((5, 5.8), (3.8, 4.8), "no")
 ax.set_title("Algoritmo de clasificación de criticidad (classifyAsset)\nAnexo E — verificado con 12/12 casos de prueba", fontsize=11)
 
 plt.tight_layout()
-plt.savefig('fig4_flujo_algoritmo.png', dpi=150)
-print("OK: fig4_flujo_algoritmo.png generada")
+plt.savefig('fig9_flujo_algoritmo.png', dpi=150)
+print("OK: fig9_flujo_algoritmo.png generada")

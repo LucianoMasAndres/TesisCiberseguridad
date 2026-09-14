@@ -33,7 +33,7 @@ serie formal, no una repeticion mas del experimento — no se agrega a la Tabla 
 CONCLUSION PARA EL HALLAZGO R1:
 El analisis de Greenbone en este host (AMD Ryzen 7 3800XT) tardo ~27:50 min para 9 activos
 Alto/Critico, un tiempo del mismo orden de magnitud que el promedio "Auto Greenbone" ya
-reportado en la Tabla 5 (28:09 min, tambien medido en este mismo host el 14/08/2026). Esto es
+reportado en la Tabla 5 (28:02 min, tambien medido en este mismo host el 14/08/2026). Esto es
 la evidencia esperable: ambas mediciones invocan el mismo motor OpenVAS/GVM sobre el mismo
 host, disparadas por un humano via gvm-cli en un caso y por n8n via GMP en el otro — la via
 de activacion (humana vs. automatizada) no cambia la duracion del escaneo en si, que esta
@@ -42,9 +42,9 @@ dominada por el trabajo real del motor de analisis, no por el operador.
 Esto NO permite determinar si el host viejo (Intel, campana original) habria tardado mas o
 menos en la misma fase Greenbone/GVM — ese dato no existe y no se puede recuperar. Pero si
 permite descartar una hipotesis alternativa: que la diferencia entre el "Manual GVM + reporte"
-heredado (55:08 min) y el "Auto Greenbone" actual (28:09 min) se deba a que un operador humano
+heredado (55:08 min) y el "Auto Greenbone" actual (28:02 min) se deba a que un operador humano
 opera GVM de forma inherentemente mas lenta que n8n en el mismo hardware. Los datos de esta
 corrida muestran que NO es asi: operado manualmente en este host, GVM tarda practicamente lo
-mismo (~27:50 min) que activado por n8n (28:09 min). La diferencia entre 55:08 min (heredado)
-y 28:09 min (automatizado) es consistente con el confundido de hardware ya declarado en
+mismo (~27:50 min) que activado por n8n (28:02 min). La diferencia entre 55:08 min (heredado)
+y 28:02 min (automatizado) es consistente con el confundido de hardware ya declarado en
 §5.1/§6.2, no con una diferencia de eficiencia humano-vs-maquina en la operacion de GVM.
