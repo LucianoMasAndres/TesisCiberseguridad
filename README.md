@@ -175,20 +175,20 @@ Hay dos versiones del workflow según el OS:
 
 1. Abrí **Security Lab** desde el escritorio (o `python3 launcher.py`)
 2. En la sección **CONFIG N8N** ingresá el email y password que configuraste la primera vez que entraste a `http://localhost:5678`
-3. Hacé clic en **Iniciar Lab** y esperá a que diga "¡Laboratorio operativo!" — el launcher activa el workflow V3 automáticamente
+3. Hacé clic en **Iniciar Lab** y esperá a que diga "¡Laboratorio operativo!" — el launcher activa el workflow V4 automáticamente (no V3)
 4. Ingresá la subred, elegí el perfil de escaneo y hacé clic en **Escanear red**
 5. Revisá Telegram para el resumen y `http://localhost:8025` para el reporte completo
 
-> Si marcás **"Scan diario automático (5am)"**, el workflow V3 también se ejecutará todos los días a las 5:00 AM con la subred y perfil por defecto, sin intervención manual.
+> El escaneo bajo demanda usa V4. El scan diario automático (5am) vive en el workflow V3 y no lo activa el launcher — hay que activarlo aparte desde la interfaz de n8n si lo querés usar.
 
 **Perfiles de escaneo disponibles:**
 
 | Perfil | Velocidad | Profundidad |
 |---|---|---|
-| Discovery | Muy rápido | Solo descubre hosts |
-| Full & Fast | Moderado | Escaneo completo balanceado |
-| Full & Fast Ultimate | Lento | Máxima cobertura |
-| System Discovery | Rápido | Fingerprinting de SO y servicios |
+| Rápido — Solo descubrimiento | ~5 min | Solo descubre hosts |
+| Normal — Full & Fast | ~30 min | Escaneo completo balanceado |
+| Profundo — Full & Very Deep | ~60 min | Cobertura ampliada |
+| Máximo — Full & Very Deep Ultimate | ~90 min | Máxima cobertura |
 
 > ⚠️ La primera vez que levantás el lab, OpenVAS tarda **15-30 minutos** en sincronizar los feeds de vulnerabilidades. Si el workflow falla con `404 scan config not found`, esperá y reintentá.
 
@@ -196,8 +196,9 @@ Hay dos versiones del workflow según el OS:
 
 **Linux:**
 ```bash
-docker compose up -d --build
+bash scripts/init_lab.sh
 ```
+(Equivale a levantar primero `lab-targets/docker-compose.lab-targets.yml` —crea la red externa `lab-net`, de la que depende el stack principal— y recién después `docker compose up -d --build`. Si preferís hacerlo a mano en dos pasos, ese es el orden.)
 
 **Windows 11** (PowerShell como Administrador):
 ```powershell
@@ -231,23 +232,31 @@ docker compose down -v
 
 ```
 TesisCiberseguridad/
-├── docker-compose.yml             # Definición de todos los servicios
-├── launcher.py                    # App GUI de escritorio (Linux)
+├── docker-compose.yml             # Definición de todos los servicios (n8n + Greenbone)
+├── launcher.py                    # App GUI de escritorio (Linux y Windows)
 ├── README.md                      # Este archivo
 ├── n8n_custom/
 │   └── Dockerfile                 # Imagen n8n con nmap + gvm-tools
+├── lab-targets/
+│   └── docker-compose.lab-targets.yml  # 12 activos objetivo (crea la red externa lab-net)
 ├── scripts/
 │   ├── install_launcher.sh        # Instala el ícono del launcher en el escritorio (Linux)
 │   ├── install_launcher.bat       # Crea acceso directo del launcher (Windows)
 │   ├── install_nmap.sh            # Instala nmap en el host (Linux, solo V4)
 │   ├── install_nmap.ps1           # Instala nmap en el host (Windows, solo V4)
-│   ├── init_lab.ps1               # Inicio del laboratorio (Windows, alternativa)
+│   ├── init_lab.sh                # Inicio completo del laboratorio (Linux): lab-targets + stack principal
+│   ├── init_lab.ps1               # Inicio completo del laboratorio (Windows): lab-targets + stack principal
+│   ├── wait_lab_targets_ready.sh  # Espera los healthchecks de lab-targets antes de escanear
 │   ├── stop_lab.sh                # Apagado del laboratorio (Linux, alternativa)
 │   ├── stop_lab.ps1               # Apagado del laboratorio (Windows, alternativa)
+│   ├── scan.sh                    # Escanea la red y envía a n8n (Linux)
 │   └── scan.ps1                   # Escanea la red y envía a n8n (Windows)
-└── workflows/
-    ├── workflowV3_linux.json      # Workflow Linux: nmap interno, trigger webhook
-    └── workflowV4_windows.json    # Workflow Windows: nmap en host, trigger webhook
+├── workflows/
+│   ├── workflowV3_linux.json      # Workflow Linux: nmap interno, trigger webhook
+│   └── workflowV4_windows.json    # Workflow Windows: nmap en host, trigger webhook
+└── docs/                          # Scripts y datos del experimento de la tesis (Cap. V):
+                                    # run_experiment.js, analyze_results.js, classify_asset.js,
+                                    # experiment_results.jsonl, figures/, anexo_e_f_v2.md
 ```
 
 ---

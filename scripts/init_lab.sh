@@ -9,11 +9,27 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 cd "$PROJECT_DIR"
 
-echo "🚀 Iniciando Laboratorio Completo (Greenbone + n8n)..."
+echo "🚀 Iniciando Laboratorio Completo (Greenbone + n8n + lab-targets)..."
 echo "📁 Directorio del proyecto: $PROJECT_DIR"
 
-# 1. Levantar el stack
-echo "📦 Levantando contenedores..."
+# 1. Levantar lab-targets primero: crea la red externa lab-net de la que
+#    depende el stack principal (ver docker-compose.yml, lab-net: external).
+#    Sin este paso, "docker compose up" del stack principal falla en una
+#    máquina limpia con "network lab-net declared as external, but could
+#    not be found" (hallazgo B3, ronda 10 de auditoría independiente).
+echo "📦 Levantando lab-targets (12 activos objetivo)..."
+docker compose -f "$PROJECT_DIR/lab-targets/docker-compose.lab-targets.yml" up -d --build
+
+if [ $? -ne 0 ]; then
+    echo "❌ ERROR: docker compose de lab-targets falló. Revisá los logs de arriba."
+    exit 1
+fi
+
+echo "⏳ Esperando a que lab-targets esté listo (healthchecks)..."
+"$SCRIPT_DIR/wait_lab_targets_ready.sh" || echo "⚠️  Continuando de todos modos (ver warning arriba)."
+
+# 2. Levantar el stack principal (n8n + Greenbone), ahora que lab-net existe
+echo "📦 Levantando contenedores (n8n + Greenbone)..."
 docker compose up -d --build
 
 if [ $? -ne 0 ]; then
@@ -23,7 +39,7 @@ fi
 
 GVMD_CONTAINER="greenbone-community-edition-gvmd-1"
 
-# 2. Espera Inteligente — espera el socket de gvmd
+# 3. Espera Inteligente — espera el socket de gvmd
 echo "⏳ Esperando a que OpenVAS inicie sus servicios (esto puede tardar 1-2 minutos)..."
 echo "   No cierres esto, estoy vigilando el arranque..."
 
@@ -45,7 +61,7 @@ done
 echo ""
 echo "✅ ¡OpenVAS ya está despierto!"
 
-# 3. Configurar usuario admin
+# 4. Configurar usuario admin
 echo "🔑 Configurando usuario admin..."
 sleep 10
 
@@ -57,7 +73,7 @@ else
     echo "✅ Usuario 'admin' creado con password 'admin123'."
 fi
 
-# 4. Importar workflow en n8n (si existe el archivo)
+# 5. Importar workflow en n8n (si existe el archivo)
 # Este script es el de Linux, así que importa la variante Linux (workflowV3_linux.json,
 # nmap corre dentro del contenedor de n8n). La variante Windows (workflowV4_windows.json)
 # la importa scripts/init_lab.ps1.
