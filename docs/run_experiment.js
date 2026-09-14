@@ -140,7 +140,15 @@ function getReportSummary(reportId) {
     const host = (r.match(/<host>([^<]*)/) || [])[1] || 'desconocido';
     const name = (r.match(/<name>([^<]*)<\/name>/) || [])[1] || '';
     const severity = parseFloat((r.match(/<severity>([^<]*)<\/severity>/) || [])[1] || '0');
-    const cve = (r.match(/<cve>([^<]*)<\/cve>/) || [])[1] || '';
+    // Bug real encontrado (hallazgo M1, ronda 10 de auditoria independiente):
+    // el GMP de Greenbone actual ya no emite <cve> como hijo directo del
+    // resultado, publica los CVE dentro de <nvt><refs><ref type="cve"
+    // id="CVE-..."/></refs></nvt> (puede haber mas de uno). El regex viejo
+    // buscaba <cve> y siempre devolvia vacio, aunque el titulo del hallazgo
+    // (name) si trae el CVE en texto libre en varios casos (ver Tabla 4).
+    const cveRefs = [...r.matchAll(/<ref type="cve" id="([^"]*)"/g)].map(m => m[1]);
+    const cveLegacy = (r.match(/<cve>([^<]*)<\/cve>/) || [])[1] || '';
+    const cve = cveRefs.length > 0 ? cveRefs.join(', ') : cveLegacy;
     const port = (r.match(/<port>([^<]*)<\/port>/) || [])[1] || '';
     return { host, name, severity, cve, port };
   }).filter(f => f.severity > 0);
