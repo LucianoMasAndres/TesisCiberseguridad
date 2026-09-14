@@ -48,9 +48,41 @@ Para evitar la ambigüedad del hallazgo A4 (prosa decía "10–20 → Alto", có
 - `10 < score ≤ 20` → **Alto**
 - `score > 20` → **Crítico**
 
-El activo 172.20.0.14 tiene puntaje exactamente igual a 20 (ver tabla); con el umbral
-`10 < score ≤ 20 → Alto`, ese caso límite cae en Alto sin ambigüedad. Ningún activo
-tiene puntaje exactamente igual a 10.
+El activo 172.20.0.14 tiene puntaje exactamente igual a 20 con la tabla de pesos
+vigente (ver tabla); con el umbral `10 < score ≤ 20 → Alto`, ese caso límite cae en
+Alto sin ambigüedad. Ningún activo tiene puntaje exactamente igual a 10. **Aclaración
+importante:** la tabla de pesos vigente asigna 11 puntos a 3306/5432/6379 desde el
+2-3 de septiembre de 2026 (ver nota de versión más abajo); con el peso 10 vigente
+durante la campaña real del 14 de agosto, el puntaje de 172.20.0.14 era 19, no 20 —
+este caso límite específico nunca se ejercitó con datos reales.
+
+## Nota de versión: el peso de los puertos de base de datos cambió después de la campaña real
+
+La tabla de pesos de esta sección (3306/5432/6379 = 11) es la vigente en el
+repositorio **hoy**. La campaña real de 5 repeticiones que generó
+`docs/experiment_results.jsonl` (14 de agosto de 2026, commit `47ff2f4`) se ejecutó
+con una versión anterior de la tabla, donde esos tres puertos pesaban **10**, no 11
+(el ajuste a 11 se aplicó recién en los commits `8e55795` y `f54ab0f`, 2 y 3 de
+septiembre). Esto se detectó al no poder reproducir los puntajes crudos del dataset
+con la tabla actual: 172.20.0.13 da 27 en el dato real (no 28), 172.20.0.14 da 19
+(no 20), y 172.20.0.21 da 22 (no 23) — exactamente los tres activos que exponen
+alguno de esos puertos, con una discrepancia de −1 en cada caso.
+
+**Esto no cambia ninguna clase de criticidad**: 27 y 28 superan igual el umbral de
+20 (Crítico); 19 y 20 superan igual el umbral de 10 sin superar 20 (Alto); 22 y 23
+superan igual el umbral de 20 (Crítico). La matriz de confusión, las 44
+comparaciones y el 86,4 % de coincidencia no se ven afectados.
+
+**Sí queda invalidado** el argumento de diseño de que un activo con un único puerto
+de base de datos alcanza por sí solo la categoría Alto: con peso 10, un único puerto
+de ese tipo suma exactamente 10, que no es `> 10`, y ese activo hipotético habría
+quedado en Normal, fuera del alcance de Greenbone. Esa propiedad de diseño es cierta
+del código vigente, no del código que corrió la campaña.
+
+La tabla del laboratorio de 12 activos que sigue a continuación, y el bloque de
+código de `classifyAsset`, documentan el estado **actual** del repositorio (peso
+11). Para los puntajes que realmente produjo la campaña del 14 de agosto, ver
+`docs/experiment_results.jsonl` directamente.
 
 ## Código (`classifyAsset`)
 
