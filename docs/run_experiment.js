@@ -36,7 +36,7 @@ function runDiscoveryAndPortScan() {
   const subnet = '172.20.0.0/24';
   const relevantPorts = 'T:21,22,23,25,80,389,443,445,587,3306,5432,6379,8080,U:161';
   const discoveryXml = execSync(`nmap -sn -n -oX - ${subnet}`, { maxBuffer: 1024 * 1024 * 20 }).toString();
-  const discBlocks = discoveryXml.match(/<host[\s\S]*?<\/host>/g) || [];
+  const discBlocks = discoveryXml.match(/<host [\s\S]*?<\/host>/g) || [];
   // Excluye infraestructura de la propia red lab-net que no es parte del
   // ground truth: gateway/reservados (.1, .2) y el contenedor ospd-openvas
   // que se une a lab-net para poder escanear (.3, ver docs/anexo_e_f_v2.md).
