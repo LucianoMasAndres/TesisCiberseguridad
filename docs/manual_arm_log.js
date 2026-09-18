@@ -7,6 +7,13 @@
 // bitacora real en el repositorio (ver hallazgo B2, ronda 10 de auditoria
 // independiente: la campana manual original no dejo ningun registro crudo).
 //
+// RECOMENDADO: docs/cronometro_manual.py (Python) hace lo mismo pero cada
+// hito se puede marcar solo (encadenando `python docs/marcar.py` al final
+// del comando real) en vez de tener que volver a esta terminal y tocar
+// ENTER. Mismo esquema de salida, ambos escriben en
+// docs/manual_arm_results.jsonl y docs/analyze_manual_arm.js lee cualquiera
+// de los dos sin cambios. Este archivo .js se deja como referencia / respaldo.
+//
 // Uso:
 //   node docs/manual_arm_log.js --rep 1
 //   node docs/manual_arm_log.js --rep 1 --test     (modo de prueba, sin input humano)

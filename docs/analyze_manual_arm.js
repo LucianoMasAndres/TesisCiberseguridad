@@ -1,4 +1,5 @@
-// Analiza docs/manual_arm_results.jsonl (generado por docs/manual_arm_log.js)
+// Analiza docs/manual_arm_results.jsonl (generado por docs/manual_arm_log.js o
+// por docs/cronometro_manual.py, mismo esquema de salida en ambos casos)
 // y reproduce la fila "Manual" de la Tabla 4, con media y desviacion estandar
 // poblacional por fase (mismo criterio descriptivo que docs/analyze_results.js
 // usa para el brazo automatizado).
