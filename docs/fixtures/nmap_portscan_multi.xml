@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/bin/../share/nmap/nmap.xsl" type="text/xsl"?>
+<!-- Nmap 7.95 scan initiated Tue Sep 29 18:39:06 2026 as: nmap -n -Pn -&#45;open -p T:21,22,23,25,80,389,443,445,587,3306,5432,6379,8080,U:161 -sS -sU -sV -oX - 172.20.0.10 172.20.0.13 172.20.0.17 172.20.0.21 -->
+<nmaprun scanner="nmap" args="nmap -n -Pn -&#45;open -p T:21,22,23,25,80,389,443,445,587,3306,5432,6379,8080,U:161 -sS -sU -sV -oX - 172.20.0.10 172.20.0.13 172.20.0.17 172.20.0.21" start="1790707146" startstr="Tue Sep 29 18:39:06 2026" version="7.95" xmloutputversion="1.05">
+<scaninfo type="syn" protocol="tcp" numservices="13" services="21-23,25,80,389,443,445,587,3306,5432,6379,8080"/>
+<scaninfo type="udp" protocol="udp" numservices="1" services="161"/>
+<verbose level="0"/>
+<debugging level="0"/>
+<hosthint><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="172.20.0.13" addrtype="ipv4"/>
+<address addr="5A:38:B5:55:B9:4B" addrtype="mac"/>
+<hostnames>
+</hostnames>
+</hosthint>
+<hosthint><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="172.20.0.17" addrtype="ipv4"/>
+<address addr="62:BC:D5:62:E9:39" addrtype="mac"/>
+<hostnames>
+</hostnames>
+</hosthint>
+<hosthint><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="172.20.0.21" addrtype="ipv4"/>
+<address addr="C2:7A:71:C7:51:1D" addrtype="mac"/>
+<hostnames>
+</hostnames>
+</hosthint>
+<hosthint><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="172.20.0.10" addrtype="ipv4"/>
+<address addr="5A:B6:81:58:30:10" addrtype="mac"/>
+<hostnames>
+</hostnames>
+</hosthint>
+<host starttime="1790707146" endtime="1790707159"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="172.20.0.10" addrtype="ipv4"/>
+<address addr="5A:B6:81:58:30:10" addrtype="mac"/>
+<hostnames>
+</hostnames>
+<ports><extraports state="closed" count="12">
+<extrareasons reason="reset" count="11" proto="tcp" ports="21-23,25,389,445,587,3306,5432,6379,8080"/>
+<extrareasons reason="port-unreach" count="1" proto="udp" ports="161"/>
+</extraports>
+<port protocol="tcp" portid="80"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="http" product="nginx" version="1.25.5" method="probed" conf="10"><cpe>cpe:/a:igor_sysoev:nginx:1.25.5</cpe></service></port>
+<port protocol="tcp" portid="443"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="http" product="nginx" version="1.25.5" tunnel="ssl" method="probed" conf="10"><cpe>cpe:/a:igor_sysoev:nginx:1.25.5</cpe></service></port>
+</ports>
+<times srtt="66" rttvar="169" to="100000"/>
+</host>
+<host starttime="1790707146" endtime="1790707159"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="172.20.0.13" addrtype="ipv4"/>
+<address addr="5A:38:B5:55:B9:4B" addrtype="mac"/>
+<hostnames>
+</hostnames>
+<ports><extraports state="closed" count="11">
+<extrareasons reason="reset" count="10" proto="tcp" ports="21,23,25,80,389,443,587,5432,6379,8080"/>
+<extrareasons reason="port-unreach" count="1" proto="udp" ports="161"/>
+</extraports>
+<port protocol="tcp" portid="22"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="ssh" product="OpenSSH" version="8.4p1 Debian 5+deb11u7" extrainfo="protocol 2.0" ostype="Linux" method="probed" conf="10"><cpe>cpe:/a:openbsd:openssh:8.4p1</cpe><cpe>cpe:/o:linux:linux_kernel</cpe></service></port>
+<port protocol="tcp" portid="445"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="netbios-ssn" product="Samba smbd" version="4" method="probed" conf="10"><cpe>cpe:/a:samba:samba:4</cpe></service></port>
+<port protocol="tcp" portid="3306"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="mysql" product="MySQL" version="5.7.44" method="probed" conf="10"><cpe>cpe:/a:mysql:mysql:5.7.44</cpe></service></port>
+</ports>
+<times srtt="208" rttvar="369" to="100000"/>
+</host>
+<host starttime="1790707146" endtime="1790707159"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="172.20.0.17" addrtype="ipv4"/>
+<address addr="62:BC:D5:62:E9:39" addrtype="mac"/>
+<hostnames>
+</hostnames>
+<ports><extraports state="closed" count="11">
+<extrareasons reason="reset" count="11" proto="tcp" ports="21-22,25,80,389,443,587,3306,5432,6379,8080"/>
+</extraports>
+<port protocol="tcp" portid="23"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="telnet" product="Linux telnetd" ostype="Linux" method="probed" conf="10"><cpe>cpe:/o:linux:linux_kernel</cpe></service></port>
+<port protocol="tcp" portid="445"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="netbios-ssn" product="Samba smbd" version="4" method="probed" conf="10"><cpe>cpe:/a:samba:samba:4</cpe></service></port>
+<port protocol="udp" portid="161"><state state="open" reason="udp-response" reason_ttl="64"/><service name="snmp" product="SNMPv1 server; net-snmp SNMPv3 server" extrainfo="public" hostname="f98a9e410a6c" method="probed" conf="10"/></port>
+</ports>
+<times srtt="3603" rttvar="7238" to="100000"/>
+</host>
+<host starttime="1790707146" endtime="1790707159"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="172.20.0.21" addrtype="ipv4"/>
+<address addr="C2:7A:71:C7:51:1D" addrtype="mac"/>
+<hostnames>
+</hostnames>
+<ports><extraports state="closed" count="11">
+<extrareasons reason="reset" count="10" proto="tcp" ports="22-23,25,389,443,445,587,3306,5432,8080"/>
+<extrareasons reason="port-unreach" count="1" proto="udp" ports="161"/>
+</extraports>
+<port protocol="tcp" portid="21"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="ftp" product="vsftpd" version="3.0.3" ostype="Unix" method="probed" conf="10"><cpe>cpe:/a:vsftpd:vsftpd:3.0.3</cpe></service></port>
+<port protocol="tcp" portid="80"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="http" product="nginx" version="1.25.5" method="probed" conf="10"><cpe>cpe:/a:igor_sysoev:nginx:1.25.5</cpe></service></port>
+<port protocol="tcp" portid="6379"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="redis" product="Redis key-value store" version="5.0.14" method="probed" conf="10"><cpe>cpe:/a:redislabs:redis:5.0.14</cpe></service></port>
+</ports>
+<times srtt="55" rttvar="140" to="100000"/>
+</host>
+<runstats><finished time="1790707159" timestr="Tue Sep 29 18:39:19 2026" summary="Nmap done at Tue Sep 29 18:39:19 2026; 4 IP addresses (4 hosts up) scanned in 12.96 seconds" elapsed="12.96" exit="success"/><hosts up="4" down="0" total="4"/>
+</runstats>
+</nmaprun>

@@ -1,15 +1,17 @@
 // Analiza docs/manual_arm_results.jsonl (generado por docs/manual_arm_log.js o
 // por docs/cronometro_manual.py, mismo esquema de salida en ambos casos)
-// y reproduce la fila "Manual" de la Tabla 4, con media y desviacion estandar
-// poblacional por fase (mismo criterio descriptivo que docs/analyze_results.js
-// usa para el brazo automatizado).
+// y lista cada repeticion con su operador. Si todas son del mismo operador,
+// agrega media y desviacion estandar poblacional por fase (mismo criterio
+// descriptivo que docs/analyze_results.js usa para el brazo automatizado); si
+// hay operadores con condiciones distintas, no las promedia.
 //
-// Uso: node docs/analyze_manual_arm.js
+// Uso: node docs/analyze_manual_arm.js [ruta/a/registros.jsonl]
 
 const fs = require('fs');
 const path = require('path');
 
-const RESULTS_PATH = path.join(__dirname, 'manual_arm_results.jsonl');
+// Opcional: ruta a otro archivo de registros como primer argumento (lo usan los tests).
+const RESULTS_PATH = process.argv[2] || path.join(__dirname, 'manual_arm_results.jsonl');
 
 function fmtMinSec(totalSeconds) {
   const m = Math.floor(totalSeconds / 60);
@@ -40,12 +42,27 @@ function main() {
 
   console.log(`Repeticiones reales encontradas: ${registros.length}`);
   console.log('');
-  console.log('Rep. | Nmap    | Clasif. | GVM+reporte | Total');
-  console.log('-----|---------|---------|-------------|-------');
+  console.log('Rep. | Operador   | Nmap    | Clasif. | GVM+reporte | Total');
+  console.log('-----|------------|---------|---------|-------------|-------');
   for (const r of registros) {
+    const op = r.operador !== undefined ? `Operador ${r.operador}` : '-';
     console.log(
-      `${String(r.repeticion).padStart(4)} | ${r.fases_fmt.nmap.padStart(7)} | ${r.fases_fmt.clasificacion.padStart(7)} | ${r.fases_fmt.gvm_reporte.padStart(11)} | ${r.fases_fmt.total}`
+      `${String(r.repeticion).padStart(4)} | ${op.padEnd(10)} | ${r.fases_fmt.nmap.padStart(7)} | ${r.fases_fmt.clasificacion.padStart(7)} | ${r.fases_fmt.gvm_reporte.padStart(11)} | ${r.fases_fmt.total}`
     );
+  }
+
+  // Repeticiones de operadores distintos no se promedian: en la remedicion de
+  // septiembre de 2026 el operador 1 lanzo Greenbone en paralelo y el operador 2
+  // en serie, dos estrategias distintas (ver docs/evidencia_manual_operador*/).
+  // Una media agrupada no describiria a ningun operador real.
+  const operadores = new Set(registros.map((r) => r.operador));
+  if (operadores.size > 1) {
+    console.log(`\nRepeticiones de ${operadores.size} operadores con condiciones distintas (ver campo "nota"):`);
+    console.log('no se calcula media agrupada. Cada fila se reporta por separado.');
+    for (const r of registros) {
+      if (r.nota) console.log(`  Rep. ${r.repeticion} (Operador ${r.operador}): ${r.nota}`);
+    }
+    return;
   }
 
   const fases = ['nmap_s', 'clasificacion_s', 'gvm_reporte_s', 'total_s'];

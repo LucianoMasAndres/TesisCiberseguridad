@@ -7,7 +7,7 @@ App Flutter que actúa como cliente disparador del sistema de gestión de vulner
 ## Qué hace (hoy)
 
 1. Ingresás la IP del servidor donde corre n8n (la misma máquina donde tenés el laboratorio Docker levantado), la subred a escanear y el perfil de análisis.
-2. Al tocar **"Escanear red"**, la app hace un `POST` directo al webhook de producción del workflow V3 (`/webhook/nmap-v3`) — el mismo endpoint que usa `launcher.py` en modo Linux/interno.
+2. Al tocar **"Escanear red"**, la app hace un `POST` directo al webhook de producción del workflow V3 (`/webhook/nmap-v3`). Es el workflow histórico, **no** el que usa `launcher.py` (que dispara `/webhook/nmap-interno` de V4): V3 hace solo descubrimiento de hosts sobre la subred indicada y manda a OpenVAS todos los hosts activos, sin la clasificación por criticidad de V4.
 3. El escaneo corre en OpenVAS como siempre. **El resultado sigue llegando por Telegram y por email** — la app no lo muestra todavía.
 
 ## Qué NO hace (todavía)
@@ -29,7 +29,7 @@ El objetivo de esta app es **reemplazar progresivamente el canal de Telegram**, 
 
 - Flutter 3.44+ (`flutter --version` para confirmar)
 - El laboratorio (`docker compose up -d` en la raíz del repo) corriendo y accesible en red desde el celular
-- El workflow `workflowV3` importado y **activo** en n8n
+- El workflow `workflowV3` (`workflows/workflowV3_linux.json`) importado a mano y **activo** en n8n: `init_lab.sh` e `init_lab.ps1` importan solo V4
 
 ## Correr en desarrollo
 

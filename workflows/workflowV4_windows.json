@@ -145,7 +145,7 @@
         -80
       ],
       "id": "if-timeout",
-      "name": "Â¿Timeout?"
+      "name": "¿Timeout?"
     },
     {
       "parameters": {
@@ -232,7 +232,7 @@
         96
       ],
       "id": "if-hay-hosts",
-      "name": "Â¿Hay hosts?"
+      "name": "¿Hay hosts?"
     },
     {
       "parameters": {
@@ -301,7 +301,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const { execSync } = require('child_process');\n\n// Subred fija del laboratorio (ver lab-targets/docker-compose.lab-targets.yml).\n// No se usa $env/process.env: el sandbox del JS Task Runner de n8n bloquea\n// el acceso a variables de entorno en Code nodes por defecto.\nconst subnet = '172.20.0.0/24';\nconst relevantPorts = 'T:21,22,23,25,80,389,443,445,587,3306,5432,6379,8080,U:161';\n\n// 1. Descubrimiento (host vivo / muerto)\nconst discoveryXml = execSync(`nmap -sn -n -oX - ${subnet}`, { maxBuffer: 1024 * 1024 * 20 }).toString();\nconst discBlocks = discoveryXml.match(/<host [\\s\\S]*?<\\/host>/g) || [];\nconst upIps = [];\nfor (const block of discBlocks) {\n  if (/<status state=\"up\"/.test(block)) {\n    const m = block.match(/addr=\"([\\d.]+)\" addrtype=\"ipv4\"/);\n    if (m) upIps.push(m[1]);\n  }\n}\n\nif (upIps.length === 0) {\n  return [{ json: { hosts: [], subnet, hostCount: 0 } }];\n}\n\n// 2. Escaneo de puertos relevantes (los catalogados en SERVICE_WEIGHTS, ver\n//    docs/anexo_e_f_v2.md) sobre los hosts descubiertos. Requiere -sS/-sU\n//    (raw sockets); el Dockerfile de n8n_custom otorga el bit setuid a nmap\n//    para que funcione con el usuario no privilegiado 'node'.\nconst ipsArg = upIps.join(' ');\nconst portScanXml = execSync(\n  `nmap -n -Pn --open -p ${relevantPorts} -sS -sU -sV -oX - ${ipsArg}`,\n  { maxBuffer: 1024 * 1024 * 20 }\n).toString();\n\nconst hosts = [];\nconst psBlocks = portScanXml.match(/<host [\\s\\S]*?<\\/host>/g) || [];\nfor (const block of psBlocks) {\n  const ipMatch = block.match(/addr=\"([\\d.]+)\" addrtype=\"ipv4\"/);\n  if (!ipMatch) continue;\n  const ip = ipMatch[1];\n  const ports = [];\n  const portBlocks = block.match(/<port protocol=\"(?:tcp|udp)\" portid=\"\\d+\">[\\s\\S]*?<\\/port>/g) || [];\n  for (const pb of portBlocks) {\n    const stateMatch = pb.match(/<state state=\"open\"/);\n    const portIdMatch = pb.match(/portid=\"(\\d+)\"/);\n    if (stateMatch && portIdMatch) ports.push(parseInt(portIdMatch[1], 10));\n  }\n  hosts.push({ ip, ports });\n}\n\nreturn [{ json: { hosts, subnet, hostCount: hosts.length } }];"
+        "jsCode": "const { execSync } = require('child_process');\n\n// Subred fija del laboratorio (ver lab-targets/docker-compose.lab-targets.yml).\n// No se usa $env/process.env: el sandbox del JS Task Runner de n8n bloquea\n// el acceso a variables de entorno en Code nodes por defecto.\nconst subnet = '172.20.0.0/24';\nconst relevantPorts = 'T:21,22,23,25,80,389,443,445,587,3306,5432,6379,8080,U:161';\n\n// 1. Descubrimiento (host vivo / muerto)\nconst discoveryXml = execSync(`nmap -sn -n -oX - ${subnet}`, { maxBuffer: 1024 * 1024 * 20 }).toString();\nconst discBlocks = discoveryXml.match(/<host[\\s>][\\s\\S]*?<\\/host>/g) || [];\nconst upIps = [];\nfor (const block of discBlocks) {\n  if (/<status state=\"up\"/.test(block)) {\n    const m = block.match(/addr=\"([\\d.]+)\" addrtype=\"ipv4\"/);\n    if (m) upIps.push(m[1]);\n  }\n}\n\nif (upIps.length === 0) {\n  return [{ json: { hosts: [], subnet, hostCount: 0 } }];\n}\n\n// 2. Escaneo de puertos relevantes (los catalogados en SERVICE_WEIGHTS, ver\n//    docs/anexo_e_f_v2.md) sobre los hosts descubiertos. Requiere -sS/-sU\n//    (raw sockets); el Dockerfile de n8n_custom otorga el bit setuid a nmap\n//    para que funcione con el usuario no privilegiado 'node'.\nconst ipsArg = upIps.join(' ');\nconst portScanXml = execSync(\n  `nmap -n -Pn --open -p ${relevantPorts} -sS -sU -sV -oX - ${ipsArg}`,\n  { maxBuffer: 1024 * 1024 * 20 }\n).toString();\n\nconst hosts = [];\nconst psBlocks = portScanXml.match(/<host[\\s>][\\s\\S]*?<\\/host>/g) || [];\nfor (const block of psBlocks) {\n  const ipMatch = block.match(/addr=\"([\\d.]+)\" addrtype=\"ipv4\"/);\n  if (!ipMatch) continue;\n  const ip = ipMatch[1];\n  const ports = [];\n  const portBlocks = block.match(/<port protocol=\"(?:tcp|udp)\" portid=\"\\d+\">[\\s\\S]*?<\\/port>/g) || [];\n  for (const pb of portBlocks) {\n    const stateMatch = pb.match(/<state state=\"open\"/);\n    const portIdMatch = pb.match(/portid=\"(\\d+)\"/);\n    if (stateMatch && portIdMatch) ports.push(parseInt(portIdMatch[1], 10));\n  }\n  hosts.push({ ip, ports });\n}\n\nreturn [{ json: { hosts, subnet, hostCount: hosts.length } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -357,14 +357,14 @@
       "main": [
         [
           {
-            "node": "Â¿Hay hosts?",
+            "node": "¿Hay hosts?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Â¿Hay hosts?": {
+    "¿Hay hosts?": {
       "main": [
         [
           {
@@ -430,14 +430,14 @@
       "main": [
         [
           {
-            "node": "Â¿Timeout?",
+            "node": "¿Timeout?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Â¿Timeout?": {
+    "¿Timeout?": {
       "main": [
         [
           {

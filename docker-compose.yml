@@ -96,9 +96,16 @@ services:
     networks:
       - greenbone-net
 
+  # Servicios persistentes de Greenbone: unless-stopped en lugar del on-failure
+  # del compose de referencia. Con on-failure, un contenedor que termina con
+  # codigo 0 (o que estaba corriendo cuando se reinicia Docker) no vuelve solo,
+  # y el stack queda a medias: se observo pg-gvm caido con gvmd arriba
+  # (unhealthy) y ospd-openvas detenido, sin que Greenbone pudiera escanear.
+  # Los contenedores de datos (*-data, vulnerability-tests, ...) son de una
+  # sola ejecucion y no llevan restart.
   redis-server:
     image: registry.community.greenbone.net/community/redis-server:stable
-    restart: on-failure
+    restart: unless-stopped
     volumes:
       - redis_socket_vol:/run/redis/
     networks:
@@ -106,7 +113,7 @@ services:
 
   pg-gvm:
     image: registry.community.greenbone.net/community/pg-gvm:stable
-    restart: on-failure
+    restart: unless-stopped
     volumes:
       - psql_data_vol:/var/lib/postgresql
       - psql_socket_vol:/var/run/postgresql
@@ -116,7 +123,7 @@ services:
   gvmd:
     image: registry.community.greenbone.net/community/gvmd:stable
     container_name: greenbone-community-edition-gvmd-1 # Nombre fijo para que el script lo encuentre
-    restart: on-failure
+    restart: unless-stopped
     volumes:
       - gvmd_data_vol:/var/lib/gvm
       - scap_data_vol:/var/lib/gvm/scap-data/
@@ -134,7 +141,7 @@ services:
 
   gsa:
     image: registry.community.greenbone.net/community/gsa:stable
-    restart: on-failure
+    restart: unless-stopped
     ports:
       - 127.0.0.1:9392:9392
     volumes:
@@ -155,7 +162,7 @@ services:
 
   openvas:
     image: registry.community.greenbone.net/community/openvas-scanner:stable
-    restart: on-failure
+    restart: unless-stopped
     volumes:
       - openvas_data_vol:/etc/openvas
       - openvas_log_data_vol:/var/log/openvas
@@ -167,7 +174,7 @@ services:
 
   openvasd:
     image: registry.community.greenbone.net/community/openvas-scanner:stable
-    restart: on-failure
+    restart: unless-stopped
     environment:
       OPENVASD_MODE: service_notus
       GNUPGHOME: /etc/openvas/gnupg
@@ -186,7 +193,7 @@ services:
 
   ospd-openvas:
     image: registry.community.greenbone.net/community/ospd-openvas:stable
-    restart: on-failure
+    restart: unless-stopped
     cap_add:
       - NET_ADMIN
       - NET_RAW

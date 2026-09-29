@@ -1,9 +1,10 @@
 #!/bin/bash
 # Espera a que todos los contenedores de lab-targets con healthcheck definido
-# reporten "healthy" antes de disparar el escaneo Nmap. Corrige la condicion
-# de carrera documentada en Pendientes_Correccion_TFI.txt punto 1.3
-# (172.20.0.10 nunca detectado: el escaneo arrancaba antes de que el
-# contenedor terminara de levantar).
+# reporten "healthy" antes de disparar el escaneo Nmap, para no escanear
+# contenedores que todavia estan levantando. (Esta espera se agrego mientras se
+# investigaba por que 172.20.0.10 nunca aparecia en los resultados; la causa
+# raiz resulto ser otra, el parseo de <hosthint> en el XML de Nmap: ver
+# docs/run_experiment.js y docs/test_nmap_parsing.js.)
 
 set -euo pipefail
 

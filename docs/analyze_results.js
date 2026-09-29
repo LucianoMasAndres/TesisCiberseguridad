@@ -1,5 +1,7 @@
 const fs = require('fs');
-const lines = fs.readFileSync('experiment_results.jsonl', 'utf8').trim().split('\n');
+const path = require('path');
+// Ruta relativa al script, no al directorio de trabajo: corre desde cualquier lado.
+const lines = fs.readFileSync(path.join(__dirname, 'experiment_results.jsonl'), 'utf8').trim().split('\n');
 const reps = lines.map(l => JSON.parse(l));
 
 const GHOST_HOST = '172.20.0.3'; // ospd-openvas en lab-net, no es parte del ground truth

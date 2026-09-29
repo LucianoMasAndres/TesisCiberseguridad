@@ -44,10 +44,11 @@ box(5.4, 3.2, 4.6, 1.6,
     fc='#eaf2e3', ec='#2e7d32', fontsize=8)
 
 arrow((3.5, 6.6), (5.9, 4.8))
-label((1.9, 5.7), "Nmap\n(descubrimiento y puertos)", ha='center')
+# Rotulo junto a la flecha n8n -> lab-net (no junto a las flechas de notificacion)
+label((6.35, 5.3), "Nmap\n(descubrimiento y puertos)", ha='center')
 
 arrow((9.0, 5.8), (8.4, 4.8))
-label((11.0, 5.35), "OpenVAS\n(análisis de\nvulnerabilidades)", ha='left')
+label((8.95, 5.35), "OpenVAS\n(análisis de\nvulnerabilidades)", ha='left')
 
 # Notificaciones (a la izquierda, sin cruzar la red lab-net)
 box(0.4, 0.5, 2.4, 1.6, "Telegram\n(bot API)", fc='#f5e0f5', ec='#8e44ad', fontsize=8.3)

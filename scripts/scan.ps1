@@ -4,6 +4,13 @@
 #  Ejecuta nmap en el host y envia resultados a n8n (Windows)
 #
 #  Uso: .\scan.ps1 [-Subnet 192.168.1.0/24] [-N8nUrl http://localhost:5678/webhook/nmap]
+#
+#  HISTORICO: corresponde al diseno original de escaneo externo desde el host.
+#  No alimenta el flujo actual: el webhook /webhook/nmap de workflowV4 espera
+#  un JSON con hosts y puertos (lo que envia docs/run_experiment.js), no el XML
+#  de 'nmap -sn', y ademas el host no alcanza la red bridge del laboratorio en
+#  Docker Desktop (ver docs/anexo_e_f_v2.md). Para escanear el laboratorio usar
+#  el launcher o POST a /webhook/nmap-interno (Nmap corre dentro de n8n).
 # ===========================================================
 
 param(

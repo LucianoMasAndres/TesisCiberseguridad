@@ -36,7 +36,10 @@ function runDiscoveryAndPortScan() {
   const subnet = '172.20.0.0/24';
   const relevantPorts = 'T:21,22,23,25,80,389,443,445,587,3306,5432,6379,8080,U:161';
   const discoveryXml = execSync(`nmap -sn -n -oX - ${subnet}`, { maxBuffer: 1024 * 1024 * 20 }).toString();
-  const discBlocks = discoveryXml.match(/<host [\s\S]*?<\/host>/g) || [];
+  // En la salida de -sn el tag es "<host>" sin atributos; en la del escaneo de
+  // puertos es "<host starttime=...>". [\s>] acepta ambos y excluye "<hosthint>"
+  // y "<hostnames>" (ver docs/test_nmap_parsing.js).
+  const discBlocks = discoveryXml.match(/<host[\s>][\s\S]*?<\/host>/g) || [];
   // Excluye infraestructura de la propia red lab-net que no es parte del
   // ground truth: gateway/reservados (.1, .2) y el contenedor ospd-openvas
   // que se une a lab-net para poder escanear (.3, ver docs/anexo_e_f_v2.md).
@@ -69,11 +72,11 @@ function runDiscoveryAndPortScan() {
   // IP queda "tapada" por la del hosthint que aparecio primero) mientras sus
   // puertos reales quedan atribuidos a esa otra IP. Esto es lo que hacia que
   // 172.20.0.10 (o cualquier host que resultara primero en terminar) nunca
-  // apareciera en los resultados, run tras run, de forma deterministica (ver
-  // notas-privadas/Pendientes_Correccion_TFI.txt punto 1.3). El fix: exigir
-  // el espacio que solo tienen los <host ...> reales ("<host starttime=..."),
-  // que "<hosthint>" nunca tiene.
-  const psBlocks = portScanXml.match(/<host [\s\S]*?<\/host>/g) || [];
+  // apareciera en los resultados, run tras run, de forma deterministica. El
+  // fix: exigir despues de "<host" un espacio o el cierre del tag, que
+  // "<hosthint>" nunca tiene (el espacio solo no alcanza: el "<host>" del
+  // descubrimiento -sn no lleva atributos).
+  const psBlocks = portScanXml.match(/<host[\s>][\s\S]*?<\/host>/g) || [];
   for (const block of psBlocks) {
     const ipMatch = block.match(/addr="([\d.]+)" addrtype="ipv4"/);
     if (!ipMatch) continue;
@@ -173,15 +176,18 @@ async function runRepetition(n) {
   fs.writeFileSync('/tmp/webhook_payload.json', JSON.stringify(payload));
 
   log('T1->T2: disparando webhook con perfil Full and fast');
-  // Bug real encontrado y corregido (2026-08-22): el nodo "Nmap" del workflow
-  // n8n hace su PROPIO descubrimiento interno (independiente del payload JSON
-  // enviado aca) leyendo la subred desde el query param "subnet" de la URL del
-  // webhook, con fallback a 192.168.122.0/24 si no se pasa. El payload JSON
-  // (variable payload de arriba) NO alimenta ese nodo -- solo query params lo
-  // hacen. Sin este parametro, el workflow escanea la subred incorrecta (la
-  // del host, no la del lab-net docker) y siempre reporta 0 hallazgos.
+  // Webhook "Webhook Nmap" de workflowV4 (/webhook/nmap): recibe el payload
+  // JSON de arriba (hosts con sus puertos) y lo pasa al nodo Code, que aplica
+  // classifyAsset y envia a Greenbone solo los activos Alto/Critico. Es el
+  // camino de la campana del 14/08/2026 (commit 47ff2f4); los targets creados
+  // en esa campana listan solo los Alto/Critico de cada repeticion (ver
+  // docs/evidencia_campana_gvm/). Entre el 22/08 y el 29/09 este script apunto
+  // por error a /webhook/nmap-v3 (workflowV3, sin clasificacion: manda a
+  // Greenbone todos los hosts activos); los datos de
+  // docs/experiment_results.jsonl no provienen de esa variante. Contrato
+  // verificado por docs/test_workflow_contract.js.
   execSync(
-    `wget -q -O - --header="Content-Type: application/json" --post-file=/tmp/webhook_payload.json "http://localhost:5678/webhook/nmap-v3?scan_config=${SCAN_CONFIG_FULL_AND_FAST}&subnet=172.20.0.0/24"`
+    `wget -q -O - --header="Content-Type: application/json" --post-file=/tmp/webhook_payload.json "http://localhost:5678/webhook/nmap?scan_config=${SCAN_CONFIG_FULL_AND_FAST}"`
   ).toString();
   const t2 = new Date();
 
@@ -249,7 +255,10 @@ async function runRepetition(n) {
   return record;
 }
 
-(async () => {
+module.exports = { classify, runDiscoveryAndPortScan };
+
+// Solo corre la campana si se invoca directamente (no al importarlo desde un test).
+if (require.main === module) (async () => {
   fs.writeFileSync(RESULTS_PATH, ''); // reset del archivo de resultados
   const resumen = [];
   for (let n = 1; n <= REPETICIONES; n++) {

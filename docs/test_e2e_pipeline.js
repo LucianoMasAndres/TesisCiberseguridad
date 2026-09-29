@@ -12,7 +12,10 @@
 // (o copiar tambien este archivo a /tmp dentro del contenedor)
 
 const fs = require('fs');
-const path = process.env.WORKFLOW_PATH || '/tmp/workflowV4.json';
+// Si el test corre desde el repo (montado o copiado junto a workflows/), usa ese
+// archivo; si se copio suelto a /tmp del contenedor, usa /tmp/workflowV4.json.
+const repoWorkflow = require('path').join(__dirname, '..', 'workflows', 'workflowV4_windows.json');
+const path = process.env.WORKFLOW_PATH || (fs.existsSync(repoWorkflow) ? repoWorkflow : '/tmp/workflowV4.json');
 const wf = JSON.parse(fs.readFileSync(path, 'utf8'));
 
 const nmapScanCode = wf.nodes.find(n => n.name === 'NmapScan').parameters.jsCode;

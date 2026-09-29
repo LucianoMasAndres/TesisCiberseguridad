@@ -133,7 +133,7 @@ para que Greenbone tenga algo real que detectar.
 |---|---|---|---|---|---|---|
 | 172.20.0.10 | Web pública | 80, 443 | 5+4 | 9 | Normal | nginx actualizado, TLS autofirmado — control, sin hallazgo esperado |
 | 172.20.0.11 | Landing interna | 80 | 5 | 5 | Normal | httpd actualizado — control, sin hallazgo esperado |
-| 172.20.0.12 | Panel admin interno | 80, 22 | 5+9 | 14 | Alto | OpenSSH desactualizado (8.0) con `PasswordAuthentication` habilitado |
+| 172.20.0.12 | Panel admin interno | 80, 22 | 5+9 | 14 | Alto | OpenSSH 8.4p1 (Debian 11, fuera de la rama vigente) con `PermitRootLogin` y `PasswordAuthentication` habilitados y credenciales débiles |
 | 172.20.0.13 | BD de desarrollo | 3306, 22, 445 | 11+9+8 | 28 | Crítico | MySQL 5.7 (CVE conocidas) + Samba con *guest access* habilitado (sin RCE conocido en la versión instalada — 4.13 sobre `debian:11-slim`, parcheada contra CVE-2017-7494) |
 | 172.20.0.14 | Réplica de BD | 5432, 22 | 11+9 | 20 | Alto | PostgreSQL 9.6 desactualizado |
 | 172.20.0.15 | Directorio corporativo | 389, 80 | 7+5 | 12 | Alto | OpenLDAP con *bind* anónimo habilitado |
@@ -269,6 +269,10 @@ experimento habrían corrido "exitosamente" en segundos y producido una tabla de
 resultados con cero hallazgos, reproduciendo exactamente el mismo patrón de
 "el sistema completa pero no mide lo que dice medir" que hundió el capítulo V
 original.
+
+## Qué recorrió cada repetición de la campaña
+
+Ver `docs/evidencia_campana_gvm/README.md`: en las cinco repeticiones Greenbone recibió solo los activos Alto/Crítico que clasificó el nodo `Code` de workflowV4 (verificado en la base gvmd), con la lista de puertos `All IANA assigned TCP` (sin UDP). Ahí también se detalla qué versión de `docs/run_experiment.js` corrió y por qué `experiment_log.txt` registra "0 hallazgos".
 
 ## Inestabilidad de contenedores del laboratorio durante el experimento real (2026-08-14)
 

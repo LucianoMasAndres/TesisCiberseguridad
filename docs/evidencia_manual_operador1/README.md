@@ -26,3 +26,16 @@ order by r.start_time;
 
 El operador hizo una sesión de práctica previa no medida y reiniciaba la
 repetición desde T0 ante un error; el registro corresponde a la corrida limpia.
+
+## Clasificación registrada por el operador (T1–T2)
+
+12 de 12 activos clasificados, coincidente con el Anexo F (puntaje entre paréntesis):
+
+| Categoría | Activos |
+|---|---|
+| Normal | .10 (80, 443) · .11 (80) · .18 (8080) |
+| Alto | .12 (22, 80 = 14) · .14 (22, 5432 = 20) · .15 (80, 389 = 12) · .16 (22, 25, 587 = 17) · .19 (21, 22 = 16) · .20 (22, 445 = 17) |
+| Crítico | .13 (22, 445, 3306 = 28) · .17 (23, 445, 161/udp = 26) · .21 (21, 80, 6379 = 23) |
+
+Los 9 activos Alto/Crítico se enviaron a Greenbone ("Full and fast"). Severidad
+máxima por activo: .12, .13, .14, .16, .19 y .20 = 10.0; .15 = 5.0; .17 = 2.6; .21 = 7.5.

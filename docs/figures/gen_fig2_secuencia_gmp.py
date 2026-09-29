@@ -5,7 +5,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
-actors = ['Nodo Code\n(n8n)', 'gvmd\n(socket Unix)', 'ospd-openvas']
+actors = ['Nodos Code\n(n8n, JavaScript)', 'gvmd\n(socket Unix)', 'ospd-openvas']
 xpos = [1.5, 6.0, 10.5]
 
 fig, ax = plt.subplots(figsize=(9, 8))
@@ -46,12 +46,13 @@ for src, dst, text, y in messages:
     ax.text(mx, y + 0.18, text, ha='center', va='bottom', fontsize=7.3, color='#333333')
 
 ax.text(6.0, 1.4,
-        "El nodo de código (Python) sondea get_tasks() hasta status=Done\n"
-        "antes de invocar get_reports(); rows=1000 evita la paginación\n"
-        "por defecto de GMP (10 resultados) — bug corregido en esta versión.",
+        "Los nodos Code del flujo (JavaScript) invocan gvm-cli por el socket de gvmd.\n"
+        "PollStatus consulta get_tasks() cada 60 s (máximo 90 min) hasta status=Done;\n"
+        "DownloadPDF pide get_reports() con rows=1000, que evita la paginación\n"
+        "por defecto de GMP (10 resultados).",
         ha='center', va='center', fontsize=7.8, style='italic', color='#555555')
 
-ax.set_title("Diagrama de secuencia — protocolo GMP\n(4.4/4.5 — elaboración propia a partir de docs/run_experiment.js)", fontsize=11)
+ax.set_title("Diagrama de secuencia — protocolo GMP\n(4.4/4.5 — elaboración propia a partir de workflows/workflowV4_windows.json:\nCreateTarget, CreateTask, StartTask, PollStatus, DownloadPDF)", fontsize=10)
 
 plt.tight_layout()
 plt.savefig('fig2_secuencia_gmp.png', dpi=150)

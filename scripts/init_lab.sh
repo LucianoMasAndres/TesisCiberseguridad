@@ -9,6 +9,21 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 cd "$PROJECT_DIR"
 
+# 0. Dependencias del host: Docker con el plugin Compose v2.
+if ! command -v docker >/dev/null 2>&1; then
+    echo "❌ ERROR: Docker no está instalado. Ver README (Instalar Docker en Linux)."
+    exit 1
+fi
+if ! docker compose version >/dev/null 2>&1; then
+    echo "❌ ERROR: falta Docker Compose v2 (comando 'docker compose'). Ver README."
+    exit 1
+fi
+if ! docker info >/dev/null 2>&1; then
+    echo "❌ ERROR: el demonio de Docker no responde o tu usuario no tiene permiso."
+    echo "   Probá: sudo usermod -aG docker \$USER  (y volvé a iniciar sesión)"
+    exit 1
+fi
+
 echo "🚀 Iniciando Laboratorio Completo (Greenbone + n8n + lab-targets)..."
 echo "📁 Directorio del proyecto: $PROJECT_DIR"
 
@@ -74,10 +89,15 @@ else
 fi
 
 # 5. Importar workflow en n8n (si existe el archivo)
-# Este script es el de Linux, así que importa la variante Linux (workflowV3_linux.json,
-# nmap corre dentro del contenedor de n8n). La variante Windows (workflowV4_windows.json)
-# la importa scripts/init_lab.ps1.
-WORKFLOW_NAME="workflowV3_linux.json"
+# Se importa workflowV4_windows.json, igual que scripts/init_lab.ps1: pese al
+# nombre histórico, V4 no depende del sistema operativo del host (Nmap, gvm-cli
+# y el socket de gvmd corren dentro de los contenedores) y es el único flujo que
+# implementa el sistema descrito en la tesis: descubrimiento y escaneo de
+# puertos (NmapScan), clasificación por criticidad (Code), análisis de los
+# activos Alto/Crítico en Greenbone y rama de timeout. workflowV3_linux.json es
+# histórico (sin clasificación ni escaneo de puertos) y solo lo usa el prototipo
+# de app móvil; ver README.
+WORKFLOW_NAME="workflowV4_windows.json"
 WORKFLOW_FILE="$PROJECT_DIR/workflows/$WORKFLOW_NAME"
 if [ -f "$WORKFLOW_FILE" ]; then
     echo "📋 Importando workflow en n8n..."
@@ -88,7 +108,7 @@ if [ -f "$WORKFLOW_FILE" ]; then
     docker cp "$WORKFLOW_FILE" "n8n-security-lab:/home/node/.n8n/workflows/$WORKFLOW_NAME" 2>/dev/null && \
     docker exec n8n-security-lab \
         n8n import:workflow --input="/home/node/.n8n/workflows/$WORKFLOW_NAME" 2>/dev/null
-    echo "✅ Workflow copiado. Abrí n8n, importá/activá $WORKFLOW_NAME y configurá las credenciales de Telegram."
+    echo "✅ Workflow importado. Abrí n8n, activá $WORKFLOW_NAME (workflowV4_webhook) y cargá el token y el Chat ID de Telegram en sus nodos (ver README)."
 else
     echo "⚠️  No se encontró workflows/$WORKFLOW_NAME — importalo manualmente en n8n."
 fi
