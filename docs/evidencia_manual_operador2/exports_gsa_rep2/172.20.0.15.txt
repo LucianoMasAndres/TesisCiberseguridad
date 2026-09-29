@@ -1,0 +1,89 @@
+Results(4 of 62)
+Hosts(1 of 1)
+Ports(2 of 3)
+Applications(4 of 4)
+Operating Systems(1 of 1)
+CVEs(1 of 1)
+Closed CVEs(0 of 0)
+TLS Certificates(2 of 2)
+Error Messages(0 of 0)
+User Tags(0)
+1 - 4 of 4
+				
+Host
+		
+EPSS
+	
+			
+SSL/TLS: Certificate In Chain Expired
+	
+	
+5.0 (Medium)
+	
+99 %
+	
+172.20.0.15
+	
+lab-targets-anchor-15-1.lab-net
+	
+389/tcp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 6:48 PM Coordinated Universal Time
+SSL/TLS: Certificate In Chain Expired
+	
+	
+5.0 (Medium)
+	
+99 %
+	
+172.20.0.15
+	
+lab-targets-anchor-15-1.lab-net
+	
+636/tcp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 6:48 PM Coordinated Universal Time
+TCP Timestamps Information Disclosure
+	
+	
+2.6 (Low)
+	
+80 %
+	
+172.20.0.15
+	
+lab-targets-anchor-15-1.lab-net
+	
+general/tcp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 6:47 PM Coordinated Universal Time
+ICMP Timestamp Reply Information Disclosure
+	
+	
+2.1 (Low)
+	
+80 %
+	
+172.20.0.15
+	
+lab-targets-anchor-15-1.lab-net
+	
+general/icmp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 6:47 PM Coordinated Universal Time

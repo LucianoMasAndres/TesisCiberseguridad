@@ -1,0 +1,54 @@
+Information
+Results(2 of 15)
+Hosts(1 of 1)
+Ports(0 of 4)
+Applications(0 of 0)
+Operating Systems(1 of 1)
+CVEs(1 of 1)
+Closed CVEs(0 of 0)
+TLS Certificates(0 of 0)
+Error Messages(0 of 0)
+User Tags(0)
+1 - 2 of 2
+				
+Host
+		
+EPSS
+	
+			
+TCP Timestamps Information Disclosure
+	
+	
+2.6 (Low)
+	
+80 %
+	
+172.20.0.17
+	
+lab-targets-anchor-17-1.lab-net
+	
+general/tcp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 7:07 PM Coordinated Universal Time
+ICMP Timestamp Reply Information Disclosure
+	
+	
+2.1 (Low)
+	
+80 %
+	
+172.20.0.17
+	
+lab-targets-anchor-17-1.lab-net
+	
+general/icmp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 7:07 PM Coordinated Universal Time

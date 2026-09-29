@@ -1,0 +1,78 @@
+				
+Host
+		
+EPSS
+	
+			
+Operating System (OS) End of Life (EOL) Detection
+	
+	
+10.0 (Critical)
+	
+80 %
+	
+172.20.0.14
+	
+lab-targets-anchor-14-1.lab-net
+	
+general/tcp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 6:13 PM Coordinated Universal Time
+TCP Timestamps Information Disclosure
+	
+	
+2.6 (Low)
+	
+80 %
+	
+172.20.0.14
+	
+lab-targets-anchor-14-1.lab-net
+	
+general/tcp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 6:13 PM Coordinated Universal Time
+Weak MAC Algorithm(s) Supported (SSH)
+	
+	
+2.6 (Low)
+	
+80 %
+	
+172.20.0.14
+	
+lab-targets-anchor-14-1.lab-net
+	
+22/tcp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 6:14 PM Coordinated Universal Time
+ICMP Timestamp Reply Information Disclosure
+	
+	
+2.1 (Low)
+	
+80 %
+	
+172.20.0.14
+	
+lab-targets-anchor-14-1.lab-net
+	
+general/icmp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 6:13 PM Coordinated Universal Time

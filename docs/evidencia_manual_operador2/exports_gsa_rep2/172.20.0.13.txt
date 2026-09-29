@@ -1,0 +1,126 @@
+Information
+Results(6 of 59)
+Hosts(1 of 1)
+Ports(2 of 4)
+Applications(7 of 7)
+Operating Systems(1 of 1)
+CVEs(8 of 8)
+Closed CVEs(0 of 0)
+TLS Certificates(1 of 1)
+Error Messages(0 of 0)
+User Tags(0)
+1 - 6 of 6
+				
+Host
+		
+EPSS
+	
+			
+Operating System (OS) End of Life (EOL) Detection
+	
+	
+10.0 (Critical)
+	
+80 %
+	
+172.20.0.13
+	
+lab-targets-anchor-13-1.lab-net
+	
+general/tcp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 5:47 PM Coordinated Universal Time
+SSL/TLS: Renegotiation DoS Vulnerability (CVE-2011-1473, CVE-2011-5094)
+	
+	
+5.0 (Medium)
+	
+70 %
+	
+172.20.0.13
+	
+lab-targets-anchor-13-1.lab-net
+	
+3306/tcp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 5:50 PM Coordinated Universal Time
+SSL/TLS: Deprecated TLSv1.0 and TLSv1.1 Protocol Detection
+	
+	
+4.3 (Medium)
+	
+98 %
+	
+172.20.0.13
+	
+lab-targets-anchor-13-1.lab-net
+	
+3306/tcp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 5:47 PM Coordinated Universal Time
+TCP Timestamps Information Disclosure
+	
+	
+2.6 (Low)
+	
+80 %
+	
+172.20.0.13
+	
+lab-targets-anchor-13-1.lab-net
+	
+general/tcp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 5:47 PM Coordinated Universal Time
+Weak MAC Algorithm(s) Supported (SSH)
+	
+	
+2.6 (Low)
+	
+80 %
+	
+172.20.0.13
+	
+lab-targets-anchor-13-1.lab-net
+	
+22/tcp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 5:47 PM Coordinated Universal Time
+ICMP Timestamp Reply Information Disclosure
+	
+	
+2.1 (Low)
+	
+80 %
+	
+172.20.0.13
+	
+lab-targets-anchor-13-1.lab-net
+	
+general/icmp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 5:47 PM Coordinated Universal Time

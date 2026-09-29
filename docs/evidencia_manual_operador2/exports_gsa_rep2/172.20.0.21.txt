@@ -1,0 +1,72 @@
+Information
+Results(3 of 41)
+Hosts(1 of 1)
+Ports(1 of 3)
+Applications(4 of 4)
+Operating Systems(1 of 1)
+CVEs(1 of 1)
+Closed CVEs(0 of 0)
+TLS Certificates(0 of 0)
+Error Messages(0 of 0)
+User Tags(0)
+1 - 3 of 3
+				
+Host
+		
+EPSS
+	
+			
+Redis Server No Password (TCP)
+	
+	
+7.5 (High)
+	
+99 %
+	
+172.20.0.21
+	
+lab-targets-anchor-21-1.lab-net
+	
+6379/tcp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 8:19 PM Coordinated Universal Time
+TCP Timestamps Information Disclosure
+	
+	
+2.6 (Low)
+	
+80 %
+	
+172.20.0.21
+	
+lab-targets-anchor-21-1.lab-net
+	
+general/tcp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 8:20 PM Coordinated Universal Time
+ICMP Timestamp Reply Information Disclosure
+	
+	
+2.1 (Low)
+	
+80 %
+	
+172.20.0.21
+	
+lab-targets-anchor-21-1.lab-net
+	
+general/icmp
+	
+N/A
+	
+N/A
+	
+Thu, Sep 24, 2026 8:20 PM Coordinated Universal Time
