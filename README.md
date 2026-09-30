@@ -271,3 +271,7 @@ TesisCiberseguridad/
 | OpenVAS no levanta el socket | Revisá logs: `docker logs greenbone-community-edition-gvmd-1` |
 | GSA no carga en el browser | Usá `http://127.0.0.1:9392` (no localhost, no HTTPS) |
 | En Windows el script no corre | Abrí PowerShell como Administrador y ejecutá `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` |
+
+## Licencia
+
+El código de este repositorio se distribuye bajo licencia MIT (ver `LICENSE`). Las herramientas que el laboratorio descarga como imágenes (n8n, Greenbone Community Edition, Nmap) conservan sus propias licencias.
