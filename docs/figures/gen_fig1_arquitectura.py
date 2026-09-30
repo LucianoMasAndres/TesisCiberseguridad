@@ -58,7 +58,7 @@ arrow((1.6, 6.6), (1.6, 2.1))
 arrow((4.3, 6.6), (4.3, 2.1))
 label((2.95, 4.35), "resultados\n(Telegram + Mailpit)")
 
-ax.set_title("Arquitectura de despliegue de dos capas\n(4.1 — elaboración propia a partir de docker-compose.yml)", fontsize=11)
+# Sin titulo incrustado: el numero y el titulo van en el documento (APA 7).
 
 plt.tight_layout()
 plt.savefig('fig1_arquitectura.png', dpi=150)

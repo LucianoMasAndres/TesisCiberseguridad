@@ -21,18 +21,20 @@ for x, name in zip(xpos, actors):
     ax.plot([x, x], [1.9, 10.6], color='#999999', linestyle='--', linewidth=1)
 
 messages = [
-    (0, 1, "create_target(host)", 9.8),
-    (1, 0, "target_id", 9.3),
-    (0, 1, "create_task(target_id, config)", 8.7),
-    (1, 0, "task_id", 8.2),
-    (0, 1, "start_task(task_id)", 7.6),
-    (1, 2, "delega escaneo NVT", 7.1),
-    (1, 0, "report_id", 6.6),
-    (0, 1, "get_tasks(task_id)  [poll]", 5.8),
-    (1, 0, "status: Requested/Running", 5.3),
-    (2, 1, "resultados NVT (async)", 4.6),
-    (0, 1, "get_reports(report_id,\nfilter='rows=1000')", 3.6),
-    (1, 0, "XML con <host> y <result>\npor cada hallazgo", 2.9),
+    (0, 1, "gvm-cli: autenticación GMP\n(usuario y contraseña, por el socket)", 10.0),
+    (0, 1, "create_target(hosts Alto/Crítico)", 9.2),
+    (1, 0, "target_id", 8.75),
+    (0, 1, "create_task(target_id, config)", 8.25),
+    (1, 0, "task_id", 7.8),
+    (0, 1, "start_task(task_id)", 7.3),
+    (1, 2, "delega escaneo NVT", 6.85),
+    (1, 0, "report_id", 6.4),
+    (0, 1, "get_tasks(task_id)  [poll cada 60 s]", 5.8),
+    (1, 0, "status: Requested/Running", 5.35),
+    (2, 1, "resultados NVT (async)", 4.85),
+    (1, 0, "status: Done", 4.35),
+    (0, 1, "get_reports(report_id,\nfilter='rows=1000')", 3.55),
+    (1, 0, "XML con <host> y <result>\npor cada hallazgo", 2.75),
 ]
 
 for src, dst, text, y in messages:
@@ -52,7 +54,7 @@ ax.text(6.0, 1.4,
         "por defecto de GMP (10 resultados).",
         ha='center', va='center', fontsize=7.8, style='italic', color='#555555')
 
-ax.set_title("Diagrama de secuencia — protocolo GMP\n(4.4/4.5 — elaboración propia a partir de workflows/workflowV4_windows.json:\nCreateTarget, CreateTask, StartTask, PollStatus, DownloadPDF)", fontsize=10)
+# Sin titulo incrustado: el numero y el titulo van en el documento (APA 7).
 
 plt.tight_layout()
 plt.savefig('fig2_secuencia_gmp.png', dpi=150)

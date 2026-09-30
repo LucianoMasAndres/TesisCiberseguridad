@@ -59,7 +59,7 @@ arrow((5.8, 6.6), (7.15, 6.5), "sí", offset=(0, 0.28))
 box(2.6, 3.8, 2.4, 1.0, "Normal", fc='#a9dfbf')
 arrow((5, 5.8), (3.8, 4.8), "no")
 
-ax.set_title("Algoritmo de clasificación de criticidad (classifyAsset)\nAnexo E — verificado con 12/12 casos de prueba", fontsize=11)
+# Sin titulo incrustado: el numero y el titulo van en el documento (APA 7).
 
 plt.tight_layout()
 plt.savefig('fig9_flujo_algoritmo.png', dpi=150)

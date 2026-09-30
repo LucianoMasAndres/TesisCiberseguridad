@@ -25,7 +25,7 @@ ax.set_xticklabels(labels)
 ax.set_yticklabels(labels)
 ax.set_xlabel('Clase obtenida')
 ax.set_ylabel('Clase esperada (Anexo F)')
-ax.set_title('Matriz de confusión — clasificación de criticidad\n(44 comparaciones, 4 repeticiones válidas; rep. 4 excluida)')
+# Sin titulo incrustado: el numero y el titulo van en el documento (APA 7).
 
 for i in range(3):
     for j in range(3):

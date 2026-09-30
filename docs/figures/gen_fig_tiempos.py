@@ -63,10 +63,7 @@ ax.axvline(len(auto) - 0.5, color='#999999', linestyle=':', linewidth=1)
 ax.set_xticks(xs)
 ax.set_xticklabels(labels, fontsize=8)
 ax.set_ylabel('Tiempo total del ciclo (minutos)')
-ax.set_title('Tiempo total del ciclo completo\n'
-             'Automatizado: 14/08/2026, rep. 4 rayada (comprometida). Manual: operador 1 y 2 '
-             '(septiembre de 2026; op. 1 en el mismo equipo,\nop. 2 en otra instancia del laboratorio) y media heredada (otro laboratorio, sin registro crudo). '
-             'Las barras no están apareadas.', fontsize=9)
+# Sin titulo incrustado: el numero y el titulo van en el documento (APA 7).
 ax.grid(axis='y', linestyle='--', alpha=0.4)
 ax.set_axisbelow(True)
 
