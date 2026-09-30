@@ -290,7 +290,7 @@ class Launcher(tk.Tk):
         inner.pack(fill="x")
         for label, url in [
             ("n8n  → :5678", "http://localhost:5678"),
-            ("OpenVAS → :9392", "http://127.0.0.1:9392"),
+            ("Greenbone GSA → :9392", "http://127.0.0.1:9392"),
             ("Mailpit → :8025", "http://127.0.0.1:8025"),
         ]:
             tk.Button(inner, text=label, bg=SURFACE, fg=CYAN,
@@ -460,7 +460,7 @@ class Launcher(tk.Tk):
             self._log("ERROR: docker compose falló. Revisá Docker.", "error")
             return
 
-        self._log("Esperando a que OpenVAS levante el socket...", "info")
+        self._log("Esperando a que gvmd (Greenbone) levante el socket...", "info")
         for i in range(60):
             r = subprocess.run(
                 ["docker", "exec", GVMD_CONTAINER, "ls", "/run/gvmd/gvmd.sock"],
@@ -471,10 +471,10 @@ class Launcher(tk.Tk):
             self._log(f"  Esperando... ({i * 5}s / 300s máx)", "wait")
             time.sleep(5)
         else:
-            self._log("TIMEOUT: OpenVAS no levantó el socket en 5 minutos.", "error")
+            self._log("TIMEOUT: gvmd (Greenbone) no levantó el socket en 5 minutos.", "error")
             return
 
-        self._log("OpenVAS listo. Esperando 10s para que gvmd esté disponible...", "success")
+        self._log("Socket de gvmd listo. Esperando 10s para que gvmd esté disponible...", "success")
         time.sleep(10)
 
         self._log("Configurando usuario admin...", "info")
@@ -496,9 +496,9 @@ class Launcher(tk.Tk):
 
         self._log("¡Laboratorio operativo!", "done")
         self._log("  n8n     → http://localhost:5678", "info")
-        self._log("  OpenVAS → http://127.0.0.1:9392  (admin / admin123)", "info")
+        self._log("  Greenbone GSA → http://127.0.0.1:9392  (admin / admin123)", "info")
         self._log("  Mailpit → http://127.0.0.1:8025", "info")
-        self._log("IMPORTANTE: la primera vez OpenVAS tarda 15-30 min en sincronizar feeds.", "warn")
+        self._log("IMPORTANTE: la primera vez Greenbone sincroniza los feeds (estimado: 15-30 min, no medido).", "warn")
 
         self._log("Activando workflow V4 automaticamente...", "info")
         time.sleep(3)
@@ -653,10 +653,13 @@ class Launcher(tk.Tk):
 
     def _wait_lab_targets_ready(self, timeout=60):
         """Espera a que los contenedores de lab-targets con healthcheck
-        reporten 'healthy' antes de disparar el escaneo. Corrige la condición
-        de carrera real detrás de que 172.20.0.10 nunca fuera detectado por
-        Nmap en el experimento: el escaneo arrancaba antes de que web-10-http/
-        web-10-https terminaran de levantar. Si lab-targets no está corriendo
+        reporten 'healthy' antes de disparar el escaneo. Evita una condición
+        de carrera del despliegue desde el Launcher: el escaneo podía arrancar
+        antes de que web-10-http/web-10-https terminaran de levantar, y .10
+        quedaba sin puertos. No es la causa de que .10 faltara en la campaña
+        del 14/08/2026: ahí sus puertos aparecieron en las cinco repeticiones
+        bajo 172.20.0.3, por la regex de docs/run_experiment.js (ver
+        docs/test_nmap_parsing.js y §5.3 de la tesis). Si lab-targets no está corriendo
         (compose file inexistente o sin containers), no bloquea: loguea un
         aviso y deja seguir, para no romper setups sin lab-targets.
         """

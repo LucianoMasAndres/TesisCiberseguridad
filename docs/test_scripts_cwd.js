@@ -52,5 +52,20 @@ for (const cwd of [ROOT, DOCS, os.tmpdir()]) {
   check('analyze_manual_arm.js con un operador calcula la media (1100 s)', /Manual total\s+media=18:20 \(1100\.0 s\)/.test(m.stdout || ''), (m.stdout || m.stderr || '').trim().split('\n').pop());
 }
 
+// La reduccion simetrica del ciclo (Tabla 2) se calcula sobre segundos crudos,
+// no sobre los mm:ss redondeados: redaccion = T3 del operador 1 - fin del
+// ultimo analisis en gvmd (docs/evidencia_manual_operador1/gvm_reports_rep1.txt),
+// y media automatizada sin la repeticion 4 (docs/experiment_results.jsonl).
+{
+  const m = spawnSync(process.execPath, [path.join(DOCS, 'analyze_manual_arm.js')], { encoding: 'utf8' });
+  const out = m.stdout || '';
+  check('analyze_manual_arm.js mide la redaccion del operador 1 (951.8 s)', /redaccion medida: 951\.8 s/.test(out),
+    out.split('\n').find((l) => /redaccion/.test(l)) || 'sin linea de redaccion');
+  check('analyze_manual_arm.js: reduccion simetrica del operador 1 = 45.5 % (segundos crudos)',
+    /Operador 1: 3263\.9 s -> 45\.5 %/.test(out), out.split('\n').find((l) => /Operador 1:/.test(l)) || 'sin linea');
+  check('analyze_manual_arm.js: reduccion simetrica del operador 2 = 85.4 %',
+    /Operador 2: 12189\.8 s -> 85\.4 %/.test(out), out.split('\n').find((l) => /Operador 2:/.test(l)) || 'sin linea');
+}
+
 console.log(failures === 0 ? '\nTODOS LOS CASOS PASAN' : `\n${failures} FALLOS`);
 process.exit(failures === 0 ? 0 : 1);

@@ -55,8 +55,8 @@ El flujo tiene un segundo punto de entrada, `/webhook/nmap`, que recibe por POST
 
 | Sistema operativo | Estado | Notas |
 |---|---|---|
-| Windows 11 + Docker Desktop | ✅ Verificado | Entorno de la campaña de la tesis y de la remedición manual |
-| Linux (Ubuntu 20.04+) | ✅ Soportado | `init_lab.sh` levanta el mismo stack e importa el mismo workflow (V4) |
+| Windows 11 + Docker Desktop (WSL2 en modo *mirrored*) | ✅ Verificado | Entorno de la campaña de la tesis y de la remedición manual. El equipo verificado tenía `networkingMode=mirrored` en `%UserProfile%\.wslconfig`; sin ese modo no se probó |
+| Linux (Ubuntu 20.04+) | ⚠️ No verificado de extremo a extremo | `init_lab.sh` levanta el mismo stack e importa el mismo workflow (V4), pero el despliegue completo no se probó en Linux |
 | macOS / Windows 10 | ⚠️ No probado | El flujo corre dentro de Docker, pero no se verificó en estos sistemas |
 
 ### Dependencias del host
@@ -140,7 +140,7 @@ python launcher.py    # Windows
 | Archivo | Estado | Descripción |
 |---|---|---|
 | `workflows/workflowV4_windows.json` | **Principal** (todos los sistemas) | Descubrimiento + escaneo de puertos, clasificación por criticidad, Greenbone sobre Alto/Crítico, timeout. Lo importan `init_lab.sh` e `init_lab.ps1` |
-| `workflows/workflowV3_linux.json` | Histórico | Versión anterior: solo descubrimiento (`nmap -sn`), sin clasificación (manda a Greenbone todos los hosts activos), sin timeout, subred por defecto `192.168.122.0/24`. Se conserva porque lo usa el prototipo de app móvil (`app_celular/`); hay que importarlo a mano |
+| `workflows/workflowV3_linux.json` | Histórico | Versión anterior: solo descubrimiento (`nmap -sn`), sin clasificación (manda a Greenbone todos los hosts activos), sin timeout. Tiene el disparador diario de las 5 a. m.; sin parámetro `subnet`, escanea la red del laboratorio (`172.20.0.0/24`). Se conserva porque lo usa el prototipo de app móvil (`app_celular/`); hay que importarlo a mano |
 
 Si importás el workflow manualmente: `http://localhost:5678` → **Workflows** → **"..."** → **Import from file** → `workflowV4_windows.json`, y configurá Telegram y email (sección anterior).
 
@@ -167,7 +167,7 @@ Si importás el workflow manualmente: `http://localhost:5678` → **Workflows** 
 
 "Full and very deep" y "Full and very deep ultimate" no se ofrecen: pertenecen al Greenbone Enterprise Feed y no existen en la Community Edition que usa este laboratorio.
 
-> ⚠️ La primera vez que levantás el lab, OpenVAS tarda **15-30 minutos** en sincronizar los feeds de vulnerabilidades. Si el workflow falla con `404 scan config not found`, esperá y reintentá.
+> ⚠️ La primera vez que levantás el lab, Greenbone tarda en sincronizar los feeds de vulnerabilidades (estimado: **15-30 minutos**, no medido). Si el workflow falla con `404 scan config not found`, esperá y reintentá.
 
 ### Sin el launcher (alternativa por consola)
 

@@ -43,8 +43,10 @@ function runDiscoveryAndPortScan() {
   // Excluye infraestructura de la propia red lab-net que no es parte del
   // ground truth: gateway/reservados (.1, .2) y el contenedor ospd-openvas
   // que se une a lab-net para poder escanear (.3, ver docs/anexo_e_f_v2.md).
-  // Bug real detectado en las repeticiones 1 y 5 del experimento: sin este
-  // filtro, .3 aparecia como un "13er host fantasma" clasificado Normal.
+  // Filtro agregado despues de la campana del 14/08/2026: en las cinco
+  // repeticiones de docs/experiment_results.jsonl, .3 aparece como host
+  // "fantasma" clasificado Normal, con los puertos de .10 (efecto de la regex
+  // de <host> que confundia <hosthint>, ver docs/test_nmap_parsing.js).
   const ignoradas = ['172.20.0.1', '172.20.0.2', '172.20.0.3'];
   const upIps = [];
   for (const block of discBlocks) {
@@ -138,8 +140,23 @@ function getReportSummary(reportId) {
   // cierre </host>, asi que el regex de host no debia exigir el cierre
   // inmediato.
   const xml = gmp(`<get_reports report_id='${reportId}' details='1' filter='rows=1000'/>`);
-  const results = xml.match(/<result id="[^"]*">[\s\S]*?<\/result>/g) || [];
-  const findings = results.map(r => {
+  const findings = parseReportResults(xml);
+  return { totalFindings: findings.length, findings };
+}
+
+// Extrae de la respuesta de get_reports los resultados con severidad > 0.
+function parseReportResults(xml) {
+  // Cada NVT que depende de una deteccion de producto trae un bloque
+  // <detection><result id=...>...</result></detection> ANTES de <host> y
+  // <severity>. Sin quitarlo, la regex no codiciosa cortaba el resultado en
+  // ese </result> interno, la severidad se leia como 0 y el filtro lo
+  // descartaba: asi quedaron fuera del dataset de la campana los 30
+  // resultados de "Weak MAC Algorithm(s) Supported (SSH)" y "SSL/TLS:
+  // Deprecated TLSv1.0 and TLSv1.1 Protocol Detection" (ver
+  // docs/evidencia_campana_gvm/ y docs/test_gmp_results_parsing.js).
+  const sinDeteccion = xml.replace(/<detection>[\s\S]*?<\/detection>/g, '');
+  const results = sinDeteccion.match(/<result id="[^"]*">[\s\S]*?<\/result>/g) || [];
+  return results.map(r => {
     const host = (r.match(/<host>([^<]*)/) || [])[1] || 'desconocido';
     const name = (r.match(/<name>([^<]*)<\/name>/) || [])[1] || '';
     const severity = parseFloat((r.match(/<severity>([^<]*)<\/severity>/) || [])[1] || '0');
@@ -155,7 +172,6 @@ function getReportSummary(reportId) {
     const port = (r.match(/<port>([^<]*)<\/port>/) || [])[1] || '';
     return { host, name, severity, cve, port };
   }).filter(f => f.severity > 0);
-  return { totalFindings: findings.length, findings };
 }
 
 async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -255,7 +271,7 @@ async function runRepetition(n) {
   return record;
 }
 
-module.exports = { classify, runDiscoveryAndPortScan };
+module.exports = { classify, runDiscoveryAndPortScan, parseReportResults };
 
 // Solo corre la campana si se invoca directamente (no al importarlo desde un test).
 if (require.main === module) (async () => {

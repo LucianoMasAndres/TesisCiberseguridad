@@ -17,8 +17,25 @@ function gmp(xml) {
 
 function getReportSummary(reportId) {
   const xml = gmp(`<get_reports report_id='${reportId}' details='1' filter='rows=1000'/>`);
-  const results = xml.match(/<result id="[^"]*">[\s\S]*?<\/result>/g) || [];
-  const findings = results.map(r => {
+  const findings = parseReportResults(xml);
+  return { totalFindings: findings.length, findings };
+}
+
+// Extrae de la respuesta de get_reports los resultados con severidad > 0
+// (misma logica que parseReportResults de docs/run_experiment.js; este script
+// se copia solo al contenedor, por eso no la importa).
+function parseReportResults(xml) {
+  // Cada NVT que depende de una deteccion de producto trae un bloque
+  // <detection><result id=...>...</result></detection> ANTES de <host> y
+  // <severity>. Sin quitarlo, la regex no codiciosa cortaba el resultado en
+  // ese </result> interno, la severidad se leia como 0 y el filtro lo
+  // descartaba: asi quedaron fuera del dataset de la campana los 30
+  // resultados de "Weak MAC Algorithm(s) Supported (SSH)" y "SSL/TLS:
+  // Deprecated TLSv1.0 and TLSv1.1 Protocol Detection" (ver
+  // docs/evidencia_campana_gvm/ y docs/test_gmp_results_parsing.js).
+  const sinDeteccion = xml.replace(/<detection>[\s\S]*?<\/detection>/g, '');
+  const results = sinDeteccion.match(/<result id="[^"]*">[\s\S]*?<\/result>/g) || [];
+  return results.map(r => {
     const host = (r.match(/<host>([^<]*)/) || [])[1] || 'desconocido';
     const name = (r.match(/<name>([^<]*)<\/name>/) || [])[1] || '';
     const severity = parseFloat((r.match(/<severity>([^<]*)<\/severity>/) || [])[1] || '0');
@@ -31,9 +48,11 @@ function getReportSummary(reportId) {
     const port = (r.match(/<port>([^<]*)<\/port>/) || [])[1] || '';
     return { host, name, severity, cve, port };
   }).filter(f => f.severity > 0);
-  return { totalFindings: findings.length, findings };
 }
 
+module.exports = { parseReportResults };
+
+if (require.main === module) {
 const lines = fs.readFileSync(RESULTS_PATH, 'utf8').trim().split('\n').filter(Boolean);
 const fixed = lines.map(line => {
   const record = JSON.parse(line);
@@ -48,3 +67,4 @@ const fixed = lines.map(line => {
 
 fs.writeFileSync(RESULTS_PATH, fixed.map(r => JSON.stringify(r)).join('\n') + '\n');
 console.log('OK: experiment_results.jsonl actualizado con hallazgos reales');
+}

@@ -39,3 +39,13 @@ repetición desde T0 ante un error; el registro corresponde a la corrida limpia.
 
 Los 9 activos Alto/Crítico se enviaron a Greenbone ("Full and fast"). Severidad
 máxima por activo: .12, .13, .14, .16, .19 y .20 = 10.0; .15 = 5.0; .17 = 2.6; .21 = 7.5.
+
+## Resultados publicados (severidad > 0 y QoD ≥ 70)
+
+`hallazgos_qod70_rep1.txt` es la consulta a gvmd con el mismo filtro que la campaña
+automatizada: 37 resultados en los 9 activos, sin contar el primer intento de .17
+(terminado a los 11,5 min y relanzado). Son los ocho NVT que gvmd registra para la
+campaña (incluidos los dos que el dataset omitió, ver
+`docs/evidencia_campana_gvm/README.md`) más "Operating System (OS) End of Life
+(EOL) Detection" (10,0) en los seis activos Debian 11, cuyo soporte terminó el
+31/08/2026.

@@ -1,0 +1,32 @@
+-- Resultados con severidad > 0 y QoD >= 70 de los reportes del operador 1 (18/09/2026).
+-- Consulta de solo lectura a gvmd (contenedor pg-gvm), 30/09/2026. Mismo filtro que la campana.
+-- El primer intento de 172.20.0.17 (3708a401, terminado a los 11,5 min) no se cuenta: se relanzo (566f0ce7).
+-- Total sin ese intento: 4 + 6 + 4 + 4 + 4 + 5 + 4 + 4 + 2 = 37 resultados en 9 activos.
+       task       |              report_id               |     inicio_utc      | sev_gt0_qod_ge70 | max_sev_qod_ge70 
+------------------+--------------------------------------+---------------------+------------------+------------------
+ Scan 172.20.0.12 | bf8ef12c-2571-4f0d-a642-308a7b88887b | 2026-09-18 18:22:58 |                4 |               10
+ Scan 172.20.0.13 | 09ed0fe0-2d5f-45c2-aca4-0a5a0961fe64 | 2026-09-18 18:23:11 |                6 |               10
+ Scan 172.20.0.14 | fd22d086-ce68-439c-81d9-e0ad3e558afd | 2026-09-18 18:23:34 |                4 |               10
+ Scan 172.20.0.15 | bc4f4d7f-12cc-4316-bd89-de676d14741a | 2026-09-18 18:23:56 |                4 |                5
+ Scan 172.20.0.16 | 72612006-2a49-4b1d-a687-972b4d277145 | 2026-09-18 18:23:58 |                4 |               10
+ Scan 172.20.0.17 | 3708a401-b4c0-4306-b706-cd81591cd117 | 2026-09-18 18:24:10 |                0 |                 
+ Scan 172.20.0.19 | 592b6abe-3669-4449-8773-434e6f55fef8 | 2026-09-18 18:24:21 |                5 |               10
+ Scan 172.20.0.20 | 5cbe1102-9a8e-46d5-92b7-0a6d0f742162 | 2026-09-18 18:24:22 |                4 |               10
+ Scan 172.20.0.21 | 970f510d-8c3a-4b76-8ec0-b208a586fb40 | 2026-09-18 18:24:23 |                4 |              7.5
+ Scan 172.20.0.17 | 566f0ce7-aa3f-4d80-994e-c4092ba0556c | 2026-09-18 18:40:04 |                2 |              2.6
+(10 rows)
+
+-- NVT con severidad > 0 y QoD >= 70 (operador 1), sin el primer intento de .17
+                                  name                                   | sev | resultados |                                                        hosts                                                        
+-------------------------------------------------------------------------+-----+------------+---------------------------------------------------------------------------------------------------------------------
+ Operating System (OS) End of Life (EOL) Detection                       |  10 |          6 | 172.20.0.12, 172.20.0.13, 172.20.0.14, 172.20.0.16, 172.20.0.19, 172.20.0.20
+ Redis Server No Password (TCP)                                          | 7.5 |          1 | 172.20.0.21
+ SSL/TLS: Certificate In Chain Expired                                   |   5 |          2 | 172.20.0.15, 172.20.0.15
+ SSL/TLS: Renegotiation DoS Vulnerability (CVE-2011-1473, CVE-2011-5094) |   5 |          1 | 172.20.0.13
+ FTP Unencrypted Cleartext Login                                         | 4.8 |          2 | 172.20.0.19, 172.20.0.21
+ SSL/TLS: Deprecated TLSv1.0 and TLSv1.1 Protocol Detection              | 4.3 |          1 | 172.20.0.13
+ TCP Timestamps Information Disclosure                                   | 2.6 |          9 | 172.20.0.12, 172.20.0.13, 172.20.0.14, 172.20.0.15, 172.20.0.16, 172.20.0.17, 172.20.0.19, 172.20.0.20, 172.20.0.21
+ Weak MAC Algorithm(s) Supported (SSH)                                   | 2.6 |          6 | 172.20.0.12, 172.20.0.13, 172.20.0.14, 172.20.0.16, 172.20.0.19, 172.20.0.20
+ ICMP Timestamp Reply Information Disclosure                             | 2.1 |          9 | 172.20.0.12, 172.20.0.13, 172.20.0.14, 172.20.0.15, 172.20.0.16, 172.20.0.17, 172.20.0.19, 172.20.0.20, 172.20.0.21
+(9 rows)
+

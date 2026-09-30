@@ -1,0 +1,41 @@
+-- Resultados con severidad > 0 y QoD >= 70 de las cinco tareas de la campana que NO estan en
+-- docs/experiment_results.jsonl (los 6 NVT del dataset se excluyen por nombre).
+-- Consulta de solo lectura a gvmd (contenedor pg-gvm), 30/09/2026.
+-- Suman 30 = 138 (hallazgos_por_qod_2026-08-14.txt) - 108 (dataset): 7, 6, 5, 5 y 7 por tarea.
+-- Causa: ambos NVT traen un bloque <detection> con un <result> anidado antes de <severity>;
+-- la regex de getReportSummary cortaba ahi el resultado y lo leia con severidad 0
+-- (corregido; ver docs/test_gmp_results_parsing.js).
+               task_id                |                            name                            | severity | qod | resultados |                                    hosts                                     
+--------------------------------------+------------------------------------------------------------+----------+-----+------------+------------------------------------------------------------------------------
+ 57395bc8-9eae-43df-9120-850ff7bf5ff4 | SSL/TLS: Deprecated TLSv1.0 and TLSv1.1 Protocol Detection |      4.3 |  98 |          1 | 172.20.0.13
+ 57395bc8-9eae-43df-9120-850ff7bf5ff4 | Weak MAC Algorithm(s) Supported (SSH)                      |      2.6 |  80 |          6 | 172.20.0.12, 172.20.0.13, 172.20.0.14, 172.20.0.16, 172.20.0.19, 172.20.0.20
+ ab82b996-c5cb-4098-bf45-a245f129cfce | SSL/TLS: Deprecated TLSv1.0 and TLSv1.1 Protocol Detection |      4.3 |  98 |          1 | 172.20.0.13
+ ab82b996-c5cb-4098-bf45-a245f129cfce | Weak MAC Algorithm(s) Supported (SSH)                      |      2.6 |  80 |          5 | 172.20.0.12, 172.20.0.13, 172.20.0.14, 172.20.0.19, 172.20.0.20
+ 4ce11c6f-7acf-42f6-a7eb-d66c1943c7c4 | SSL/TLS: Deprecated TLSv1.0 and TLSv1.1 Protocol Detection |      4.3 |  98 |          1 | 172.20.0.13
+ 4ce11c6f-7acf-42f6-a7eb-d66c1943c7c4 | Weak MAC Algorithm(s) Supported (SSH)                      |      2.6 |  80 |          4 | 172.20.0.12, 172.20.0.13, 172.20.0.14, 172.20.0.20
+ f5714c99-2348-4cad-9b47-f8078fbb7695 | SSL/TLS: Deprecated TLSv1.0 and TLSv1.1 Protocol Detection |      4.3 |  98 |          1 | 172.20.0.13
+ f5714c99-2348-4cad-9b47-f8078fbb7695 | Weak MAC Algorithm(s) Supported (SSH)                      |      2.6 |  80 |          4 | 172.20.0.12, 172.20.0.13, 172.20.0.14, 172.20.0.20
+ 140917e1-000f-4171-8013-ca3925fe368b | SSL/TLS: Deprecated TLSv1.0 and TLSv1.1 Protocol Detection |      4.3 |  98 |          1 | 172.20.0.13
+ 140917e1-000f-4171-8013-ca3925fe368b | Weak MAC Algorithm(s) Supported (SSH)                      |      2.6 |  80 |          6 | 172.20.0.12, 172.20.0.13, 172.20.0.14, 172.20.0.16, 172.20.0.19, 172.20.0.20
+(10 rows)
+
+-- Fecha de la ultima modificacion de ambos NVT en el feed (anterior a la campana del 14/08/2026):
+                            name                            | cvss_base | nvt_modificado_utc  
+------------------------------------------------------------+-----------+---------------------
+ SSL/TLS: Deprecated TLSv1.0 and TLSv1.1 Protocol Detection | 4.3       | 2026-06-03 07:18:10
+ Weak MAC Algorithm(s) Supported (SSH)                      | 2.6       | 2024-06-14 05:05:48
+(2 rows)
+
+-- Referencias CVE (feed actual) de los 8 NVT con severidad > 0 y QoD >= 70 de la campana:
+                                  name                                   |                                    cves                                     
+-------------------------------------------------------------------------+-----------------------------------------------------------------------------
+ FTP Unencrypted Cleartext Login                                         | 
+ ICMP Timestamp Reply Information Disclosure                             | CVE-1999-0524
+ Redis Server No Password (TCP)                                          | 
+ SSL/TLS: Certificate In Chain Expired                                   | 
+ SSL/TLS: Deprecated TLSv1.0 and TLSv1.1 Protocol Detection              | CVE-2011-3389, CVE-2015-0204, CVE-2023-41928, CVE-2024-41270, CVE-2025-3200
+ SSL/TLS: Renegotiation DoS Vulnerability (CVE-2011-1473, CVE-2011-5094) | CVE-2011-1473, CVE-2011-5094
+ TCP Timestamps Information Disclosure                                   | 
+ Weak MAC Algorithm(s) Supported (SSH)                                   | 
+(8 rows)
+

@@ -25,6 +25,42 @@ function meanStd(values) {
   return { mean, std: Math.sqrt(variance) };
 }
 
+// Reduccion simetrica del ciclo completo (Tabla 2 de la tesis), sobre segundos
+// crudos. Del total manual se descuenta la redaccion del informe del operador 1:
+// T3 menos el fin del ultimo analisis de Greenbone, tomado de la consulta a gvmd
+// de docs/evidencia_manual_operador1/gvm_reports_rep1.txt. El operador 2 no tiene
+// esa marca, y se le descuenta el mismo tramo. La referencia automatizada es la
+// media de docs/experiment_results.jsonl sin la repeticion 4 (excluida, ver §5.3).
+const AUTO_PATH = path.join(__dirname, 'experiment_results.jsonl');
+const GVM_OP1_PATH = path.join(__dirname, 'evidencia_manual_operador1', 'gvm_reports_rep1.txt');
+const REPETICIONES_AUTO_EXCLUIDAS = [4];
+
+function finUltimoAnalisis(gvmReportsTxt) {
+  const fines = [...gvmReportsTxt.matchAll(/\|\s*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\s*\|\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\s*\|/g)]
+    .map((m) => Date.parse(`${m[1].replace(' ', 'T')}Z`));
+  return fines.length ? Math.max(...fines) : null;
+}
+
+function imprimirReduccionSimetrica(registros) {
+  const op1 = registros.find((r) => r.operador === 1 && r.timestamps && r.timestamps.t3_fin_gvm);
+  if (!op1 || !fs.existsSync(AUTO_PATH) || !fs.existsSync(GVM_OP1_PATH)) return;
+  const fin = finUltimoAnalisis(fs.readFileSync(GVM_OP1_PATH, 'utf8'));
+  if (fin === null) return;
+  const redaccion = (Date.parse(op1.timestamps.t3_fin_gvm) - fin) / 1000;
+  const auto = fs.readFileSync(AUTO_PATH, 'utf8').trim().split('\n').filter(Boolean).map((l) => JSON.parse(l))
+    .filter((r) => !REPETICIONES_AUTO_EXCLUIDAS.includes(r.repeticion));
+  const mediaAuto = auto.reduce((a, r) => a + r.duracion_total_s, 0) / auto.length;
+  console.log('\n--- Reduccion simetrica del ciclo completo (segundos crudos) ---');
+  console.log(`Operador 1: redaccion medida: ${redaccion.toFixed(1)} s (${fmtMinSec(Math.floor(redaccion))})`);
+  console.log(`Media automatizada (n=${auto.length}, sin la repeticion 4): ${mediaAuto.toFixed(1)} s (${fmtMinSec(mediaAuto)})`);
+  for (const r of registros) {
+    if (!r.fases_seg || r.fases_seg.total_s === undefined) continue;
+    const manual = r.fases_seg.total_s - redaccion;
+    const red = (100 * (manual - mediaAuto)) / manual;
+    console.log(`Operador ${r.operador}: ${manual.toFixed(1)} s -> ${red.toFixed(1)} % (${fmtMinSec(manual)} frente a ${fmtMinSec(mediaAuto)})`);
+  }
+}
+
 function main() {
   if (!fs.existsSync(RESULTS_PATH)) {
     console.error(`No existe ${RESULTS_PATH} todavia.`);
@@ -50,6 +86,8 @@ function main() {
       `${String(r.repeticion).padStart(4)} | ${op.padEnd(10)} | ${r.fases_fmt.nmap.padStart(7)} | ${r.fases_fmt.clasificacion.padStart(7)} | ${r.fases_fmt.gvm_reporte.padStart(11)} | ${r.fases_fmt.total}`
     );
   }
+
+  imprimirReduccionSimetrica(registros);
 
   // Repeticiones de operadores distintos no se promedian: en la remedicion de
   // septiembre de 2026 el operador 1 lanzo Greenbone en paralelo y el operador 2

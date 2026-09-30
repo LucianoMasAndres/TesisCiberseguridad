@@ -1,0 +1,138 @@
+<get_reports_response status="200" status_text="OK"><report id="09ed0fe0-2d5f-45c2-aca4-0a5a0961fe64" format_id="" extension="xml" content_type="text/xml"><report id="09ed0fe0-2d5f-45c2-aca4-0a5a0961fe64"><results start="1" max="1000"><result id="f15aa372-c1b5-4002-a62b-9958aa54b612"><name>SSH Protocol Algorithms Supported</name><owner><name>admin</name></owner><modification_time>2026-09-18T18:26:26Z</modification_time><comment></comment><creation_time>2026-09-18T18:26:26Z</creation_time><host>172.20.0.13<asset asset_id="6abc4c65-d7e7-4b9d-a308-aefa0a798c3f"/><hostname>lab-targets-anchor-13-1.lab-net</hostname></host><port>22/tcp</port><nvt oid="1.3.6.1.4.1.25623.1.0.105565"><type>nvt</type><name>SSH Protocol Algorithms Supported</name><family>Service detection</family><cvss_base>0.0</cvss_base><severities score="0.0"><severity type="cvss_base_v2"><origin></origin><date>2016-03-09T07:39:30Z</date><score>0.0</score><value>AV:N/AC:L/Au:N/C:N/I:N/A:N</value></severity></severities><tags>cvss_base_vector=AV:N/AC:L/Au:N/C:N/I:N/A:N|summary=This script detects which algorithms are supported by the remote
+  SSH service.|insight=|affected=|impact=|solution=|vuldetect=|solution_type=</tags><solution type=''></solution></nvt><scan_nvt_version>2026-06-23T06:54:08Z</scan_nvt_version><threat>Log</threat><severity>0.0</severity><qod><value>80</value><type></type></qod><description>The following options are supported by the remote SSH service:
+
+kex_algorithms:
+curve25519-sha256,curve25519-sha256@libssh.org,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group-exchange-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group14-sha256,kex-strict-s-v00@openssh.com
+
+server_host_key_algorithms:
+rsa-sha2-512,rsa-sha2-256,ssh-rsa,ecdsa-sha2-nistp256,ssh-ed25519
+
+encryption_algorithms_client_to_server:
+chacha20-poly1305@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com
+
+encryption_algorithms_server_to_client:
+chacha20-poly1305@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com
+
+mac_algorithms_client_to_server:
+umac-64-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha1-etm@openssh.com,umac-64@openssh.com,umac-128@openssh.com,hmac-sha2-256,hmac-sha2-512,hmac-sha1
+
+mac_algorithms_server_to_client:
+umac-64-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha1-etm@openssh.com,umac-64@openssh.com,umac-128@openssh.com,hmac-sha2-256,hmac-sha2-512,hmac-sha1
+
+compression_algorithms_client_to_server:
+none,zlib@openssh.com
+
+compression_algorithms_server_to_client:
+none,zlib@openssh.com
+</description><original_threat>Log</original_threat><original_severity>0</original_severity><compliance>undefined</compliance></result><result id="352661e2-f98c-48f0-b988-5c859b79254c"><name>SSL/TLS: Deprecated TLSv1.0 and TLSv1.1 Protocol Detection</name><owner><name>admin</name></owner><modification_time>2026-09-18T18:30:48Z</modification_time><comment></comment><creation_time>2026-09-18T18:30:48Z</creation_time><detection><result id="f52f1198-09b7-42e5-a12a-7a6e9f198d61"><details><detail><name>product</name><value>cpe:/a:ietf:transport_layer_security:1.0</value></detail><detail><name>location</name><value>3306/tcp</value></detail><detail><name>source_oid</name><value>1.3.6.1.4.1.25623.1.0.105782</value></detail><detail><name>source_name</name><value>SSL/TLS: Version Detection</value></detail></details></result></detection><host>172.20.0.13<asset asset_id="6abc4c65-d7e7-4b9d-a308-aefa0a798c3f"/><hostname>lab-targets-anchor-13-1.lab-net</hostname></host><port>3306/tcp</port><nvt oid="1.3.6.1.4.1.25623.1.0.117274"><type>nvt</type><name>SSL/TLS: Deprecated TLSv1.0 and TLSv1.1 Protocol Detection</name><family>SSL and TLS</family><cvss_base>4.3</cvss_base><severities score="4.3"><severity type="cvss_base_v2"><origin></origin><date>2021-03-25T10:41:42Z</date><score>4.3</score><value>AV:N/AC:M/Au:N/C:N/I:P/A:N</value></severity></severities><tags>cvss_base_vector=AV:N/AC:M/Au:N/C:N/I:P/A:N|summary=It was possible to detect the usage of the deprecated TLSv1.0
+  and/or TLSv1.1 protocol on this system.|insight=The TLSv1.0 and TLSv1.1 protocols contain known cryptographic
+  flaws like:
+
+  - CVE-2011-3389: Browser Exploit Against SSL/TLS (BEAST)
+
+  - CVE-2015-0204: Factoring Attack on RSA-EXPORT Keys Padding Oracle On Downgraded Legacy
+  Encryption (FREAK)|affected=- All services providing an encrypted communication using the
+  TLSv1.0 and/or TLSv1.1 protocols
+
+  - CVE-2023-41928: Kiloview P1 4G and P2 4G Video Encoder
+
+  - CVE-2024-41270: Gorush v1.18.4
+
+  - CVE-2025-3200: Multiple products from Wiesemann &amp; Theis|impact=An attacker might be able to use the known cryptographic flaws to
+  eavesdrop the connection between clients and the service to get access to sensitive data
+  transferred within the secured connection.
+
+  Furthermore newly uncovered vulnerabilities in this protocols won&apos;t receive security updates
+  anymore.|solution=It is recommended to disable the deprecated TLSv1.0 and/or
+  TLSv1.1 protocols in favor of the TLSv1.2+ protocols.
+
+  Please see the references for more resources supporting you with this task.|vuldetect=Checks the used TLS protocols of the services provided by this
+  system.|solution_type=Mitigation</tags><solution type='Mitigation'>It is recommended to disable the deprecated TLSv1.0 and/or
+  TLSv1.1 protocols in favor of the TLSv1.2+ protocols.
+
+  Please see the references for more resources supporting you with this task.</solution><refs><ref type="cve" id="CVE-2011-3389"/><ref type="cve" id="CVE-2015-0204"/><ref type="cve" id="CVE-2023-41928"/><ref type="cve" id="CVE-2024-41270"/><ref type="cve" id="CVE-2025-3200"/><ref type="url" id="https://configurator.tlsref.org/"/><ref type="url" id="https://www.bsi.bund.de/SharedDocs/Downloads/EN/BSI/Publications/TechGuidelines/TG02102/BSI-TR-02102-1.html"/><ref type="url" id="https://www.bsi.bund.de/EN/Themen/Oeffentliche-Verwaltung/Mindeststandards/TLS-Protokoll/TLS-Protokoll_node.html"/><ref type="url" id="https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Publikationen/TechnischeRichtlinien/TR03116/BSI-TR-03116-4.html"/><ref type="url" id="https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Mindeststandards/Mindeststandard_BSI_TLS_Version_2_4.html"/><ref type="url" id="https://web.archive.org/web/20240113175943/https://www.bettercrypto.org"/><ref type="url" id="https://www.enisa.europa.eu/publications/algorithms-key-size-and-parameters-report-2014"/><ref type="url" id="https://datatracker.ietf.org/doc/rfc8996/"/><ref type="url" id="https://vnhacker.blogspot.com/2011/09/beast.html"/><ref type="url" id="https://web.archive.org/web/20201108095603/https://censys.io/blog/freak"/><ref type="url" id="https://certvde.com/en/advisories/VDE-2025-031/"/><ref type="url" id="https://gist.github.com/nyxfqq/cfae38fada582a0f576d154be1aeb1fc"/><ref type="url" id="https://advisories.ncsc.nl/advisory?id=NCSC-2024-0273"/><ref type="cert-bund" id="WID-SEC-2026-0180"/><ref type="cert-bund" id="WID-SEC-2023-1435"/><ref type="cert-bund" id="CB-K18/0799"/><ref type="cert-bund" id="CB-K16/1289"/><ref type="cert-bund" id="CB-K16/1096"/><ref type="cert-bund" id="CB-K15/1751"/><ref type="cert-bund" id="CB-K15/1266"/><ref type="cert-bund" id="CB-K15/0850"/><ref type="cert-bund" id="CB-K15/0764"/><ref type="cert-bund" id="CB-K15/0720"/><ref type="cert-bund" id="CB-K15/0548"/><ref type="cert-bund" id="CB-K15/0526"/><ref type="cert-bund" id="CB-K15/0509"/><ref type="cert-bund" id="CB-K15/0493"/><ref type="cert-bund" id="CB-K15/0384"/><ref type="cert-bund" id="CB-K15/0365"/><ref type="cert-bund" id="CB-K15/0364"/><ref type="cert-bund" id="CB-K15/0302"/><ref type="cert-bund" id="CB-K15/0192"/><ref type="cert-bund" id="CB-K15/0079"/><ref type="cert-bund" id="CB-K15/0016"/><ref type="cert-bund" id="CB-K14/1342"/><ref type="cert-bund" id="CB-K14/0231"/><ref type="cert-bund" id="CB-K13/0845"/><ref type="cert-bund" id="CB-K13/0796"/><ref type="cert-bund" id="CB-K13/0790"/><ref type="dfn-cert" id="DFN-CERT-2020-0177"/><ref type="dfn-cert" id="DFN-CERT-2020-0111"/><ref type="dfn-cert" id="DFN-CERT-2019-0068"/><ref type="dfn-cert" id="DFN-CERT-2018-1441"/><ref type="dfn-cert" id="DFN-CERT-2018-1408"/><ref type="dfn-cert" id="DFN-CERT-2016-1372"/><ref type="dfn-cert" id="DFN-CERT-2016-1164"/><ref type="dfn-cert" id="DFN-CERT-2016-0388"/><ref type="dfn-cert" id="DFN-CERT-2015-1853"/><ref type="dfn-cert" id="DFN-CERT-2015-1332"/><ref type="dfn-cert" id="DFN-CERT-2015-0884"/><ref type="dfn-cert" id="DFN-CERT-2015-0800"/><ref type="dfn-cert" id="DFN-CERT-2015-0758"/><ref type="dfn-cert" id="DFN-CERT-2015-0567"/><ref type="dfn-cert" id="DFN-CERT-2015-0544"/><ref type="dfn-cert" id="DFN-CERT-2015-0530"/><ref type="dfn-cert" id="DFN-CERT-2015-0396"/><ref type="dfn-cert" id="DFN-CERT-2015-0375"/><ref type="dfn-cert" id="DFN-CERT-2015-0374"/><ref type="dfn-cert" id="DFN-CERT-2015-0305"/><ref type="dfn-cert" id="DFN-CERT-2015-0199"/><ref type="dfn-cert" id="DFN-CERT-2015-0079"/><ref type="dfn-cert" id="DFN-CERT-2015-0021"/><ref type="dfn-cert" id="DFN-CERT-2014-1414"/><ref type="dfn-cert" id="DFN-CERT-2013-1847"/><ref type="dfn-cert" id="DFN-CERT-2013-1792"/><ref type="dfn-cert" id="DFN-CERT-2012-1979"/><ref type="dfn-cert" id="DFN-CERT-2012-1829"/><ref type="dfn-cert" id="DFN-CERT-2012-1530"/><ref type="dfn-cert" id="DFN-CERT-2012-1380"/><ref type="dfn-cert" id="DFN-CERT-2012-1377"/><ref type="dfn-cert" id="DFN-CERT-2012-1292"/><ref type="dfn-cert" id="DFN-CERT-2012-1214"/><ref type="dfn-cert" id="DFN-CERT-2012-1213"/><ref type="dfn-cert" id="DFN-CERT-2012-1180"/><ref type="dfn-cert" id="DFN-CERT-2012-1156"/><ref type="dfn-cert" id="DFN-CERT-2012-1155"/><ref type="dfn-cert" id="DFN-CERT-2012-1039"/><ref type="dfn-cert" id="DFN-CERT-2012-0956"/><ref type="dfn-cert" id="DFN-CERT-2012-0908"/><ref type="dfn-cert" id="DFN-CERT-2012-0868"/><ref type="dfn-cert" id="DFN-CERT-2012-0867"/><ref type="dfn-cert" id="DFN-CERT-2012-0848"/><ref type="dfn-cert" id="DFN-CERT-2012-0838"/><ref type="dfn-cert" id="DFN-CERT-2012-0776"/><ref type="dfn-cert" id="DFN-CERT-2012-0722"/><ref type="dfn-cert" id="DFN-CERT-2012-0638"/><ref type="dfn-cert" id="DFN-CERT-2012-0627"/><ref type="dfn-cert" id="DFN-CERT-2012-0451"/><ref type="dfn-cert" id="DFN-CERT-2012-0418"/><ref type="dfn-cert" id="DFN-CERT-2012-0354"/><ref type="dfn-cert" id="DFN-CERT-2012-0234"/><ref type="dfn-cert" id="DFN-CERT-2012-0221"/><ref type="dfn-cert" id="DFN-CERT-2012-0177"/><ref type="dfn-cert" id="DFN-CERT-2012-0170"/><ref type="dfn-cert" id="DFN-CERT-2012-0146"/><ref type="dfn-cert" id="DFN-CERT-2012-0142"/><ref type="dfn-cert" id="DFN-CERT-2012-0126"/><ref type="dfn-cert" id="DFN-CERT-2012-0123"/><ref type="dfn-cert" id="DFN-CERT-2012-0095"/><ref type="dfn-cert" id="DFN-CERT-2012-0051"/><ref type="dfn-cert" id="DFN-CERT-2012-0047"/><ref type="dfn-cert" id="DFN-CERT-2012-0021"/><ref type="dfn-cert" id="DFN-CERT-2011-1953"/><ref type="dfn-cert" id="DFN-CERT-2011-1946"/><ref type="dfn-cert" id="DFN-CERT-2011-1844"/><ref type="dfn-cert" id="DFN-CERT-2011-1826"/><ref type="dfn-cert" id="DFN-CERT-2011-1774"/><ref type="dfn-cert" id="DFN-CERT-2011-1743"/><ref type="dfn-cert" id="DFN-CERT-2011-1738"/><ref type="dfn-cert" id="DFN-CERT-2011-1706"/><ref type="dfn-cert" id="DFN-CERT-2011-1628"/><ref type="dfn-cert" id="DFN-CERT-2011-1627"/><ref type="dfn-cert" id="DFN-CERT-2011-1619"/><ref type="dfn-cert" id="DFN-CERT-2011-1482"/></refs></nvt><scan_nvt_version>2026-06-03T07:18:10Z</scan_nvt_version><threat>Medium</threat><severity>4.3</severity><qod><value>98</value><type></type></qod><description>In addition to TLSv1.2+ the service is also providing the deprecated TLSv1.0 and TLSv1.1 protocols and supports one or more ciphers. Those supported ciphers can be found in the &apos;SSL/TLS: Report Supported Cipher Suites&apos; (OID: 1.3.6.1.4.1.25623.1.0.802067) VT.
+</description><original_threat>Medium</original_threat><original_severity>4.3</original_severity><compliance>undefined</compliance></result><result id="6bfee476-81ba-4522-9492-747ea00f1fd2"><name>SSL/TLS: Renegotiation DoS Vulnerability (CVE-2011-1473, CVE-2011-5094)</name><owner><name>admin</name></owner><modification_time>2026-09-18T18:34:44Z</modification_time><comment></comment><creation_time>2026-09-18T18:34:44Z</creation_time><host>172.20.0.13<asset asset_id="6abc4c65-d7e7-4b9d-a308-aefa0a798c3f"/><hostname>lab-targets-anchor-13-1.lab-net</hostname></host><port>3306/tcp</port><nvt oid="1.3.6.1.4.1.25623.1.0.117761"><type>nvt</type><name>SSL/TLS: Renegotiation DoS Vulnerability (CVE-2011-1473, CVE-2011-5094)</name><family>SSL and TLS</family><cvss_base>5.0</cvss_base><severities score="5.0"><severity type="cvss_base_v2"><origin></origin><date>2021-10-29T08:24:03Z</date><score>5.0</score><value>AV:N/AC:L/Au:N/C:N/I:N/A:P</value></severity></severities><tags>cvss_base_vector=AV:N/AC:L/Au:N/C:N/I:N/A:P|summary=The remote SSL/TLS service is prone to a denial of service (DoS)
+  vulnerability.|insight=The flaw exists because the remote SSL/TLS service does not
+  properly restrict client-initiated renegotiation within the SSL and TLS protocols.
+
+  Note: The referenced CVEs are affecting OpenSSL and Mozilla Network Security Services (NSS) but
+  both are in a DISPUTED state with the following rationale:
+
+  &gt; It can also be argued that it is the responsibility of server deployments, not a security
+  library, to prevent or limit renegotiation when it is inappropriate within a specific environment.
+
+  Both CVEs are still kept in this VT as a reference to the origin of this flaw.|affected=Every SSL/TLS service which does not properly restrict
+  client-initiated renegotiation.|impact=The flaw might make it easier for remote attackers to cause a
+  DoS (CPU consumption) by performing many renegotiations within a single connection.|solution=Users should contact their vendors for specific patch
+  information.
+
+  A general solution is to remove/disable renegotiation capabilities altogether from/in the affected
+  SSL/TLS service.|vuldetect=Checks if the remote service allows to re-do the same SSL/TLS
+  handshake (Renegotiation) over an existing / already established SSL/TLS connection.|solution_type=VendorFix</tags><solution type='VendorFix'>Users should contact their vendors for specific patch
+  information.
+
+  A general solution is to remove/disable renegotiation capabilities altogether from/in the affected
+  SSL/TLS service.</solution><refs><ref type="cve" id="CVE-2011-1473"/><ref type="cve" id="CVE-2011-5094"/><ref type="url" id="https://web.archive.org/web/20211201133213/https://orchilles.com/ssl-renegotiation-dos/"/><ref type="url" id="https://mailarchive.ietf.org/arch/msg/tls/wdg46VE_jkYBbgJ5yE4P9nQ-8IU/"/><ref type="url" id="https://vincent.bernat.ch/en/blog/2011-ssl-dos-mitigation"/><ref type="url" id="https://www.openwall.com/lists/oss-security/2011/07/08/2"/><ref type="cert-bund" id="WID-SEC-2026-0180"/><ref type="cert-bund" id="WID-SEC-2024-1591"/><ref type="cert-bund" id="WID-SEC-2024-0796"/><ref type="cert-bund" id="WID-SEC-2023-1435"/><ref type="cert-bund" id="CB-K17/0980"/><ref type="cert-bund" id="CB-K17/0979"/><ref type="cert-bund" id="CB-K14/0772"/><ref type="cert-bund" id="CB-K13/0915"/><ref type="cert-bund" id="CB-K13/0462"/><ref type="dfn-cert" id="DFN-CERT-2025-0933"/><ref type="dfn-cert" id="DFN-CERT-2017-1013"/><ref type="dfn-cert" id="DFN-CERT-2017-1012"/><ref type="dfn-cert" id="DFN-CERT-2014-0809"/><ref type="dfn-cert" id="DFN-CERT-2013-1928"/><ref type="dfn-cert" id="DFN-CERT-2012-1112"/></refs></nvt><scan_nvt_version>2026-03-13T05:54:58Z</scan_nvt_version><threat>Medium</threat><severity>5.0</severity><qod><value>70</value><type></type></qod><description>The following indicates that the remote SSL/TLS service is affected:
+
+Protocol Version | Successful re-done SSL/TLS handshakes (Renegotiation) over an existing / already established SSL/TLS connection
+----------------------------------------------------------------------------------------------------------------------------------
+TLSv1.0          | 10
+TLSv1.1          | 10
+TLSv1.2          | 10
+</description><original_threat>Medium</original_threat><original_severity>5</original_severity><compliance>undefined</compliance></result><result id="94f859b4-dd36-4b36-9698-dd424ff4fdd7"><name>TCP Timestamps Information Disclosure</name><owner><name>admin</name></owner><modification_time>2026-09-18T18:29:32Z</modification_time><comment></comment><creation_time>2026-09-18T18:29:32Z</creation_time><host>172.20.0.13<asset asset_id="6abc4c65-d7e7-4b9d-a308-aefa0a798c3f"/><hostname>lab-targets-anchor-13-1.lab-net</hostname></host><port>general/tcp</port><nvt oid="1.3.6.1.4.1.25623.1.0.80091"><type>nvt</type><name>TCP Timestamps Information Disclosure</name><family>General</family><cvss_base>2.6</cvss_base><severities score="2.6"><severity type="cvss_base_v2"><origin></origin><date>2008-10-24T21:33:44Z</date><score>2.6</score><value>AV:N/AC:H/Au:N/C:P/I:N/A:N</value></severity></severities><tags>cvss_base_vector=AV:N/AC:H/Au:N/C:P/I:N/A:N|summary=The remote host implements TCP timestamps and therefore allows
+  to compute the uptime.|insight=The remote host implements TCP timestamps, as defined by
+  RFC1323/RFC7323.|affected=TCP implementations that implement RFC1323/RFC7323.|impact=A side effect of this feature is that the uptime of the remote
+  host can sometimes be computed.|solution=To disable TCP timestamps on linux add the line
+  &apos;net.ipv4.tcp_timestamps = 0&apos; to /etc/sysctl.conf. Execute &apos;sysctl -p&apos; to apply the settings at
+  runtime.
+
+  To disable TCP timestamps on Windows execute &apos;netsh int tcp set global timestamps=disabled&apos;
+
+  Starting with Windows Server 2008 and Vista, the timestamp can not be completely disabled.
+
+  The default behavior of the TCP/IP stack on this Systems is to not use the Timestamp options when
+  initiating TCP connections, but use them if the TCP peer that is initiating communication includes
+  them in their synchronize (SYN) segment.
+
+  See the references for more information.|vuldetect=Special IP packets are forged and sent with a little delay in
+  between to the target IP. The responses are searched for a timestamps. If found, the timestamps
+  are reported.|solution_type=Mitigation</tags><solution type='Mitigation'>To disable TCP timestamps on linux add the line
+  &apos;net.ipv4.tcp_timestamps = 0&apos; to /etc/sysctl.conf. Execute &apos;sysctl -p&apos; to apply the settings at
+  runtime.
+
+  To disable TCP timestamps on Windows execute &apos;netsh int tcp set global timestamps=disabled&apos;
+
+  Starting with Windows Server 2008 and Vista, the timestamp can not be completely disabled.
+
+  The default behavior of the TCP/IP stack on this Systems is to not use the Timestamp options when
+  initiating TCP connections, but use them if the TCP peer that is initiating communication includes
+  them in their synchronize (SYN) segment.
+
+  See the references for more information.</solution><refs><ref type="url" id="https://datatracker.ietf.org/doc/html/rfc1323"/><ref type="url" id="https://datatracker.ietf.org/doc/html/rfc7323"/><ref type="url" id="https://web.archive.org/web/20151213072445/http://www.microsoft.com/en-us/download/details.aspx?id=9152"/><ref type="url" id="https://www.fortiguard.com/psirt/FG-IR-16-090"/></refs></nvt><scan_nvt_version>2023-12-15T16:10:08Z</scan_nvt_version><threat>Low</threat><severity>2.6</severity><qod><value>80</value><type></type></qod><description>It was detected that the host implements RFC1323/RFC7323.
+
+The following timestamps were retrieved with a delay of 1 seconds in-between:
+Packet 1: 2005039423
+Packet 2: 2005040567
+</description><original_threat>Low</original_threat><original_severity>2.6</original_severity><compliance>undefined</compliance></result><result id="8db933d3-5611-4edd-a991-427deba680dd"><name>Weak MAC Algorithm(s) Supported (SSH)</name><owner><name>admin</name></owner><modification_time>2026-09-18T18:30:48Z</modification_time><comment></comment><creation_time>2026-09-18T18:30:48Z</creation_time><detection><result id="f15aa372-c1b5-4002-a62b-9958aa54b612"><details><detail><name>product</name><value>cpe:/a:ietf:secure_shell_protocol</value></detail><detail><name>location</name><value>22/tcp</value></detail><detail><name>source_oid</name><value>1.3.6.1.4.1.25623.1.0.105565</value></detail><detail><name>source_name</name><value>SSH Protocol Algorithms Supported</value></detail></details></result></detection><host>172.20.0.13<asset asset_id="6abc4c65-d7e7-4b9d-a308-aefa0a798c3f"/><hostname>lab-targets-anchor-13-1.lab-net</hostname></host><port>22/tcp</port><nvt oid="1.3.6.1.4.1.25623.1.0.105610"><type>nvt</type><name>Weak MAC Algorithm(s) Supported (SSH)</name><family>SSL and TLS</family><cvss_base>2.6</cvss_base><severities score="2.6"><severity type="cvss_base_v2"><origin></origin><date>2016-04-19T09:49:32Z</date><score>2.6</score><value>AV:N/AC:H/Au:N/C:P/I:N/A:N</value></severity></severities><tags>cvss_base_vector=AV:N/AC:H/Au:N/C:P/I:N/A:N|summary=The remote SSH server is configured to allow / support weak MAC
+  algorithm(s).|insight=|affected=|impact=|solution=Disable the reported weak MAC algorithm(s).|vuldetect=Checks the supported MAC algorithms (client-to-server and
+  server-to-client) of the remote SSH server.
+
+  Currently weak MAC algorithms are defined as the following:
+
+  - MD5 based algorithms
+
+  - 96-bit based algorithms
+
+  - 64-bit based algorithms
+
+  - &apos;none&apos; algorithm|solution_type=Mitigation</tags><solution type='Mitigation'>Disable the reported weak MAC algorithm(s).</solution><refs><ref type="url" id="https://www.rfc-editor.org/rfc/rfc6668"/><ref type="url" id="https://www.rfc-editor.org/rfc/rfc4253#section-6.4"/></refs></nvt><scan_nvt_version>2024-06-14T05:05:48Z</scan_nvt_version><threat>Low</threat><severity>2.6</severity><qod><value>80</value><type></type></qod><description>The remote SSH server supports the following weak client-to-server MAC algorithm(s):
+
+umac-64-etm@openssh.com
+umac-64@openssh.com
+
+
+The remote SSH server supports the following weak server-to-client MAC algorithm(s):
+
+umac-64-etm@openssh.com
+umac-64@openssh.com
+</description><original_threat>Low</original_threat><original_severity>2.6</original_severity><compliance>undefined</compliance></result></results></report></report></get_reports_response>

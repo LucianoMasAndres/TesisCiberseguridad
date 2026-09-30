@@ -131,15 +131,15 @@ para que Greenbone tenga algo real que detectar.
 
 | IP | Rol | Puertos abiertos | Cálculo | Score | Clase | Vulnerabilidad real desplegada |
 |---|---|---|---|---|---|---|
-| 172.20.0.10 | Web pública | 80, 443 | 5+4 | 9 | Normal | nginx actualizado, TLS autofirmado — control, sin hallazgo esperado |
-| 172.20.0.11 | Landing interna | 80 | 5 | 5 | Normal | httpd actualizado — control, sin hallazgo esperado |
+| 172.20.0.10 | Web pública | 80, 443 | 5+4 | 9 | Normal | nginx 1.25 (rama superada), TLS autofirmado — control, sin condición insegura introducida |
+| 172.20.0.11 | Landing interna | 80 | 5 | 5 | Normal | httpd 2.4 — control, sin condición insegura introducida |
 | 172.20.0.12 | Panel admin interno | 80, 22 | 5+9 | 14 | Alto | OpenSSH 8.4p1 (Debian 11, fuera de la rama vigente) con `PermitRootLogin` y `PasswordAuthentication` habilitados y credenciales débiles |
 | 172.20.0.13 | BD de desarrollo | 3306, 22, 445 | 11+9+8 | 28 | Crítico | MySQL 5.7 (CVE conocidas) + Samba con *guest access* habilitado (sin RCE conocido en la versión instalada — 4.13 sobre `debian:11-slim`, parcheada contra CVE-2017-7494) |
 | 172.20.0.14 | Réplica de BD | 5432, 22 | 11+9 | 20 | Alto | PostgreSQL 9.6 desactualizado |
 | 172.20.0.15 | Directorio corporativo | 389, 80 | 7+5 | 12 | Alto | OpenLDAP con *bind* anónimo habilitado |
 | 172.20.0.16 | Servidor de correo | 25, 587, 22 | 4+4+9 | 17 | Alto | Postfix configurado como *open relay* |
 | 172.20.0.17 | Dispositivo de red | 161/udp, 23, 445 | 6+12+8 | 26 | Crítico | SNMP *community string* `public` de lectura/escritura + Telnet con credenciales por defecto |
-| 172.20.0.18 | Servicio de reportes | 8080 | 5 | 5 | Normal | App interna actualizada — control, sin hallazgo esperado |
+| 172.20.0.18 | Servicio de reportes | 8080 | 5 | 5 | Normal | App interna sobre nginx 1.25 — control, sin condición insegura introducida |
 | 172.20.0.19 | Servidor FTP | 21, 22 | 7+9 | 16 | Alto | vsftpd con login anónimo habilitado |
 | 172.20.0.20 | File server SMB | 22, 445 | 9+8 | 17 | Alto | Samba con *guest access* habilitado (sin RCE) |
 | 172.20.0.21 | Cache expuesto | 6379, 80, 21 | 11+5+7 | 23 | Crítico | Redis sin autenticación (`requirepass` vacío) — RCE vía `CONFIG SET dir` + `MODULE LOAD` documentado |
@@ -288,12 +288,17 @@ Causa raíz identificada: **ninguno de los servicios de `lab-targets` tenía
 política de reinicio** (`restart:` ausente en `docker-compose.lab-targets.yml`),
 y dos de ellos se cayeron sin dejar logs durante la ejecución:
 
-- `telnet-17`: `in.telnetd -debug 23` en este modo standalone parece atender
-  una única conexión y terminar, en vez de aceptar conexiones repetidas
-  indefinidamente. Esto le resta el puerto 23 (12 puntos) al host `.17`,
-  bajándolo de 26 puntos (Crítico) a 14 (Alto) en las repeticiones donde ya
-  se había usado una vez.
-- `ftp-19`: salió sin log tras la repetición 1, causa exacta no determinada.
+- `telnet-17`: `in.telnetd -debug 23` en este modo standalone atiende una
+  única conexión y termina, en vez de aceptar conexiones repetidas. Es un
+  defecto determinista del laboratorio, no una caída aleatoria: el puerto 23
+  ya falta en la repetición 1 y
+  vuelve recién en la 5, con el contenedor recreado. Le resta 12 puntos al
+  host `.17`, que baja de 26 (Crítico) a 14 (Alto). Corregido después de la
+  campaña en `lab-targets/legacy/entrypoint.sh`, que relanza `in.telnetd`
+  tras cada conexión (verificado con tres conexiones seguidas).
+- `ftp-19`: el dataset registra el puerto 21 de `.19` en las repeticiones 1 y
+  2, y no en la 3 ni en la 4; el contenedor salió sin log entre la 2 y la 3,
+  causa exacta no determinada.
 
 **Corrección:** se agregó `restart: unless-stopped` a los 37 servicios de
 `docker-compose.lab-targets.yml` (vía script, verificado que el YAML resultante

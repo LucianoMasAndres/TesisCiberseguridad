@@ -84,5 +84,34 @@ for (const f of ['workflowV4_windows.json', 'workflowV3_linux.json']) {
   }
 }
 
+// 4. Programacion diaria de V3 (disparador de las 5 a. m. del Launcher): sin
+//    webhook, el nodo Nmap tiene que escanear la subred del laboratorio, no una
+//    subred de otro entorno, y excluir su infraestructura (.1, .2 y .3).
+{
+  const v3 = load('workflowV3_linux.json');
+  const nmap = v3.nodes.find((n) => n.name === 'Nmap').parameters.jsCode;
+  const def = (nmap.match(/let subnet = '([^']+)'/) || [])[1];
+  check('V3: la subred por defecto del disparador diario es la del laboratorio', def === '172.20.0.0/24',
+    `subred por defecto: ${def}`);
+  const code = v3.nodes.find((n) => n.name === 'Code').parameters.jsCode;
+  const missing = ['172.20.0.1', '172.20.0.2', '172.20.0.3'].filter((ip) => !code.includes(`"${ip}"`));
+  check('V3: el nodo Code excluye la infraestructura de lab-net (.1, .2, .3)', missing.length === 0,
+    `faltan: ${missing.join(', ')}`);
+}
+
+// 5. Remisiones y comentarios que la tesis cita
+{
+  const v4src = fs.readFileSync(path.join(ROOT, 'workflows', 'workflowV4_windows.json'), 'utf8');
+  check('V4: los comentarios no remiten a una etiqueta inexistente de la tesis ("K2")', !/K2 en la tesis/.test(v4src),
+    'queda "ver K2 en la tesis"');
+  const launcher = fs.readFileSync(path.join(ROOT, 'launcher.py'), 'utf8');
+  check('launcher.py no atribuye a la condicion de carrera la omision de .10 en la campana',
+    !/detr[aá]s de que 172\.20\.0\.10 nunca fuera detectado/.test(launcher), 'el docstring la atribuye');
+  const entry = fs.readFileSync(path.join(ROOT, 'lab-targets', 'legacy', 'entrypoint.sh'), 'utf8');
+  const telnet = (entry.match(/\n\s*telnet\)([\s\S]*?);;/) || [])[1] || '';
+  check('telnet-17 vuelve a escuchar despues de cada conexion (in.telnetd -debug atiende una sola)',
+    /while true/.test(telnet) && !/exec \/usr\/sbin\/in\.telnetd/.test(telnet), telnet.trim().split('\n').pop());
+}
+
 console.log(failures === 0 ? '\nTODOS LOS CASOS PASAN' : `\n${failures} FALLOS`);
 process.exit(failures === 0 ? 0 : 1);

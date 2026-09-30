@@ -39,11 +39,18 @@ tarea consultando GMP (T2→T3).
 
 ## Qué versión del script corrió
 
-`docs/run_experiment.js` en el commit `47ff2f4` (14/08/2026, confirmado después de
-terminar la campaña) es la versión usada, **con una diferencia**: la consulta
-`get_reports` con `filter='rows=1000'` se agregó después de la corrida. Por eso
-`experiment_log.txt` registra "0 hallazgos" en cada repetición: la versión que corrió
-leía solo la primera página del reporte. Los hallazgos del dataset se extrajeron
+La versión exacta de `docs/run_experiment.js` que produjo el dataset **no se
+conservó**. El commit `47ff2f4` (14/08/2026, confirmado después de terminar la
+campaña) contiene la más cercana, con al menos dos cambios posteriores a la corrida:
+
+- la consulta `get_reports` con `filter='rows=1000'`. Por eso `experiment_log.txt`
+  registra "0 hallazgos" en cada repetición: la versión que corrió leía solo la
+  primera página del reporte;
+- la exclusión de `.1`, `.2` y `.3` del descubrimiento. El dataset registra `.3` en
+  las cinco repeticiones, cosa imposible con ese filtro: se agregó después.
+
+El resto del script (comandos de Nmap, regex de `<host>`, `classify()` con peso 10,
+webhook `/webhook/nmap`, espera de 15 s) coincide con lo que registra el dataset. Los hallazgos del dataset se extrajeron
 después, sobre los mismos reportes, con `docs/reextract_findings.js` (incluido en el
 mismo commit). Las demás diferencias con la versión actual del script (regex de
 descubrimiento, paginación de `get_tasks`, extracción de CVE por `<refs>`, peso 11)
@@ -76,11 +83,20 @@ informativos (severidad 0) incluyen recursos SMB accesibles en .13, .17 y .20. E
 NVT "Anonymous FTP Login Reporting" no aparece en ninguna tarea, aunque .19 y .21
 configuran vsftpd con acceso anónimo; la causa no se diagnosticó.
 
-El dataset tampoco incluye siete resultados con QoD ≥ 70 que gvmd muestra hoy para
-la repetición 1 ("Weak MAC Algorithm(s) Supported (SSH)" y "SSL/TLS: Deprecated
-TLSv1.0 and TLSv1.1 Protocol Detection"). Una causa probable es que la severidad de
-esos NVT cambió con una actualización del feed posterior a la reextracción (gvmd
-recalcula la severidad de los resultados); no se verificó.
+El dataset tampoco incluye 30 resultados con severidad > 0 y QoD ≥ 70 que gvmd
+registra para la campaña: 138 en la base frente a 108 en el dataset (7, 6, 5, 5 y 7
+por tarea). Son dos NVT, "Weak MAC Algorithm(s) Supported (SSH)" (2,6) en cada activo
+con SSH analizado y "SSL/TLS: Deprecated TLSv1.0 and TLSv1.1 Protocol Detection"
+(4,3) en .13 (`hallazgos_omitidos_por_parser_2026-08-14.txt`). Ambos NVT se
+modificaron en el feed antes de la campaña, así que no es un cambio posterior de
+severidad. La causa es un error de parseo: los dos traen un bloque `<detection>` con
+un `<result>` anidado antes de `<severity>`, y la regex no codiciosa de
+`getReportSummary` cortaba el resultado en ese cierre interno, leía severidad 0 y lo
+descartaba. Se corrigió en `docs/run_experiment.js` y `docs/reextract_findings.js`
+(prueba: `docs/test_gmp_results_parsing.js`). El dataset no se regeneró: gvmd ya no
+entrega por GMP los reportes de las tareas que están en la papelera. Ninguno de los
+dos NVT es específico de una condición desplegada del Anexo F, así que el recall de
+1/18 no cambia.
 
 ## NmapScan en el commit de la campaña
 
