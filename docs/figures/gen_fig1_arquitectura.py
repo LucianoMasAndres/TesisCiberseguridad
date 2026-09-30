@@ -40,7 +40,7 @@ label((5.95, 9.0), "GMP sobre socket Unix\n(gvmd_socket_vol)")
 
 # Red lab-net y objetivos (desplazada a la derecha, bajo Greenbone)
 box(5.4, 3.2, 4.6, 1.6,
-    "Red Docker 'lab-net'\n12 activos objetivo (lab-targets)\nSSH, FTP, SMB, HTTP, MySQL, SNMP, etc.",
+    "Red Docker 'lab-net' (también la usan\nn8n y ospd-openvas)\n12 activos objetivo (lab-targets)",
     fc='#eaf2e3', ec='#2e7d32', fontsize=8)
 
 arrow((3.5, 6.6), (5.9, 4.8))
@@ -48,7 +48,7 @@ arrow((3.5, 6.6), (5.9, 4.8))
 label((6.35, 5.3), "Nmap\n(descubrimiento y puertos)", ha='center')
 
 arrow((9.0, 5.8), (8.4, 4.8))
-label((8.95, 5.35), "OpenVAS\n(análisis de\nvulnerabilidades)", ha='left')
+label((8.95, 5.35), "ospd-openvas,\nconectado también\na lab-net (análisis de\nvulnerabilidades)", ha='left')
 
 # Notificaciones (a la izquierda, sin cruzar la red lab-net)
 box(0.4, 0.5, 2.4, 1.6, "Telegram\n(bot API)", fc='#f5e0f5', ec='#8e44ad', fontsize=8.3)
