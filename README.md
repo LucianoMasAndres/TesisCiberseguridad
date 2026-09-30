@@ -36,6 +36,8 @@ El flujo tiene un segundo punto de entrada, `/webhook/nmap`, que recibe por POST
 
 **Servicios incluidos:**
 - `n8n` — Orquestador de workflows (puerto 5678), con Nmap y `gvm-tools` (`n8n_custom/Dockerfile`)
+
+> Red: `lab-net` y `greenbone-net` son redes bridge con salida a Internet (n8n la necesita para Telegram; Greenbone, para los feeds). GSA (9392) y Mailpit (8025/1025) se publican solo en 127.0.0.1. n8n (5678) se publica en todas las interfaces, sin autenticación, para que la app móvil pueda alcanzarlo desde la LAN: no exponer el equipo a redes no confiables.
 - `Greenbone/OpenVAS` — Motor de escaneo de vulnerabilidades (imágenes de `registry.community.greenbone.net`)
 - `GSA` — Interfaz web de OpenVAS (puerto 9392)
 - `Mailpit` — Servidor SMTP de prueba para emails (puerto 8025)
@@ -101,7 +103,7 @@ Los nodos de Telegram de V4 son nodos **Code** que llaman a la API con `curl` (e
 La subred está fija en el nodo **NmapScan**: `172.20.0.0/24`, la red `lab-net` del laboratorio. El launcher no pide subred. Las IPs de infraestructura que se excluyen (`.1`, `.2`, `.3`) están en el nodo **Code**.
 
 ### 3. Email
-En el nodo **Send Email**, reemplazá `TU_EMAIL_AQUI` por el destinatario. Mailpit intercepta todos los emails localmente en `http://localhost:8025` sin configurar nada más (la credencial SMTP es `Mailpit SMTP`).
+En el nodo **Send Email**, reemplazá `TU_EMAIL_AQUI` por el destinatario. Mailpit intercepta todos los emails localmente en `http://127.0.0.1:8025` sin configurar nada más (la credencial SMTP es `Mailpit SMTP`).
 
 ---
 
@@ -154,7 +156,7 @@ Si importás el workflow manualmente: `http://localhost:5678` → **Workflows** 
 2. En la sección **CONFIG N8N** ingresá el email y password que configuraste la primera vez que entraste a `http://localhost:5678`
 3. Hacé clic en **Iniciar Lab** y esperá a que diga "¡Laboratorio operativo!". El launcher activa el workflow V4
 4. Elegí el perfil de escaneo y hacé clic en **Escanear laboratorio** (la subred es fija, `172.20.0.0/24`)
-5. Revisá Telegram para el resumen y `http://localhost:8025` para el reporte completo
+5. Revisá Telegram para el resumen y `http://127.0.0.1:8025` para el reporte completo
 
 **Perfiles de escaneo disponibles:**
 
@@ -162,8 +164,8 @@ Si importás el workflow manualmente: `http://localhost:5678` → **Workflows** 
 |---|---|---|
 | Rápido — Solo descubrimiento | ~5 min | Solo descubre hosts |
 | Normal — Full & Fast | ~30 min | Escaneo completo balanceado |
-| Profundo — Full & Very Deep | ~60 min | Cobertura ampliada |
-| Máximo — Full & Very Deep Ultimate | ~90 min | Máxima cobertura |
+
+"Full and very deep" y "Full and very deep ultimate" no se ofrecen: pertenecen al Greenbone Enterprise Feed y no existen en la Community Edition que usa este laboratorio.
 
 > ⚠️ La primera vez que levantás el lab, OpenVAS tarda **15-30 minutos** en sincronizar los feeds de vulnerabilidades. Si el workflow falla con `404 scan config not found`, esperá y reintentá.
 

@@ -234,8 +234,9 @@ services:
     container_name: mailpit
     restart: unless-stopped
     ports:
-      - "8025:8025"
-      - "1025:1025"
+      # Solo loopback: n8n envia por la red interna (mailpit:1025).
+      - "127.0.0.1:8025:8025"
+      - "127.0.0.1:1025:1025"
     networks:
       - greenbone-net
 # --- Volúmenes (Persistencia de datos) ---

@@ -198,6 +198,9 @@ del workflow, contra el laboratorio real (`docs/test_e2e_pipeline.js`):
 ```
 
 Los 12 hosts clasificaron exactamente como el ground truth predice.
+Re-ejecutada el 30/09/2026 con los nodos de este mismo commit, vuelve a pasar
+(`docs/evidencia_campana_gvm/e2e_nmapscan_47ff2f4_2026-09-30.txt`): el nodo `NmapScan`
+no comparte el error de parser que omitió .10 en `docs/run_experiment.js`.
 
 **Nota sobre `setcap` vs `setuid`.** Se intentó primero `setcap
 cap_net_raw,cap_net_admin+eip` sobre el binario de nmap (el método recomendado
@@ -233,8 +236,11 @@ con el reordenamiento de la red `lab-net` durante la sesión (el contenedor pudo
 haber iniciado antes de que la red terminara de adjuntarse correctamente). Si
 esto se repite en corridas futuras, reiniciar el contenedor afectado antes de
 medir es más simple que depurar más a fondo, y debe registrarse como nota
-metodológica si afecta a alguna repetición del experimento (afecta a la
-repetición 1: ver `docs/experiment_results.jsonl`).
+metodológica si afecta a alguna repetición del experimento. El reinicio se hizo
+antes de la repetición 1, que registra 25/587 abiertos; el síntoma reapareció en las
+repeticiones 2 a 4 (.16 con solo el puerto 22, clasificado Normal) y no en la 5, ya
+con `restart: unless-stopped` (ver `docs/experiment_results.jsonl`). Esa política no
+corrige este estado: el contenedor sigue `Up` aunque Postfix no acepte conexiones.
 
 ## Bug crítico encontrado durante la tarea 5: `ospd-openvas` sin ruta a `lab-net`
 

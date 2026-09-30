@@ -8,8 +8,6 @@ void main() {
 const _scanProfiles = {
   'Rápido — Solo descubrimiento (~5 min)': '8715c877-47a0-438d-98a3-27c7a6ab2196',
   'Normal — Full & Fast (~30 min)': 'daba56c8-73ec-11df-a475-002264764cea',
-  'Profundo — Full & Very Deep (~60 min)': '708f25c4-7489-11df-8a11-002264764cea',
-  'Máximo — Full & Very Deep Ultimate (~90 min)': '74db13d6-7489-11df-91b9-002264764cea',
 };
 
 // Paleta compartida con el Security Lab Launcher (tkinter)

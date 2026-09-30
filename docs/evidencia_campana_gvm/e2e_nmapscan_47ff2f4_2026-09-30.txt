@@ -1,0 +1,22 @@
+# Re-ejecucion (30/09/2026) de docs/test_e2e_pipeline.js del commit 47ff2f4 con el
+# workflowV4_windows.json del mismo commit (nodos NmapScan y Code de la campana),
+# contra el laboratorio de 12 activos en ejecucion. Comando:
+#   git show 47ff2f4:workflows/workflowV4_windows.json > wf47.json
+#   git show 47ff2f4:docs/test_e2e_pipeline.js > e2e47.js
+#   docker cp wf47.json n8n-security-lab:/tmp/wf47.json; docker cp e2e47.js n8n-security-lab:/tmp/e2e47.js
+#   docker exec -e WORKFLOW_PATH=/tmp/wf47.json n8n-security-lab node /tmp/e2e47.js
+
+=== Verificacion contra ground truth ===
+172.20.0.10: esperado=Normal obtenido=Normal OK
+172.20.0.11: esperado=Normal obtenido=Normal OK
+172.20.0.12: esperado=Alto obtenido=Alto OK
+172.20.0.13: esperado=Critico obtenido=Critico OK
+172.20.0.14: esperado=Alto obtenido=Alto OK
+172.20.0.15: esperado=Alto obtenido=Alto OK
+172.20.0.16: esperado=Alto obtenido=Alto OK
+172.20.0.17: esperado=Critico obtenido=Critico OK
+172.20.0.18: esperado=Normal obtenido=Normal OK
+172.20.0.19: esperado=Alto obtenido=Alto OK
+172.20.0.20: esperado=Alto obtenido=Alto OK
+172.20.0.21: esperado=Critico obtenido=Critico OK
+=== E2E TEST: PASA (pipeline real, nmap real, clasificacion real) ===

@@ -1,0 +1,12 @@
+-- Estado de las cinco tareas de la campana en gvmd (hidden = 2: en la papelera).
+-- El nodo Cleanup de V4 las envia a la papelera (delete_task ultimate='0') al final del flujo.
+select t.uuid as task_id, t.hidden, to_char(to_timestamp(t.creation_time) at time zone 'UTC','YYYY-MM-DD HH24:MI:SS') as creada_utc from tasks t where t.uuid in ('57395bc8-9eae-43df-9120-850ff7bf5ff4','ab82b996-c5cb-4098-bf45-a245f129cfce','4ce11c6f-7acf-42f6-a7eb-d66c1943c7c4','f5714c99-2348-4cad-9b47-f8078fbb7695','140917e1-000f-4171-8013-ca3925fe368b') order by t.creation_time;
+               task_id                | hidden |     creada_utc      
+--------------------------------------+--------+---------------------
+ 57395bc8-9eae-43df-9120-850ff7bf5ff4 |      2 | 2026-08-14 19:19:24
+ ab82b996-c5cb-4098-bf45-a245f129cfce |      2 | 2026-08-14 19:46:15
+ 4ce11c6f-7acf-42f6-a7eb-d66c1943c7c4 |      2 | 2026-08-14 20:15:08
+ f5714c99-2348-4cad-9b47-f8078fbb7695 |      2 | 2026-08-14 20:43:01
+ 140917e1-000f-4171-8013-ca3925fe368b |      2 | 2026-08-14 21:14:27
+(5 rows)
+

@@ -28,11 +28,11 @@ DOCKER_DOWNLOAD_URL = {
     "Linux": "https://docs.docker.com/engine/install/",
 }
 
+# Solo configuraciones del feed Community. "Full and very deep" y "Full and very
+# deep ultimate" pertenecen al Greenbone Enterprise Feed y no existen en esta pila.
 SCAN_PROFILES = {
     "Rápido  — Solo descubrimiento (~5 min)":   "8715c877-47a0-438d-98a3-27c7a6ab2196",
     "Normal  — Full & Fast (~30 min)":           "daba56c8-73ec-11df-a475-002264764cea",
-    "Profundo — Full & Very Deep (~60 min)":     "708f25c4-7489-11df-8a11-002264764cea",
-    "Máximo  — Full & Very Deep Ultimate (~90 min)": "74db13d6-7489-11df-91b9-002264764cea",
 }
 
 # Paleta
@@ -197,7 +197,7 @@ class Launcher(tk.Tk):
         card = self._card(parent, "ESTADO")
         self._dot = {}
         self._status_lbl = {}
-        for key, name in [("n8n", "n8n"), ("openvas", "OpenVAS"), ("mailpit", "Mailpit")]:
+        for key, name in [("n8n", "n8n"), ("openvas", "Greenbone (gvmd)"), ("mailpit", "Mailpit")]:
             row = tk.Frame(card, bg=SURFACE)
             row.pack(fill="x", padx=12, pady=3)
             dot = tk.Label(row, text="●", bg=SURFACE, fg=RED, font=("Courier New", 11))
@@ -291,7 +291,7 @@ class Launcher(tk.Tk):
         for label, url in [
             ("n8n  → :5678", "http://localhost:5678"),
             ("OpenVAS → :9392", "http://127.0.0.1:9392"),
-            ("Mailpit → :8025", "http://localhost:8025"),
+            ("Mailpit → :8025", "http://127.0.0.1:8025"),
         ]:
             tk.Button(inner, text=label, bg=SURFACE, fg=CYAN,
                       font=("Courier New", 9), relief="flat", anchor="w",
@@ -497,7 +497,7 @@ class Launcher(tk.Tk):
         self._log("¡Laboratorio operativo!", "done")
         self._log("  n8n     → http://localhost:5678", "info")
         self._log("  OpenVAS → http://127.0.0.1:9392  (admin / admin123)", "info")
-        self._log("  Mailpit → http://localhost:8025", "info")
+        self._log("  Mailpit → http://127.0.0.1:8025", "info")
         self._log("IMPORTANTE: la primera vez OpenVAS tarda 15-30 min en sincronizar feeds.", "warn")
 
         self._log("Activando workflow V4 automaticamente...", "info")

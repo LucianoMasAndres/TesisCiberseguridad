@@ -50,3 +50,43 @@ descubrimiento, paginación de `get_tasks`, extracción de CVE por `<refs>`, pes
 son posteriores a la campaña y no afectan sus datos. El campo `cve` del dataset quedó
 vacío en los 108 hallazgos porque la extracción por `<refs>` no se volvió a correr
 sobre él.
+
+## Hasta dónde llegó el flujo en cada repetición
+
+`tareas_papelera_2026-08-14.txt`: las cinco tareas de la campaña están en la papelera
+de gvmd (`hidden = 2`). En workflowV4 (commit `47ff2f4`) el nodo `Cleanup` las envía
+ahí con `delete_task ultimate='0'`, y se ejecuta después de `DownloadPDF` → `XML1` →
+`parseo` → `Code in JavaScript2` → `Send a text message1` (Telegram de resultados).
+Ningún otro script del repositorio borra tareas. El estado es compatible, entonces,
+con que el flujo recorrió en las cinco repeticiones la descarga, el parseo y el nodo
+de Telegram hasta `Cleanup`. No prueba la entrega del mensaje (el nodo de Telegram
+continúa aunque falle) ni el envío del correo, que es una rama paralela. El
+historial de ejecuciones de n8n de esa fecha no se conserva (poda automática), y
+Mailpit guarda los correos en memoria.
+
+## Nivel de QoD de los hallazgos
+
+`hallazgos_por_qod_2026-08-14.txt`: el dataset aplica `severity > 0` sobre
+`get_reports` con `filter='rows=1000'`, que conserva el QoD mínimo por defecto de gvmd
+(70). En cada tarea, Greenbone registró además entre 91 y 117 resultados con
+severidad > 0 y QoD 30 (detección por versión de banner, sin verificación activa),
+con severidad máxima 10,0. Entre ellos están las vulnerabilidades de versión de
+MySQL 5.7 en .13 y de Redis 5 en .21, en las cinco tareas. Los resultados
+informativos (severidad 0) incluyen recursos SMB accesibles en .13, .17 y .20. El
+NVT "Anonymous FTP Login Reporting" no aparece en ninguna tarea, aunque .19 y .21
+configuran vsftpd con acceso anónimo; la causa no se diagnosticó.
+
+El dataset tampoco incluye siete resultados con QoD ≥ 70 que gvmd muestra hoy para
+la repetición 1 ("Weak MAC Algorithm(s) Supported (SSH)" y "SSL/TLS: Deprecated
+TLSv1.0 and TLSv1.1 Protocol Detection"). Una causa probable es que la severidad de
+esos NVT cambió con una actualización del feed posterior a la reextracción (gvmd
+recalcula la severidad de los resultados); no se verificó.
+
+## NmapScan en el commit de la campaña
+
+`e2e_nmapscan_47ff2f4_2026-09-30.txt`: la prueba de extremo a extremo del commit
+`47ff2f4`, re-ejecutada el 30/09/2026 con los nodos `NmapScan` y `Code` de ese mismo
+commit, clasifica los 12 activos igual que el Anexo F, incluido 172.20.0.10. El
+error que omitió .10 en la campaña está en el parser de `docs/run_experiment.js`,
+no en ese nodo. La regex que dejó a `NmapScan` sin detectar hosts se introdujo
+después, en `3b7a3b6` (15/09), y se corrigió en `4cf0dba`.

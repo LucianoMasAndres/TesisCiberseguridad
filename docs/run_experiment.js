@@ -181,7 +181,7 @@ async function runRepetition(n) {
   // classifyAsset y envia a Greenbone solo los activos Alto/Critico. Es el
   // camino de la campana del 14/08/2026 (commit 47ff2f4); los targets creados
   // en esa campana listan solo los Alto/Critico de cada repeticion (ver
-  // docs/evidencia_campana_gvm/). Entre el 22/08 y el 29/09 este script apunto
+  // docs/evidencia_campana_gvm/). Entre el 17/08 (commit 34e8353) y el 29/09 este script apunto
   // por error a /webhook/nmap-v3 (workflowV3, sin clasificacion: manda a
   // Greenbone todos los hosts activos); los datos de
   // docs/experiment_results.jsonl no provienen de esa variante. Contrato

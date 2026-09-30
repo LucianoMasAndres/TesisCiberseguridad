@@ -38,3 +38,7 @@ en la repetición 1), por lo que subestima el costo de un ciclo completo.
   **excluidas del brazo manual** porque la fase GVM la ejecutó un script vía
   GMP (`manual_seq_gvm.js`), no un operador humano. Se conservan solo como
   registro; no entran en `analyze_manual_arm.js`.
+
+Las notas de `corridas_excluidas.jsonl` mencionan `manual_seq_gvm.js` y
+`rep3_live_gvm.log`: son archivos del equipo del operador 2 y no se publican,
+porque esas corridas no forman parte del brazo manual.

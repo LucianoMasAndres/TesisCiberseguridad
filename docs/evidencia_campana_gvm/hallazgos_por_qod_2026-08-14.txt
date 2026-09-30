@@ -1,0 +1,66 @@
+-- Resultados de Greenbone de las cinco tareas de la campana, por nivel de QoD.
+-- El conteo publicado (docs/experiment_results.jsonl) usa get_reports con filter='rows=1000',
+-- que conserva el QoD minimo por defecto de gvmd (70) y el criterio severity > 0 del script.
+select t.uuid as task_id, sum(case when r.severity>0 and r.qod>=70 then 1 else 0 end) as sev_gt0_qod_ge70, sum(case when r.severity>0 and r.qod<70 then 1 else 0 end) as sev_gt0_qod_lt70, max(case when r.qod>=70 then r.severity end) as max_sev_qod_ge70, max(r.severity) as max_sev_total from results_trash r join reports rp on rp.id=r.report join tasks t on t.id=rp.task where t.uuid in ('57395bc8-9eae-43df-9120-850ff7bf5ff4','ab82b996-c5cb-4098-bf45-a245f129cfce','4ce11c6f-7acf-42f6-a7eb-d66c1943c7c4','f5714c99-2348-4cad-9b47-f8078fbb7695','140917e1-000f-4171-8013-ca3925fe368b') group by t.uuid order by min(rp.start_time);
+               task_id                | sev_gt0_qod_ge70 | sev_gt0_qod_lt70 | max_sev_qod_ge70 | max_sev_total 
+--------------------------------------+------------------+------------------+------------------+---------------
+ 57395bc8-9eae-43df-9120-850ff7bf5ff4 |               31 |              117 |              7.5 |            10
+ ab82b996-c5cb-4098-bf45-a245f129cfce |               28 |              104 |              7.5 |            10
+ 4ce11c6f-7acf-42f6-a7eb-d66c1943c7c4 |               24 |               91 |              7.5 |            10
+ f5714c99-2348-4cad-9b47-f8078fbb7695 |               24 |               91 |              7.5 |            10
+ 140917e1-000f-4171-8013-ca3925fe368b |               31 |              117 |              7.5 |            10
+(5 rows)
+
+
+-- Resultados con QoD < 70 y severidad > 0 sobre condiciones desplegadas (MySQL 5.7 en .13, Redis en .21), cinco tareas:
+select r.host, n.name, max(r.severity) as sev, max(r.qod) as qod, count(distinct rp.id) as tareas from results_trash r join nvts n on n.oid=r.nvt join reports rp on rp.id=r.report join tasks t on t.id=rp.task where t.uuid in ('57395bc8-9eae-43df-9120-850ff7bf5ff4','ab82b996-c5cb-4098-bf45-a245f129cfce','4ce11c6f-7acf-42f6-a7eb-d66c1943c7c4','f5714c99-2348-4cad-9b47-f8078fbb7695','140917e1-000f-4171-8013-ca3925fe368b') and r.severity>0 and r.qod<70 and n.name ~* '(MySQL|Redis)' group by r.host, n.name order by r.host, 3 desc;
+    host     |                                                name                                                | sev | qod | tareas 
+-------------+----------------------------------------------------------------------------------------------------+-----+-----+--------
+ 172.20.0.13 | Oracle MySQL Server <= 8.0.39, 8.1 <= 8.4.2, 9.0 <= 9.0.1 Security Update (cpuoct2024) - Linux     | 7.5 |  30 |      5
+ 172.20.0.13 | Oracle MySQL Server <= 8.0.41, 8.1 <= 8.4.4, 9.0 <= 9.2.0 Security Update (cpuapr2025) - Linux     | 6.5 |  30 |      5
+ 172.20.0.13 | Oracle MySQL Server <= 8.0.43, 8.1.x <= 8.4.7, 9.0.0 <= 9.4.0 Security Update (cpuoct2025) - Linux | 5.5 |  30 |      5
+ 172.20.0.13 | Oracle MySQL Server <= 8.0.39, 8.1 <= 8.4.1, 9.0 <= 9.0.1 Security Update (cpuoct2024) - Linux     | 5.3 |  30 |      5
+ 172.20.0.13 | Oracle MySQL Server <= 8.0.38, 8.1 <= 8.4.1, 9.0 <= 9.0.1 Security Update (cpuoct2024) - Linux     | 4.9 |  30 |      5
+ 172.20.0.13 | Oracle MySQL Server <= 8.0.35 Security Update (cpuoct2024) - Linux                                 | 4.9 |  30 |      5
+ 172.20.0.13 | Oracle MySQL Server <= 8.0.39, 8.1 <= 8.4.0 Security Update (cpuoct2024) - Linux                   | 4.4 |  30 |      5
+ 172.20.0.21 | Redis Multiple Vulnerabilities (Oct 2025, RediShell)                                               | 9.9 |  30 |      5
+ 172.20.0.21 | Redis RCE Vulnerability (GHSA-39h2-x6c4-6w4c)                                                      | 9.8 |  30 |      5
+ 172.20.0.21 | Redis 2.6 < 6.2.16, 7.0.0. < 7.2.6, 7.4.0 RCE vulnerability                                        | 8.8 |  30 |      5
+ 172.20.0.21 | Redis < 6.0.20, 6.2.x < 6.2.13, 7.x < 7.0.12 Heap Overflow Vulnerability                           | 8.8 |  30 |      5
+ 172.20.0.21 | Redis DoS Vulnerability (GHSA-4q32-c38c-pwgq)                                                      | 7.8 |  30 |      5
+ 172.20.0.21 | Redis DoS Vulnerability (GHSA-r67f-p999-2gff)                                                      | 7.8 |  30 |      5
+ 172.20.0.21 | Redis < 6.2.7 Multiple Vulnerabilities                                                             | 7.8 |  30 |      5
+ 172.20.0.21 | Redis Buffer Overflow Vulnerability (GHSA-rp2m-q4j6-gr43)                                          | 7.8 |  30 |      5
+ 172.20.0.21 | Redis < 6.0.3 Integer Overflow Vulnerability                                                       | 7.7 |  30 |      5
+ 172.20.0.21 | Redis < 6.0.19, 6.2.x < 6.2.12, 7.0.x < 7.0.11 DoS Vulnerability                                   | 6.5 |  30 |      5
+ 172.20.0.21 | Redis 2.2.5 < 6.2.16, 7.0.0 < 7.2.6, 7.4.0 DoS vulnerability                                       | 6.5 |  30 |      5
+ 172.20.0.21 | Redis < 6.0.18, 6.2.x < 6.2.11, 7.0.x < 7.0.9 Multiple Vulnerabilities                             | 6.5 |  30 |      5
+ 172.20.0.21 | Redis DoS Vulnerability (GHSA-2r7g-8hpc-rpq9)                                                      | 6.1 |  30 |      5
+ 172.20.0.21 | Redis < 6.0.17 DoS Vulnerability                                                                   | 5.5 |  30 |      5
+ 172.20.0.21 | Redis Unix Socket Permission Access Bypass Vulnerability (GHSA-ghmp-889m-7cvx)                     | 3.6 |  30 |      5
+ 172.20.0.21 | Redis <= 7.0.5 DoS Vulnerability                                                                   | 3.3 |  30 |      5
+(23 rows)
+
+
+-- Resultados informativos (severidad 0) de acceso SMB y FTP en los activos con esas condiciones:
+select r.host, n.name, max(r.qod) as qod, count(distinct rp.id) as tareas from results_trash r join nvts n on n.oid=r.nvt join reports rp on rp.id=r.report join tasks t on t.id=rp.task where t.uuid in ('57395bc8-9eae-43df-9120-850ff7bf5ff4','ab82b996-c5cb-4098-bf45-a245f129cfce','4ce11c6f-7acf-42f6-a7eb-d66c1943c7c4','f5714c99-2348-4cad-9b47-f8078fbb7695','140917e1-000f-4171-8013-ca3925fe368b') and r.severity=0 and n.name ~* '(SMB Accessible Shares|SMB log in|Anonymous FTP|vsftpd)' group by r.host, n.name order by r.host;
+    host     |                  name                   | qod | tareas 
+-------------+-----------------------------------------+-----+--------
+ 172.20.0.13 | Microsoft Windows SMB Accessible Shares |  80 |      5
+ 172.20.0.13 | SMB log in                              |  97 |      5
+ 172.20.0.17 | Microsoft Windows SMB Accessible Shares |  80 |      5
+ 172.20.0.17 | SMB log in                              |  97 |      5
+ 172.20.0.19 | vsftpd FTP Server Detection (FTP)       |  80 |      3
+ 172.20.0.20 | Microsoft Windows SMB Accessible Shares |  80 |      5
+ 172.20.0.20 | SMB log in                              |  97 |      5
+ 172.20.0.21 | vsftpd FTP Server Detection (FTP)       |  80 |      5
+(8 rows)
+
+
+-- NVT 'Anonymous FTP Login Reporting' en cualquier resultado de la campana:
+select count(*) from results_trash r join nvts n on n.oid=r.nvt join reports rp on rp.id=r.report join tasks t on t.id=rp.task where t.uuid in ('57395bc8-9eae-43df-9120-850ff7bf5ff4','ab82b996-c5cb-4098-bf45-a245f129cfce','4ce11c6f-7acf-42f6-a7eb-d66c1943c7c4','f5714c99-2348-4cad-9b47-f8078fbb7695','140917e1-000f-4171-8013-ca3925fe368b') and n.name ilike 'Anonymous FTP%';
+ count 
+-------
+     0
+(1 row)
+
