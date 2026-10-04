@@ -1,113 +1,113 @@
 {
   "ejecucion": {
-    "id": 81,
+    "id": 84,
     "estado": "success",
     "modo": "webhook",
-    "inicio_utc": "2026-10-04 11:08:32.219",
-    "fin_utc": "2026-10-04 11:11:39.888"
+    "inicio_utc": "2026-10-04 11:37:01.745",
+    "fin_utc": "2026-10-04 11:40:08.207"
   },
   "nodos": [
     {
       "nodo": "Webhook Nmap",
       "estado": "success",
-      "inicio": "2026-10-04T11:08:32.235Z",
+      "inicio": "2026-10-04T11:37:01.755Z",
       "duracion_ms": 0
     },
     {
       "nodo": "ClassifyAssets",
       "estado": "success",
-      "inicio": "2026-10-04T11:08:32.235Z",
-      "duracion_ms": 18
+      "inicio": "2026-10-04T11:37:01.756Z",
+      "duracion_ms": 13
     },
     {
       "nodo": "¿Hay hosts?",
       "estado": "success",
-      "inicio": "2026-10-04T11:08:32.253Z",
-      "duracion_ms": 1
+      "inicio": "2026-10-04T11:37:01.770Z",
+      "duracion_ms": 4
     },
     {
       "nodo": "CreateTarget",
       "estado": "success",
-      "inicio": "2026-10-04T11:08:32.254Z",
-      "duracion_ms": 528
+      "inicio": "2026-10-04T11:37:01.775Z",
+      "duracion_ms": 439
     },
     {
       "nodo": "CreateTask",
       "estado": "success",
-      "inicio": "2026-10-04T11:08:32.783Z",
-      "duracion_ms": 467
+      "inicio": "2026-10-04T11:37:02.214Z",
+      "duracion_ms": 378
     },
     {
       "nodo": "StartTask",
       "estado": "success",
-      "inicio": "2026-10-04T11:08:33.251Z",
-      "duracion_ms": 482
+      "inicio": "2026-10-04T11:37:02.592Z",
+      "duracion_ms": 388
     },
     {
       "nodo": "Telegram Scan Iniciado",
       "estado": "success",
-      "inicio": "2026-10-04T11:08:33.733Z",
-      "duracion_ms": 932
+      "inicio": "2026-10-04T11:37:02.981Z",
+      "duracion_ms": 938
     },
     {
       "nodo": "PollStatus",
       "estado": "success",
-      "inicio": "2026-10-04T11:08:34.665Z",
-      "duracion_ms": 181611
+      "inicio": "2026-10-04T11:37:03.919Z",
+      "duracion_ms": 181475
     },
     {
       "nodo": "¿Timeout?",
       "estado": "success",
-      "inicio": "2026-10-04T11:11:36.277Z",
+      "inicio": "2026-10-04T11:40:05.394Z",
       "duracion_ms": 5
     },
     {
       "nodo": "DownloadReport",
       "estado": "success",
-      "inicio": "2026-10-04T11:11:36.283Z",
-      "duracion_ms": 485
+      "inicio": "2026-10-04T11:40:05.399Z",
+      "duracion_ms": 403
     },
     {
       "nodo": "ReportXmlToJson",
       "estado": "success",
-      "inicio": "2026-10-04T11:11:36.768Z",
-      "duracion_ms": 30
+      "inicio": "2026-10-04T11:40:05.803Z",
+      "duracion_ms": 23
     },
     {
       "nodo": "ParseFindings",
       "estado": "success",
-      "inicio": "2026-10-04T11:11:36.799Z",
-      "duracion_ms": 16
+      "inicio": "2026-10-04T11:40:05.826Z",
+      "duracion_ms": 12
     },
     {
       "nodo": "BuildReport",
       "estado": "success",
-      "inicio": "2026-10-04T11:11:36.816Z",
-      "duracion_ms": 14
+      "inicio": "2026-10-04T11:40:05.838Z",
+      "duracion_ms": 12
     },
     {
       "nodo": "Telegram Reporte Final",
       "estado": "success",
-      "inicio": "2026-10-04T11:11:36.830Z",
-      "duracion_ms": 1032
+      "inicio": "2026-10-04T11:40:05.850Z",
+      "duracion_ms": 918
     },
     {
       "nodo": "Cleanup",
       "estado": "success",
-      "inicio": "2026-10-04T11:11:37.862Z",
-      "duracion_ms": 981
+      "inicio": "2026-10-04T11:40:06.768Z",
+      "duracion_ms": 697
     },
     {
       "nodo": "Send Email",
       "estado": "success",
-      "inicio": "2026-10-04T11:11:38.844Z",
-      "duracion_ms": 79
+      "inicio": "2026-10-04T11:40:07.465Z",
+      "duracion_ms": 73
     },
     {
       "nodo": "Cleanup",
       "estado": "success",
-      "inicio": "2026-10-04T11:11:38.923Z",
-      "duracion_ms": 965
+      "inicio": "2026-10-04T11:40:07.538Z",
+      "duracion_ms": 669
     }
   ],
   "descubrimiento": null,
@@ -134,20 +134,20 @@
   "enviados_a_greenbone": "172.20.0.13",
   "telegram_inicio": {
     "ok": true,
-    "message_id": 57,
-    "fecha_unix": 1791112115,
+    "message_id": 60,
+    "fecha_unix": 1791113825,
     "texto": "Escaneo OpenVAS iniciado sobre 1 activo(s) clasificados Alto/Critico (de 2 descubiertos). Te aviso cuando termine (puede tardar entre 15 y 90 min)."
   },
   "telegram_reporte": {
     "ok": true,
-    "message_id": 58,
-    "fecha_unix": 1791112298,
-    "texto": "🛡️ Reporte de Red Unificado\n\n📋 Hosts: 172.20.0.13\n📅 Fecha: 2026-10-04T11:08:33Z\n📊 Total Hallazgos: 1\n\n🔴 Crítica: 0\n🟠 Alta: 0\n🟡 Media: 0\n🟢 Baja: 1\n\nThis message was sent automatically with n8n"
+    "message_id": 61,
+    "fecha_unix": 1791114007,
+    "texto": "🛡️ Reporte de Red Unificado\n\n📋 Hosts: 172.20.0.13\n📅 Fecha: 2026-10-04T11:37:02Z\n📊 Total Hallazgos: 1\n\n🔴 Crítica: 0\n🟠 Alta: 0\n🟡 Media: 0\n🟢 Baja: 1\n\nThis message was sent automatically with n8n"
   },
   "reporte": {
     "asunto": "Reporte de Red (1 Hosts) - 🔵 INFO",
     "hosts": "172.20.0.13",
-    "fecha_escaneo": "2026-10-04T11:08:33Z",
+    "fecha_escaneo": "2026-10-04T11:37:02Z",
     "total_hallazgos": 1,
     "critica": 0,
     "alta": 0,
@@ -160,12 +160,12 @@
       "lab@security.local"
     ],
     "rechazados": [],
-    "respuesta_smtp": "250 2.0.0 Ok: queued as 477pvXDM70pfNsBbcLFCqR",
+    "respuesta_smtp": "250 2.0.0 Ok: queued as 0VzJyT5eHkNYppscfZCaoi",
     "tamano_bytes": 2185
   },
   "limpieza": {
     "cleaned": true,
-    "task_id": "2b434e5f-4f0d-44de-ab6c-cf19acc0026a",
-    "target_id": "98192373-788b-4a11-9fd4-2ea0d771c3c0"
+    "task_id": "2f7c2568-6550-4c86-bdad-3346664e9cd8",
+    "target_id": "3cd4bd9f-1de7-4fcb-9158-971243aa0576"
   }
 }

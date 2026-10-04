@@ -109,6 +109,16 @@ const MALICIOSAS = [
     check('ClassifyAssets acepta hosts validos y conserva la clasificacion', !!j && j.all_ips === '172.20.0.13, 172.20.0.12'
       && j.cantidad_hosts === 2 && j.encontrados === true && j.normales.length === 1,
       ok.error ? ok.error.message : JSON.stringify(j));
+    for (const [nombre, hosts] of [['un texto', '172.20.0.13'], ['un objeto', { ip: '172.20.0.13' }], ['null', null]]) {
+      const r = await runNode(src, { items: [{ json: { body: { hosts } } }] });
+      check(`ClassifyAssets rechaza hosts mal formado (${nombre}) en vez de informar red limpia`, !!r.error, 'acepto');
+    }
+    const muchos = await runNode(src, { items: [{ json: { hosts: Array.from({ length: 255 }, () => ({ ip: '172.20.0.13', ports: [22] })) } }] });
+    check('ClassifyAssets rechaza una lista de mas de 254 hosts', !!muchos.error, 'acepto');
+    const rep = await runNode(src, { items: [{ json: { hosts: [
+      { ip: '172.20.0.13', ports: [3306, 22, 445] }, { ip: '172.20.0.13', ports: [3306, 22, 445] }, { ip: '172.20.0.12', ports: [80, 22] }] } }] });
+    check('ClassifyAssets no repite una direccion en el objetivo', !!rep.result && rep.result[0].json.all_ips === '172.20.0.13, 172.20.0.12'
+      && rep.result[0].json.cantidad_hosts === 2, rep.error ? rep.error.message : JSON.stringify(rep.result[0].json.all_ips));
     const vacio = await runNode(src, { items: [{ json: { body: { hosts: [] } } }] });
     check('ClassifyAssets acepta la lista vacia (red limpia)', !!vacio.result && vacio.result[0].json.encontrados === false,
       vacio.error && vacio.error.message);
@@ -186,6 +196,18 @@ const MALICIOSAS = [
     const badIps = await runNode(src, { items: [{ json: TARGET }], refs: { ClassifyAssets: { ip_objetivo: '172.20.0.13</name><x>' } } });
     check('CreateTask rechaza una lista de IP que no paso la validacion', !!badIps.error && badIps.calls.length === 0,
       JSON.stringify(badIps.calls));
+  }
+
+  // 2c. BuildReport: el texto que viene del reporte de Greenbone (nombre, descripcion,
+  //     solucion de cada hallazgo) se escapa antes de insertarlo en el HTML del correo.
+  {
+    const src = code(v4, 'BuildReport');
+    const r = await runNode(src, { items: [{ json: { host: '172.20.0.13', port: '80/tcp', severity: 9.8, cve: 'CVE-1 <b>',
+      name: '<script>alert(1)</script>', description: '<img src=x onerror=alert(2)>', solution: 'a & b <i>' } }] });
+    const html = (r.result && r.result[0].json.email_body) || '';
+    check('BuildReport escapa el HTML de los campos del reporte', !!html && !/<script>|<img src=x|<i>|<b>/.test(html)
+      && html.includes('&lt;script&gt;alert(1)&lt;/script&gt;') && html.includes('a &amp; b'),
+      r.error ? r.error.message : html.slice(html.indexOf('alert') - 40, html.indexOf('alert') + 60));
   }
 
   // 3. Ningun nodo pasa cadenas al shell

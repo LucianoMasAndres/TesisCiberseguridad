@@ -1,9 +1,9 @@
-REPORTE FINAL — CORRIDA DE CONTROL BRAZO MANUAL, FASE GVM (repeticion 3, hallazgo R1)
+REPORTE FINAL — CORRIDA DE CONTROL BRAZO MANUAL, FASE GVM (repeticion 3, control de hardware)
 Operador: Axel Mejias (solitario, sin separacion de roles)
 Fecha: 2026-08-20
 Host de ejecucion: AMD Ryzen 7 3800XT, 8 nucleos, 3.9 GHz, 16 GB RAM (mismo host que la
 re-ejecucion automatizada del 14/08/2026 y que la repeticion 2 de este mismo control)
-Proposito: completar el control de hardware del hallazgo R1 cubriendo el componente
+Proposito: completar el control de hardware cubriendo el componente
 dominante del brazo manual (fase "Manual GVM + reporte", 55:08 min promedio en la Tabla 5),
 que la repeticion 2 (solo Nmap+clasificacion) no cubria.
 
@@ -30,7 +30,7 @@ directamente comparable con el de las 5 repeticiones oficiales del experimento (
 combinaciones unicas, Tabla 4/§5.4) porque esta es una unica corrida de control fuera de la
 serie formal, no una repeticion mas del experimento — no se agrega a la Tabla 4 ni a la Tabla 5.
 
-CONCLUSION PARA EL HALLAZGO R1:
+CONCLUSION PARA EL CONTROL DE HARDWARE:
 El analisis de Greenbone en este host (AMD Ryzen 7 3800XT) tardo ~27:50 min para 9 activos
 Alto/Critico, un tiempo del mismo orden de magnitud que el promedio "Auto Greenbone" ya
 reportado en la Tabla 5 (28:02 min, tambien medido en este mismo host el 14/08/2026). Esto es

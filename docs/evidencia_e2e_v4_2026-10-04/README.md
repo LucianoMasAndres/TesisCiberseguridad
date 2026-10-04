@@ -56,15 +56,18 @@ SMTP. No incluyen los encabezados de la petición ni el identificador de chat.
 | Send Email | success | 209 ms |
 | Cleanup | success | 877 ms |
 
-El código de esta ejecución es el de la etiqueta `tfi-2026-10-04` salvo una
-comprobación que se agregó después: `CreateTarget` valida el perfil de escaneo antes
-de crear el objetivo. La ejecución 3 corrió con esa comprobación.
+El código de esta ejecución es el de la etiqueta `tfi-2026-10-04` salvo tres
+comprobaciones que se agregaron después: `CreateTarget` valida el perfil de escaneo
+antes de crear el objetivo; `ClassifyAssets` rechaza un `hosts` que no sea una lista
+o que tenga más de 254 elementos y cuenta una sola vez las direcciones repetidas; y
+`BuildReport` escapa el HTML de los textos del reporte. La ejecución 3 corrió con
+todas ellas.
 
 ## Ejecución 3 (webhook externo, versión etiquetada)
 
-- Disparo: `POST /webhook/nmap?scan_config=8715c877-47a0-438d-98a3-27c7a6ab2196` (perfil de descubrimiento) con dos hosts en el cuerpo, uno Crítico (.13) y uno Normal (.11).
-- De 11:08:32 a 11:11:39 UTC: 3:08 min. Estado: `success`; 16 nodos, todos con éxito.
-- Enviado a Greenbone: 172.20.0.13 (el activo Normal queda fuera).
+- Disparo: `POST /webhook/nmap?scan_config=8715c877-47a0-438d-98a3-27c7a6ab2196` (perfil de descubrimiento) con tres elementos en el cuerpo: 172.20.0.13 (Crítico) repetido y 172.20.0.11 (Normal).
+- De 11:37:01 a 11:40:08 UTC: 3:06 min. Estado: `success`; 16 nodos, todos con éxito.
+- Enviado a Greenbone: 172.20.0.13 (la dirección repetida cuenta una vez y el activo Normal queda fuera).
 
 ## Ejecución 1 (previa a dos correcciones)
 

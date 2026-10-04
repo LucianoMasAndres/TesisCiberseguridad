@@ -23,6 +23,8 @@ Fecha (UTC): 2026-10-04T10:42:26Z. El valor del encabezado X-Lab-Token se omite.
    ejecucion 78 error | ultimo nodo: ClassifyAssets | error: "8.8.8.8" [line 24]
    objetivos en Greenbone despues: 58
 
+Pruebas 4 y 5: 2026-10-04T11:08Z, despues de agregar a CreateTarget la comprobacion del perfil.
+
 4. Peticion autenticada con un perfil de escaneo ajeno a la lista (hosts validos)
    objetivos en Greenbone antes: 57
    POST /webhook/nmap?scan_config=$(touch /tmp/inyeccion_2)  cuerpo: {"hosts":[{"ip":"172.20.0.13","ports":[22,3306,445]}]}
@@ -35,3 +37,10 @@ Fecha (UTC): 2026-10-04T10:42:26Z. El valor del encabezado X-Lab-Token se omite.
    -> HTTP 200
    ejecucion 80 error | ultimo nodo: CreateTarget | error: scan_config no es uno de los perfiles admitidos [line 37]
    objetivos en Greenbone despues: 57
+
+Prueba 6: 2026-10-04T11:36Z, con la version de la etiqueta.
+
+6. Peticion autenticada con "hosts" mal formado (un texto en lugar de una lista)
+   POST /webhook/nmap  cuerpo: {"hosts":"172.20.0.13"}
+   -> HTTP 200
+   ejecucion 83 error | ultimo nodo: ClassifyAssets | error: Peticion mal formada: hosts debe ser una lista

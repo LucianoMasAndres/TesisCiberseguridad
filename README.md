@@ -206,8 +206,9 @@ El laboratorio es deliberadamente vulnerable (los 12 activos de `lab-targets/`),
 |---|---|
 | Los webhooks (`/webhook/nmap`, `/webhook/nmap-interno` y `/webhook/nmap-v3`) exigen el encabezado `X-Lab-Token`; sin él, n8n responde 403 y el flujo no corre | Nodos Webhook de `workflows/*.json` + `n8n_custom/lab-entrypoint.sh` |
 | El puerto 5678 se publica solo en `127.0.0.1`; la LAN es una opción explícita (`N8N_BIND_ADDRESS=0.0.0.0`) | `docker-compose.yml` |
-| V4 solo acepta direcciones IPv4 de `172.20.0.1` a `172.20.0.254`: la petición entera se rechaza si un host no cumple | Nodos `ClassifyAssets`, `CreateTarget` y `CreateTask` |
-| `scan_config` se compara contra una lista de dos perfiles | Nodo `CreateTask` |
+| V4 solo acepta direcciones IPv4 de `172.20.0.1` a `172.20.0.254`: la petición entera se rechaza si un host no cumple, si `hosts` no es una lista o si tiene más de 254 elementos | Nodos `ClassifyAssets`, `CreateTarget` y `CreateTask` |
+| `scan_config` se compara contra una lista de dos perfiles, antes de crear nada en Greenbone | Nodos `CreateTarget` y `CreateTask` |
+| Los textos del reporte de Greenbone se escapan antes de insertarlos en el HTML del correo | Nodo `BuildReport` |
 | Ningún nodo arma comandos para un shell: `nmap`, `gvm-cli` y `curl` se invocan con `execFileSync`/`execFile` y arreglo de argumentos | Todos los nodos de código |
 | V3 (app móvil) solo acepta en `subnet` una red IPv4 privada de /24 o menor | Nodo `Nmap` de V3 |
 
