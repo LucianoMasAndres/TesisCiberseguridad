@@ -16,6 +16,7 @@ comparaciones de la tesis: son ejecuciones de verificación funcional.
 | `telegram_reporte_ejecucion_2.png` | Captura del mensaje de Telegram con el reporte de esa ejecución (Figura 4 de la tesis) |
 | `mailpit_correo_ejecucion_2.png` | Captura del correo de esa ejecución en la interfaz de Mailpit (Figura 5 de la tesis) |
 | `ejecucion_3_webhook_nmap.json` | Ejecución por el webhook externo (`/webhook/nmap`) con la versión etiquetada, perfil de descubrimiento |
+| `n8n_lienzo_ejecucion_3.png` | Captura de la vista de ejecuciones de n8n con el lienzo de la ejecución 3 (Figura 3 de la tesis) |
 | `ejecucion_1_previa.json` | Ejecución anterior a dos correcciones (ver abajo) |
 | `seguridad_webhooks.txt` | Peticiones sin encabezado, con encabezado incorrecto y con entradas manipuladas, y su resultado |
 
