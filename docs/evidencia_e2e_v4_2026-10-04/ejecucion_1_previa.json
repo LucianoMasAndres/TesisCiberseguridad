@@ -1,0 +1,272 @@
+{
+  "ejecucion": {
+    "id": 75,
+    "estado": "success",
+    "modo": "webhook",
+    "inicio_utc": "2026-10-04 10:05:01.873",
+    "fin_utc": "2026-10-04 10:36:35.276"
+  },
+  "nodos": [
+    {
+      "nodo": "Webhook Escaneo Interno",
+      "estado": "success",
+      "inicio": "2026-10-04T10:05:01.909Z",
+      "duracion_ms": 5
+    },
+    {
+      "nodo": "NmapScan",
+      "estado": "success",
+      "inicio": "2026-10-04T10:05:01.915Z",
+      "duracion_ms": 62957
+    },
+    {
+      "nodo": "ClassifyAssets",
+      "estado": "success",
+      "inicio": "2026-10-04T10:06:04.872Z",
+      "duracion_ms": 21
+    },
+    {
+      "nodo": "¿Hay hosts?",
+      "estado": "success",
+      "inicio": "2026-10-04T10:06:04.893Z",
+      "duracion_ms": 10
+    },
+    {
+      "nodo": "CreateTarget",
+      "estado": "success",
+      "inicio": "2026-10-04T10:06:04.904Z",
+      "duracion_ms": 512
+    },
+    {
+      "nodo": "CreateTask",
+      "estado": "success",
+      "inicio": "2026-10-04T10:06:05.416Z",
+      "duracion_ms": 663
+    },
+    {
+      "nodo": "StartTask",
+      "estado": "success",
+      "inicio": "2026-10-04T10:06:06.080Z",
+      "duracion_ms": 624
+    },
+    {
+      "nodo": "Telegram Scan Iniciado",
+      "estado": "success",
+      "inicio": "2026-10-04T10:06:06.705Z",
+      "duracion_ms": 1404
+    },
+    {
+      "nodo": "PollStatus",
+      "estado": "success",
+      "inicio": "2026-10-04T10:06:08.110Z",
+      "duracion_ms": 1821582
+    },
+    {
+      "nodo": "¿Timeout?",
+      "estado": "success",
+      "inicio": "2026-10-04T10:36:29.694Z",
+      "duracion_ms": 34
+    },
+    {
+      "nodo": "DownloadReport",
+      "estado": "success",
+      "inicio": "2026-10-04T10:36:29.728Z",
+      "duracion_ms": 1786
+    },
+    {
+      "nodo": "ReportXmlToJson",
+      "estado": "success",
+      "inicio": "2026-10-04T10:36:31.515Z",
+      "duracion_ms": 344
+    },
+    {
+      "nodo": "ParseFindings",
+      "estado": "success",
+      "inicio": "2026-10-04T10:36:31.860Z",
+      "duracion_ms": 386
+    },
+    {
+      "nodo": "BuildReport",
+      "estado": "success",
+      "inicio": "2026-10-04T10:36:32.247Z",
+      "duracion_ms": 46
+    },
+    {
+      "nodo": "Telegram Reporte Final",
+      "estado": "success",
+      "inicio": "2026-10-04T10:36:32.294Z",
+      "duracion_ms": 982
+    },
+    {
+      "nodo": "Cleanup",
+      "estado": "success",
+      "inicio": "2026-10-04T10:36:33.276Z",
+      "duracion_ms": 980
+    },
+    {
+      "nodo": "Send Email",
+      "estado": "success",
+      "inicio": "2026-10-04T10:36:34.257Z",
+      "duracion_ms": 114
+    },
+    {
+      "nodo": "Cleanup",
+      "estado": "success",
+      "inicio": "2026-10-04T10:36:34.371Z",
+      "duracion_ms": 902
+    }
+  ],
+  "descubrimiento": {
+    "subred": "172.20.0.0/24",
+    "hosts": 12
+  },
+  "clasificacion": [
+    {
+      "ip": "172.20.0.10",
+      "puertos": [
+        80,
+        443
+      ],
+      "puntaje": 9,
+      "clase": "Normal"
+    },
+    {
+      "ip": "172.20.0.11",
+      "puertos": [
+        80
+      ],
+      "puntaje": 5,
+      "clase": "Normal"
+    },
+    {
+      "ip": "172.20.0.12",
+      "puertos": [
+        22,
+        80
+      ],
+      "puntaje": 14,
+      "clase": "Alto"
+    },
+    {
+      "ip": "172.20.0.13",
+      "puertos": [
+        22,
+        445,
+        3306
+      ],
+      "puntaje": 28,
+      "clase": "Critico"
+    },
+    {
+      "ip": "172.20.0.14",
+      "puertos": [
+        22,
+        5432
+      ],
+      "puntaje": 20,
+      "clase": "Alto"
+    },
+    {
+      "ip": "172.20.0.15",
+      "puertos": [
+        80,
+        389
+      ],
+      "puntaje": 12,
+      "clase": "Alto"
+    },
+    {
+      "ip": "172.20.0.16",
+      "puertos": [
+        22,
+        25,
+        587
+      ],
+      "puntaje": 17,
+      "clase": "Alto"
+    },
+    {
+      "ip": "172.20.0.17",
+      "puertos": [
+        23,
+        445,
+        161
+      ],
+      "puntaje": 26,
+      "clase": "Critico"
+    },
+    {
+      "ip": "172.20.0.18",
+      "puertos": [
+        8080
+      ],
+      "puntaje": 5,
+      "clase": "Normal"
+    },
+    {
+      "ip": "172.20.0.19",
+      "puertos": [
+        21,
+        22
+      ],
+      "puntaje": 16,
+      "clase": "Alto"
+    },
+    {
+      "ip": "172.20.0.20",
+      "puertos": [
+        22,
+        445
+      ],
+      "puntaje": 17,
+      "clase": "Alto"
+    },
+    {
+      "ip": "172.20.0.21",
+      "puertos": [
+        21,
+        80,
+        6379
+      ],
+      "puntaje": 23,
+      "clase": "Critico"
+    }
+  ],
+  "enviados_a_greenbone": "172.20.0.12, 172.20.0.13, 172.20.0.14, 172.20.0.15, 172.20.0.16, 172.20.0.17, 172.20.0.19, 172.20.0.20, 172.20.0.21",
+  "telegram_inicio": {
+    "ok": true,
+    "message_id": 53,
+    "fecha_unix": 1791108369,
+    "texto": "Escaneo OpenVAS iniciado sobre 9 activo(s) clasificados Alto/Critico (de 12 descubiertos). Te aviso cuando termine (puede tardar entre 15 y 90 min)."
+  },
+  "telegram_reporte": {
+    "ok": true,
+    "message_id": 54,
+    "fecha_unix": 1791110194,
+    "texto": "🛡️ Reporte de Red Unificado\n\n📋 Hosts: 172.20.0.19, 172.20.0.21, 172.20.0.16, 172.20.0.14, 172.20.0.17, 172.20.0.13, 172.20.0.15, 172.20.0.12, 172.20.0.20\n📅 Fecha: 2026-10-04T10:06:06Z\n📊 Total Hallazgos: 39\n\n🔴 Crítica: 7\n🟠 Alta: 1\n🟡 Media: 7\n🟢 Baja: 24\n\nThis message was sent automatically with n8n"
+  },
+  "reporte": {
+    "asunto": "Reporte de Red (9 Hosts) - 🔴 CRITICO",
+    "hosts": "172.20.0.19, 172.20.0.21, 172.20.0.16, 172.20.0.14, 172.20.0.17, 172.20.0.13, 172.20.0.15, 172.20.0.12, 172.20.0.20",
+    "fecha_escaneo": "2026-10-04T10:06:06Z",
+    "total_hallazgos": 39,
+    "critica": 7,
+    "alta": 1,
+    "media": 7,
+    "baja": 24,
+    "cuerpo_html_caracteres": 12645
+  },
+  "correo": {
+    "aceptados": [
+      "lab@security.local"
+    ],
+    "rechazados": [],
+    "respuesta_smtp": "250 2.0.0 Ok: queued as 6fdqAaZXItce6isJCgbLXB",
+    "tamano_bytes": 692
+  },
+  "limpieza": {
+    "cleaned": true,
+    "task_id": "065ed03c-f0b4-4916-8a5e-ab594a8b9b49",
+    "target_id": "660175a3-5a2a-4d59-bf84-3a7e9700b739"
+  }
+}

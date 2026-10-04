@@ -9,13 +9,14 @@ Es el artefacto del Trabajo Final Integrador *"Sistema Automatizado de Gestión 
 El flujo principal es `workflows/workflowV4_windows.json` (workflow `workflowV4_webhook`). Pese al nombre histórico, **no depende del sistema operativo del host**: Nmap, `gvm-cli` y el socket de gvmd corren dentro de los contenedores, y es el flujo que importan tanto `init_lab.sh` (Linux) como `init_lab.ps1` (Windows).
 
 ```
-[Launcher GUI / Manual Trigger]  ← dispara /webhook/nmap-interno
+[Launcher GUI / Manual Trigger]  ← dispara /webhook/nmap-interno (con X-Lab-Token)
       │
       ▼
  [NmapScan]  ← dentro del contenedor de n8n: descubrimiento (-sn) sobre
       │        172.20.0.0/24 + escaneo de puertos catalogados (TCP y 161/udp)
       ▼
-   [Code]  ← classifyAsset(): puntaje por puertos → Normal / Alto / Crítico
+[ClassifyAssets]  ← valida que cada IP sea de 172.20.0.0/24 y aplica
+      │      classifyAsset(): puntaje por puertos → Normal / Alto / Crítico
       │      (excluye .1, .2 y .3, infraestructura de la red lab-net)
       │
       ├── Sin activos Alto/Crítico → [Telegram: "Red limpia"]
@@ -32,12 +33,12 @@ El flujo principal es `workflows/workflowV4_windows.json` (workflow `workflowV4_
             └── [Email]     ← reporte HTML completo (vía Mailpit)
 ```
 
-El flujo tiene un segundo punto de entrada, `/webhook/nmap`, que recibe por POST un JSON con los hosts y sus puertos ya escaneados y entra directo al nodo `Code`. Es el que usa `docs/run_experiment.js` para medir la campaña de la tesis (ver [`docs/evidencia_campana_gvm/`](docs/evidencia_campana_gvm/README.md)).
+El flujo tiene un segundo punto de entrada, `/webhook/nmap`, que recibe por POST un JSON con los hosts y sus puertos ya escaneados y entra directo al nodo `ClassifyAssets`. Es el que usa `docs/run_experiment.js` para medir la campaña de la tesis (ver [`docs/evidencia_campana_gvm/`](docs/evidencia_campana_gvm/README.md)). Los dos webhooks exigen el encabezado `X-Lab-Token` (ver [Seguridad del laboratorio](#-seguridad-del-laboratorio)).
 
 **Servicios incluidos:**
 - `n8n` — Orquestador de workflows (puerto 5678), con Nmap y `gvm-tools` (`n8n_custom/Dockerfile`)
 
-> Red: `lab-net` y `greenbone-net` son redes bridge con salida a Internet (n8n la necesita para Telegram; Greenbone, para los feeds). GSA (9392) y Mailpit (8025/1025) se publican solo en 127.0.0.1. n8n (5678) se publica en todas las interfaces, sin autenticación, para que la app móvil pueda alcanzarlo desde la LAN: no exponer el equipo a redes no confiables.
+> Red: `lab-net` y `greenbone-net` son redes bridge con salida a Internet (n8n la necesita para Telegram; Greenbone, para los feeds). GSA (9392), Mailpit (8025/1025) y n8n (5678) se publican solo en 127.0.0.1. Para alcanzar n8n desde la LAN hay que pedirlo (`N8N_BIND_ADDRESS=0.0.0.0`), y los webhooks exigen igual el encabezado `X-Lab-Token`.
 - `Greenbone/OpenVAS` — Motor de escaneo de vulnerabilidades (imágenes de `registry.community.greenbone.net`)
 - `GSA` — Interfaz web de OpenVAS (puerto 9392)
 - `Mailpit` — Servidor SMTP de prueba para emails (puerto 8025)
@@ -95,15 +96,21 @@ Creá un bot con [@BotFather](https://t.me/BotFather) en Telegram:
 4. Abrí en el browser: `https://api.telegram.org/bot<TOKEN>/getUpdates`
 5. Buscá `"chat":{"id": XXXXXXX}` — ese es tu **Chat ID**
 
-Los nodos de Telegram de V4 son nodos **Code** que llaman a la API con `curl` (el sandbox de n8n bloquea el módulo `https` y las variables de entorno). Después de importar el workflow, en cada uno de los cuatro nodos (`Telegram Scan Iniciado`, `Telegram Red Limpia`, `Telegram Scan Timeout` y `Send a text message1`):
+Los nodos de Telegram de V4 son nodos **Code** que llaman a la API con `curl` (el sandbox de n8n bloquea el módulo `https` y las variables de entorno). Después de importar el workflow, en cada uno de los cuatro nodos (`Telegram Scan Iniciado`, `Telegram Red Limpia`, `Telegram Scan Timeout` y `Telegram Reporte Final`):
 - reemplazá `TU_TELEGRAM_BOT_TOKEN_AQUI` por tu token;
 - reemplazá el Chat ID del llamado a `sendTelegram(...)` por el tuyo.
 
 ### 2. Red a escanear
-La subred está fija en el nodo **NmapScan**: `172.20.0.0/24`, la red `lab-net` del laboratorio. El launcher no pide subred. Las IPs de infraestructura que se excluyen (`.1`, `.2`, `.3`) están en el nodo **Code**.
+La subred está fija en el nodo **NmapScan**: `172.20.0.0/24`, la red `lab-net` del laboratorio. El launcher no pide subred. Las IPs de infraestructura que se excluyen (`.1`, `.2`, `.3`) están en el nodo **ClassifyAssets**, que además rechaza cualquier dirección que no sea una IPv4 de `172.20.0.1` a `172.20.0.254`.
 
 ### 3. Email
-En el nodo **Send Email**, reemplazá `TU_EMAIL_AQUI` por el destinatario. Mailpit intercepta todos los emails localmente en `http://127.0.0.1:8025` sin configurar nada más (la credencial SMTP es `Mailpit SMTP`).
+En el nodo **Send Email**, reemplazá `TU_EMAIL_AQUI` por el destinatario. Mailpit intercepta todos los emails localmente en `http://127.0.0.1:8025` sin configurar nada más: el contenedor de n8n registra la credencial SMTP `Mailpit SMTP` en su primer arranque.
+
+### 4. Secreto de los webhooks
+No hay que configurar nada: el contenedor de n8n genera un secreto aleatorio en su primer arranque y lo registra como credencial **Lab Webhook Token** (Header Auth). El Launcher y `docs/run_experiment.js` lo leen solos. Para verlo (por ejemplo, para cargarlo en la app móvil o usar `curl`):
+```bash
+docker exec n8n-security-lab cat /home/node/.n8n/lab_webhook_token
+```
 
 ---
 
@@ -140,7 +147,7 @@ python launcher.py    # Windows
 | Archivo | Estado | Descripción |
 |---|---|---|
 | `workflows/workflowV4_windows.json` | **Principal** (todos los sistemas) | Descubrimiento + escaneo de puertos, clasificación por criticidad, Greenbone sobre Alto/Crítico, timeout. Lo importan `init_lab.sh` e `init_lab.ps1` |
-| `workflows/workflowV3_linux.json` | Histórico | Versión anterior: solo descubrimiento (`nmap -sn`), sin clasificación (manda a Greenbone todos los hosts activos), sin timeout. Tiene el disparador diario de las 5 a. m.; sin parámetro `subnet`, escanea la red del laboratorio (`172.20.0.0/24`). Se conserva porque lo usa el prototipo de app móvil (`app_celular/`); hay que importarlo a mano |
+| `workflows/workflowV3_linux.json` | Histórico | Versión anterior: solo descubrimiento (`nmap -sn`), sin clasificación (manda a Greenbone todos los hosts activos), sin timeout. Tiene el disparador diario de las 5 a. m.; sin parámetro `subnet`, escanea la red del laboratorio (`172.20.0.0/24`). El parámetro `subnet` solo admite una red IPv4 privada de /24 o menor. Se conserva porque lo usa el prototipo de app móvil (`app_celular/`); hay que importarlo a mano |
 
 Si importás el workflow manualmente: `http://localhost:5678` → **Workflows** → **"..."** → **Import from file** → `workflowV4_windows.json`, y configurá Telegram y email (sección anterior).
 
@@ -179,9 +186,40 @@ bash scripts/init_lab.sh
 ```powershell
 .\scripts\init_lab.ps1
 ```
-Ambos levantan primero `lab-targets/docker-compose.lab-targets.yml` (crea la red externa `lab-net`, de la que depende el stack principal), después `docker compose up -d --build`, esperan el socket de gvmd, configuran el usuario `admin` e importan workflowV4. Para disparar un escaneo sin launcher: `POST http://localhost:5678/webhook/nmap-interno?scan_config=<id de perfil>` con el workflow activo.
+Ambos levantan primero `lab-targets/docker-compose.lab-targets.yml` (crea la red externa `lab-net`, de la que depende el stack principal), después `docker compose up -d --build`, esperan el socket de gvmd, configuran el usuario `admin` e importan workflowV4. Para disparar un escaneo sin launcher, con el workflow activo:
+```bash
+TOKEN=$(docker exec n8n-security-lab cat /home/node/.n8n/lab_webhook_token)
+curl -X POST -H "X-Lab-Token: $TOKEN" \
+  "http://localhost:5678/webhook/nmap-interno?scan_config=daba56c8-73ec-11df-a475-002264764cea"
+```
+`scan_config` solo admite los dos perfiles de la tabla de arriba (`8715c877-47a0-438d-98a3-27c7a6ab2196`, descubrimiento, y `daba56c8-73ec-11df-a475-002264764cea`, Full and fast).
 
 `scripts/scan.sh` y `scripts/scan.ps1` son **históricos** (escaneo externo desde el host, del diseño original) y no alimentan el flujo actual; ver su encabezado.
+
+---
+
+## 🔒 Seguridad del laboratorio
+
+El laboratorio es deliberadamente vulnerable (los 12 activos de `lab-targets/`), pero el orquestador no debe serlo. Estado de la versión actual:
+
+| Control | Dónde |
+|---|---|
+| Los webhooks (`/webhook/nmap`, `/webhook/nmap-interno` y `/webhook/nmap-v3`) exigen el encabezado `X-Lab-Token`; sin él, n8n responde 403 y el flujo no corre | Nodos Webhook de `workflows/*.json` + `n8n_custom/lab-entrypoint.sh` |
+| El puerto 5678 se publica solo en `127.0.0.1`; la LAN es una opción explícita (`N8N_BIND_ADDRESS=0.0.0.0`) | `docker-compose.yml` |
+| V4 solo acepta direcciones IPv4 de `172.20.0.1` a `172.20.0.254`: la petición entera se rechaza si un host no cumple | Nodos `ClassifyAssets`, `CreateTarget` y `CreateTask` |
+| `scan_config` se compara contra una lista de dos perfiles | Nodo `CreateTask` |
+| Ningún nodo arma comandos para un shell: `nmap`, `gvm-cli` y `curl` se invocan con `execFileSync`/`execFile` y arreglo de argumentos | Todos los nodos de código |
+| V3 (app móvil) solo acepta en `subnet` una red IPv4 privada de /24 o menor | Nodo `Nmap` de V3 |
+
+`node docs/test_webhook_security.js` verifica todo lo anterior sin laboratorio: ejecuta el código de los nodos con un `child_process` simulado y comprueba que las entradas maliciosas se rechazan sin ejecutar nada.
+
+Lo que **sigue siendo una decisión de laboratorio** y debe cambiarse antes de usar el sistema fuera de él:
+
+- Las credenciales de Greenbone (`admin` / `admin123`) están escritas en el JSON del flujo: el sandbox de n8n no deja leer variables de entorno desde los nodos de código.
+- `NODE_FUNCTION_ALLOW_BUILTIN=child_process` habilita la ejecución de procesos desde los nodos de código (sin eso el flujo no puede llamar a `nmap` ni a `gvm-cli`). Quien tenga la cuenta de propietario de n8n puede crear un flujo que ejecute comandos en el contenedor.
+- `nmap` tiene el bit setuid y el contenedor tiene `NET_RAW` y `NET_ADMIN`.
+- El secreto de los webhooks viaja por HTTP sin cifrar: si se publica n8n en la LAN (`N8N_BIND_ADDRESS=0.0.0.0`), cualquiera que capture ese tráfico puede leerlo. Usar una red de confianza o `adb reverse` (ver `app_celular/README.md`).
+- Las redes `lab-net` y `greenbone-net` tienen salida a Internet.
 
 ---
 
@@ -207,24 +245,27 @@ Todos los scripts resuelven sus rutas respecto de su propia ubicación, así que
 
 | Comando | Qué hace |
 |---|---|
-| `node docs/analyze_results.js` | Recalcula las cifras del brazo automatizado desde `docs/experiment_results.jsonl`; la salida es idéntica a `docs/analysis_output.txt` |
+| `node docs/analyze_results.js` | Recalcula las cifras del brazo automatizado desde `docs/experiment_results.jsonl`, con y sin la repetición 4; la salida es idéntica a `docs/analysis_output.txt` |
 | `node docs/analyze_manual_arm.js` | Lista las repeticiones del brazo manual (`docs/manual_arm_results.jsonl`) por operador; no promedia operadores con condiciones distintas |
-| `node docs/test_classify.js` | Verifica `classifyAsset` contra el ground truth del Anexo F (12/12) |
+| `node docs/test_classify.js` | Verifica `classifyAsset` contra el ground truth del Anexo F (12/12) y en los umbrales (10, 11, 20 y 21 puntos) |
+| `node docs/test_webhook_security.js` | Verifica la validación de entradas de los webhooks, que ningún nodo use un shell, la autenticación por encabezado y la publicación del puerto en loopback |
 | `node docs/test_nmap_parsing.js` | Verifica el parseo de XML de Nmap (NmapScan de V4 y `run_experiment.js`) con salidas reales capturadas del laboratorio (`docs/fixtures/`) |
 | `node docs/test_workflow_contract.js` | Verifica que el webhook que usa `run_experiment.js` exista en V4 y entre por la clasificación, y que los workflows no tengan conexiones o referencias rotas |
 | `node docs/test_scripts_cwd.js` | Verifica que los scripts de análisis corran desde cualquier directorio y reproduzcan `analysis_output.txt` |
-| `docker exec -u node n8n-security-lab node /tmp/test_e2e_pipeline.js` | E2E real contra el laboratorio: ejecuta NmapScan + Code tal como están en V4 (ver el encabezado del archivo para copiarlo al contenedor) |
+| `docker exec -u node n8n-security-lab node /tmp/test_e2e_pipeline.js` | E2E real contra el laboratorio: ejecuta NmapScan + ClassifyAssets tal como están en V4 (ver el encabezado del archivo para copiarlo al contenedor) |
 
 Evidencia cruda:
 - `docs/experiment_results.jsonl`, `docs/experiment_log.txt`: campaña automatizada del 14/08/2026 (5 repeticiones). Qué se ejecutó exactamente, en `docs/evidencia_campana_gvm/`.
 - `docs/manual_arm_results.jsonl`: remedición del brazo manual (n=2), con la evidencia de cada operador en `docs/evidencia_manual_operador1/` y `docs/evidencia_manual_operador2/`.
 - `docs/evidencia_control_hw/`: corridas de control manuales del 20/08/2026.
+- `docs/evidencia_e2e_v4_2026-10-04/`: una ejecución completa de V4 (17 nodos, con sus notificaciones) y la verificación de los controles de los webhooks sobre el laboratorio, del 4/10/2026. No forma parte de la campaña.
+- `docs/versiones_entorno.md`: digests de las imágenes y versiones de Nmap, gvm-tools y Greenbone con las que se midió la campaña.
 
 ### Limitaciones conocidas del artefacto
 
 - **Greenbone no sondea UDP.** `CreateTarget` usa la lista de puertos `All IANA assigned TCP`. Nmap sí detecta SNMP (161/udp) y lo usa para clasificar, pero Greenbone no puede evaluar la vulnerabilidad de SNMP del activo .17. Se mantuvo así porque es la configuración con la que se midió la campaña; una lista TCP+UDP alargaría mucho el escaneo y cambiaría lo medido.
 - **Campo `cve` vacío en el dataset de la campaña.** La extracción de CVE por `<refs>` se corrigió después; los 108 hallazgos de `experiment_results.jsonl` tienen el campo vacío (el CVE, cuando existe, figura en el nombre del hallazgo).
-- **El nodo NmapScan no se ejercitó en la campaña**: el descubrimiento medido lo hizo `run_experiment.js` con los mismos comandos de Nmap. NmapScan está cubierto por `test_nmap_parsing.js` y por el E2E real.
+- **El nodo NmapScan no se ejercitó en la campaña**: el descubrimiento medido lo hizo `run_experiment.js` con los mismos comandos de Nmap. NmapScan está cubierto por `test_nmap_parsing.js`, por el E2E real y por una ejecución completa del flujo posterior a la campaña (`docs/evidencia_e2e_v4_2026-10-04/`). Invoca a Nmap de forma asíncrona: el escaneo de puertos del laboratorio puede superar los 120 s del heartbeat del Task Runner, y una llamada síncrona hace que n8n aborte la tarea.
 - **Restart policies.** Los servicios persistentes de Greenbone usan `restart: unless-stopped` (el compose de referencia usa `on-failure`, con el que `pg-gvm` u `ospd-openvas` pueden no volver tras reiniciar Docker). Si igual ves `gvmd` como `unhealthy`: `docker compose up -d`.
 
 ---
@@ -236,6 +277,7 @@ TesisCiberseguridad/
 ├── docker-compose.yml             # Stack principal (n8n + Greenbone + Mailpit)
 ├── launcher.py                    # App GUI de escritorio (Linux y Windows)
 ├── n8n_custom/Dockerfile          # Imagen n8n con Nmap (setuid) + gvm-tools
+├── n8n_custom/lab-entrypoint.sh   # Genera el secreto de los webhooks y registra las credenciales
 ├── lab-targets/                   # Laboratorio de 12 activos (crea la red externa lab-net)
 ├── scripts/
 │   ├── init_lab.sh / init_lab.ps1 # Inicio completo: lab-targets + stack + import de V4
@@ -264,6 +306,7 @@ TesisCiberseguridad/
 | El launcher no abre (Windows) | Instalá Python desde python.org marcando "Add to PATH" y "tcl/tk and IDLE" |
 | `404: Failed to find config` en el workflow | Los feeds de OpenVAS no terminaron. Esperá 15 min y reintentá |
 | Webhook 404 al escanear | Verificá email/password de n8n en CONFIG N8N y que el launcher diga "Workflow V4 activado" al iniciar |
+| Webhook 403 al escanear | Falta el encabezado `X-Lab-Token` o no coincide. El secreto: `docker exec n8n-security-lab cat /home/node/.n8n/lab_webhook_token`. Si el flujo se importó antes de actualizar la imagen, reconstruí n8n: `docker compose up -d --build n8n` |
 | `chat not found` en Telegram | El Chat ID es incorrecto. Obtenelo con `/getUpdates` |
 | `Unauthorized` en Telegram | El token es incorrecto o fue revocado. Generá uno nuevo con BotFather |
 | `gvmd` en estado `unhealthy` | Casi siempre `pg-gvm` no está corriendo: `docker compose up -d` |

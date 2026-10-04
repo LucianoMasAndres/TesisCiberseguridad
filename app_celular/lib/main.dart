@@ -56,6 +56,9 @@ class ScanTriggerPage extends StatefulWidget {
 class _ScanTriggerPageState extends State<ScanTriggerPage> {
   final _hostCtrl = TextEditingController(text: '192.168.100.143');
   final _subnetCtrl = TextEditingController(text: '192.168.100.0/24');
+  // Secreto de los webhooks de n8n (encabezado X-Lab-Token). En la PC del
+  // laboratorio: docker exec n8n-security-lab cat /home/node/.n8n/lab_webhook_token
+  final _tokenCtrl = TextEditingController();
   String _profileName = _scanProfiles.keys.elementAt(1);
   bool _sending = false;
   String? _lastMessage;
@@ -76,13 +79,15 @@ class _ScanTriggerPageState extends State<ScanTriggerPage> {
 
     try {
       final resp = await http
-          .post(uri)
+          .post(uri, headers: {'X-Lab-Token': _tokenCtrl.text.trim()})
           .timeout(const Duration(seconds: 10));
       setState(() {
         _lastOk = resp.statusCode == 200;
         _lastMessage = _lastOk
             ? 'Escaneo disparado. Vas a recibir el resultado por Telegram y email cuando termine.'
-            : 'HTTP ${resp.statusCode}: ${resp.body}';
+            : resp.statusCode == 403
+                ? 'HTTP 403: n8n rechazó el token del laboratorio.'
+                : 'HTTP ${resp.statusCode}: ${resp.body}';
       });
     } catch (e) {
       setState(() {
@@ -120,6 +125,15 @@ class _ScanTriggerPageState extends State<ScanTriggerPage> {
             _label('Subred a escanear (CIDR)'),
             TextField(
               controller: _subnetCtrl,
+              style: const TextStyle(color: _text),
+            ),
+            const SizedBox(height: 16),
+            _label('Token del laboratorio (X-Lab-Token)'),
+            TextField(
+              controller: _tokenCtrl,
+              obscureText: true,
+              autocorrect: false,
+              enableSuggestions: false,
               style: const TextStyle(color: _text),
             ),
             const SizedBox(height: 16),

@@ -11,6 +11,8 @@
 #  de 'nmap -sn', y ademas el host no alcanza la red bridge del laboratorio en
 #  Docker Desktop (ver docs/anexo_e_f_v2.md). Para escanear el laboratorio usar
 #  el launcher o POST a /webhook/nmap-interno (Nmap corre dentro de n8n).
+#  Ademas, los webhooks exigen el encabezado X-Lab-Token, que este script no
+#  envia: n8n responde 403.
 # ===========================================================
 
 param(

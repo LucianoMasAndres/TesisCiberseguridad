@@ -8,7 +8,10 @@ services:
       - NET_RAW
       - NET_ADMIN
     ports:
-      - "5678:5678"
+      # Solo loopback por defecto. Para alcanzar n8n desde la LAN (app movil sin
+      # adb reverse) hay que pedirlo: N8N_BIND_ADDRESS=0.0.0.0 en el entorno o en
+      # un archivo .env. Los webhooks exigen igual el encabezado X-Lab-Token.
+      - "${N8N_BIND_ADDRESS:-127.0.0.1}:5678:5678"
     environment:
       - N8N_HOST=localhost
       - N8N_PORT=5678

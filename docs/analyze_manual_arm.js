@@ -59,6 +59,12 @@ function imprimirReduccionSimetrica(registros) {
     const red = (100 * (manual - mediaAuto)) / manual;
     console.log(`Operador ${r.operador}: ${manual.toFixed(1)} s -> ${red.toFixed(1)} % (${fmtMinSec(manual)} frente a ${fmtMinSec(mediaAuto)})`);
   }
+  // Sensibilidad a la exclusion de la repeticion 4 (decidida despues de la
+  // campana): la misma reduccion con las cinco repeticiones automatizadas.
+  const todas = fs.readFileSync(AUTO_PATH, 'utf8').trim().split('\n').filter(Boolean).map((l) => JSON.parse(l));
+  const mediaTodas = todas.reduce((a, r) => a + r.duracion_total_s, 0) / todas.length;
+  const manualOp1 = op1.fases_seg.total_s - redaccion;
+  console.log(`Sensibilidad (n=${todas.length}, con la repeticion 4): media ${mediaTodas.toFixed(1)} s (${fmtMinSec(mediaTodas)}); operador 1 -> ${((100 * (manualOp1 - mediaTodas)) / manualOp1).toFixed(1)} %`);
 }
 
 function main() {

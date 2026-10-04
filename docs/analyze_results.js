@@ -77,6 +77,20 @@ console.log('Min:', Math.min(...times).toFixed(1), '| Max:', Math.max(...times).
 const discTimes = repsValidas.map(r => r.duracion_descubrimiento_s);
 console.log('Descubrimiento - media:', (discTimes.reduce((a,b)=>a+b,0)/discTimes.length).toFixed(1), 's (rango:', Math.min(...discTimes).toFixed(1), '-', Math.max(...discTimes).toFixed(1), ')');
 
+// Sensibilidad a la exclusion: las mismas cifras con todas las repeticiones.
+// La exclusion se decidio despues de la campana, asi que se muestra su efecto.
+console.log(`
+=== SENSIBILIDAD: incluyendo la(s) repeticion(es) ${REPETICIONES_EXCLUIDAS.join(',')} ===`);
+{
+  const all = reps.map(r => r.duracion_total_s);
+  const m = all.reduce((a,b)=>a+b,0)/all.length;
+  const sd = Math.sqrt(all.reduce((a,b)=>a+(b-m)**2,0)/all.length);
+  console.log('Media:', m.toFixed(1), 's (', Math.floor(m/60), 'min', (m%60).toFixed(0), 's ) | Desv. estandar:', sd.toFixed(1), 's | CV:', (100*sd/m).toFixed(2), '%');
+  let ok = 0, n = 0;
+  reps.forEach(r => r.clasificacion.filter(h => h.ip !== GHOST_HOST).forEach(h => { n++; if (h.classification === groundTruth[h.ip]) ok++; }));
+  console.log(`Coincidencia de clasificacion: ${ok}/${n} (${(100*ok/n).toFixed(1)}%)`);
+}
+
 console.log(`\n=== MATRIZ DE CONFUSION (clasificacion de criticidad, excluyendo repeticion(es) ${REPETICIONES_EXCLUIDAS.join(',')} y host fantasma) ===`);
 const CLASES = ['Normal', 'Alto', 'Critico'];
 const matriz = { Normal: {Normal:0, Alto:0, Critico:0}, Alto: {Normal:0, Alto:0, Critico:0}, Critico: {Normal:0, Alto:0, Critico:0} };

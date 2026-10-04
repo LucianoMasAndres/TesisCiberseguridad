@@ -28,6 +28,33 @@ for (const caso of casos) {
   console.log(`${caso.ip}: score=${score} clase=${classification} esperado=${caso.esperado} ${ok ? 'OK' : 'FALLO'}`);
 }
 
+// Casos en los umbrales (score > 10 -> Alto, score > 20 -> Critico): el limite
+// queda del lado de la clase inferior. 172.20.0.14 (5432 + 22 = 20) es el unico
+// activo del laboratorio que cae exactamente en un umbral.
+const umbrales = [
+  { puertos: [80, 8080], score: 10, esperado: 'Normal' },
+  { puertos: [3306], score: 11, esperado: 'Alto' },
+  { puertos: [5432, 22], score: 20, esperado: 'Alto' },
+  { puertos: [22, 23], score: 21, esperado: 'Critico' },
+];
+for (const caso of umbrales) {
+  const { classification, score } = classifyAsset(caso.puertos);
+  const ok = classification === caso.esperado && score === caso.score;
+  if (!ok) fallos++;
+  console.log(`umbral ${caso.score}: puertos=${JSON.stringify(caso.puertos)} score=${score} clase=${classification} esperado=${caso.esperado} ${ok ? 'OK' : 'FALLO'}`);
+}
+
+// La copia embebida en el nodo ClassifyAssets del flujo usa la misma tabla de pesos.
+{
+  const wf = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'workflows', 'workflowV4_windows.json'), 'utf8'));
+  const code = wf.nodes.find((n) => n.name === 'ClassifyAssets').parameters.jsCode;
+  const embebida = new Function(`${code.slice(0, code.indexOf('function classifyAsset'))}; return SERVICE_WEIGHTS;`)();
+  const { SERVICE_WEIGHTS } = require('./classify_asset');
+  const ok = JSON.stringify(embebida) === JSON.stringify(SERVICE_WEIGHTS);
+  if (!ok) fallos++;
+  console.log(`tabla de pesos del nodo ClassifyAssets igual a docs/classify_asset.js: ${ok ? 'OK' : 'FALLO'}`);
+}
+
 console.log('---');
 console.log(`Distribucion: Normal=${conteo.Normal} Alto=${conteo.Alto} Critico=${conteo.Critico} (total=${casos.length})`);
 console.log(`Score maximo del laboratorio: ${maxScore} (umbral Critico: >20)`);

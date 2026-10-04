@@ -31,7 +31,7 @@ echo "📁 Directorio del proyecto: $PROJECT_DIR"
 #    depende el stack principal (ver docker-compose.yml, lab-net: external).
 #    Sin este paso, "docker compose up" del stack principal falla en una
 #    máquina limpia con "network lab-net declared as external, but could
-#    not be found" (hallazgo B3, ronda 10 de auditoría independiente).
+#    not be found".
 echo "📦 Levantando lab-targets (12 activos objetivo)..."
 docker compose -f "$PROJECT_DIR/lab-targets/docker-compose.lab-targets.yml" up -d --build
 
@@ -116,7 +116,7 @@ fi
 echo ""
 echo "✨ ¡Laboratorio Operativo!"
 echo "---------------------------------------------------"
-echo "➡️  n8n:     http://localhost:5678"
+echo "➡️  n8n:     http://localhost:5678  (solo en 127.0.0.1)"
 echo "➡️  OpenVAS: http://localhost:9392  (admin / admin123)"
 echo "➡️  Mailpit: http://127.0.0.1:8025"
 echo "---------------------------------------------------"

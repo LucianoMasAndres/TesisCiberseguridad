@@ -6,7 +6,7 @@ App Flutter que actúa como cliente disparador del sistema de gestión de vulner
 
 ## Qué hace (hoy)
 
-1. Ingresás la IP del servidor donde corre n8n (la misma máquina donde tenés el laboratorio Docker levantado), la subred a escanear y el perfil de análisis.
+1. Ingresás la IP del servidor donde corre n8n (la misma máquina donde tenés el laboratorio Docker levantado), la subred a escanear, el token del laboratorio y el perfil de análisis.
 2. Al tocar **"Escanear red"**, la app hace un `POST` directo al webhook de producción del workflow V3 (`/webhook/nmap-v3`). Es el workflow histórico, **no** el que usa `launcher.py` (que dispara `/webhook/nmap-interno` de V4): V3 hace solo descubrimiento de hosts sobre la subred indicada y manda a OpenVAS todos los hosts activos, sin la clasificación por criticidad de V4.
 3. El escaneo corre en OpenVAS como siempre. **El resultado sigue llegando por Telegram y por email** — la app no lo muestra todavía.
 
@@ -30,6 +30,8 @@ El objetivo de esta app es **reemplazar progresivamente el canal de Telegram**, 
 - Flutter 3.44+ (`flutter --version` para confirmar)
 - El laboratorio (`docker compose up -d` en la raíz del repo) corriendo y accesible en red desde el celular
 - El workflow `workflowV3` (`workflows/workflowV3_linux.json`) importado a mano y **activo** en n8n: `init_lab.sh` e `init_lab.ps1` importan solo V4
+- El **token del laboratorio**: el webhook exige el encabezado `X-Lab-Token`. En la PC del laboratorio, `docker exec n8n-security-lab cat /home/node/.n8n/lab_webhook_token`, y pegalo en el campo "Token del laboratorio" de la app
+- La subred debe ser una red IPv4 privada de /24 o menor (por ejemplo `192.168.100.0/24`); el workflow rechaza cualquier otra
 
 ## Correr en desarrollo
 
@@ -40,6 +42,8 @@ flutter run
 ```
 
 ## Notas de red
+
+n8n se publica solo en `127.0.0.1` por defecto. Para alcanzarlo por Wi-Fi hay que levantar el laboratorio con `N8N_BIND_ADDRESS=0.0.0.0` (variable de entorno o archivo `.env` junto al `docker-compose.yml`); el token viaja por HTTP sin cifrar, así que hacelo solo en una red de confianza. Con `adb reverse` (más abajo) no hace falta cambiar nada.
 
 El celular y la PC con Docker tienen que estar en la misma red local. Poné la IP LAN de la PC (no `localhost`, eso apunta al propio celular) en el campo "Host de n8n" — por ejemplo `192.168.100.143`.
 

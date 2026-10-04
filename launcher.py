@@ -21,6 +21,10 @@ import tkinter as tk
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 LAB_TARGETS_COMPOSE = os.path.join(SCRIPT_DIR, "lab-targets", "docker-compose.lab-targets.yml")
 GVMD_CONTAINER = "greenbone-community-edition-gvmd-1"
+N8N_CONTAINER = "n8n-security-lab"
+# Secreto de los webhooks del flujo: lo genera el contenedor de n8n en su primer
+# arranque (n8n_custom/lab-entrypoint.sh) y lo exige como encabezado X-Lab-Token.
+WEBHOOK_TOKEN_FILE = "/home/node/.n8n/lab_webhook_token"
 
 DOCKER_DOWNLOAD_URL = {
     "Windows": "https://www.docker.com/products/docker-desktop/",
@@ -78,6 +82,16 @@ class Launcher(tk.Tk):
             return r.returncode == 0
         except Exception:
             return False
+
+    @staticmethod
+    def _webhook_token():
+        """Lee el secreto de los webhooks desde el contenedor de n8n ('' si no se pudo)."""
+        try:
+            r = subprocess.run(["docker", "exec", N8N_CONTAINER, "cat", WEBHOOK_TOKEN_FILE],
+                               capture_output=True, text=True, timeout=15)
+            return r.stdout.strip() if r.returncode == 0 else ""
+        except Exception:
+            return ""
 
     def _check_requirements(self):
         docker_installed = shutil.which("docker") is not None
@@ -619,7 +633,8 @@ class Launcher(tk.Tk):
         #    lanzar un escaneo real desde el diagnostico.
         wh_url = "http://localhost:5678/webhook-test/nmap-interno"
         try:
-            req = urllib.request.Request(wh_url, data=b"", method="POST")
+            req = urllib.request.Request(wh_url, data=b"", method="POST",
+                                         headers={"X-Lab-Token": self._webhook_token()})
             with urllib.request.urlopen(req, timeout=5) as r:
                 self._log(f"  [OK] Webhook responde: HTTP {r.status}", "success")
         except urllib.error.HTTPError as e:
@@ -630,6 +645,9 @@ class Launcher(tk.Tk):
                 self._log("  → El workflow V4 no está activo / no está escuchando en modo test.", "warn")
                 self._log("  → Solución: http://localhost:5678 → abrí el workflow V4 (workflowV4_webhook)", "info")
                 self._log("             → activalo con el toggle de la esquina superior derecha.", "info")
+            elif e.code == 403:
+                self._log("  [FAIL] Webhook respondió 403: n8n rechazó el encabezado X-Lab-Token.", "error")
+                self._log(f"  → Verificá: docker exec {N8N_CONTAINER} cat {WEBHOOK_TOKEN_FILE}", "info")
             else:
                 self._log(f"  [INFO] Webhook respondió HTTP {e.code}: {body[:150]}", "warn")
         except Exception as e:
@@ -723,9 +741,16 @@ class Launcher(tk.Tk):
             self._log("  ¿El laboratorio está corriendo?", "warn")
             return
 
+        token = self._webhook_token()
+        if not token:
+            self._log("  No se pudo leer el secreto de los webhooks desde el contenedor de n8n.", "error")
+            self._log(f"  → Verificá: docker exec {N8N_CONTAINER} cat {WEBHOOK_TOKEN_FILE}", "info")
+            return
+
         url = f"http://localhost:5678/webhook/nmap-interno?scan_config={scan_config_uuid}"
         try:
-            req = urllib.request.Request(url, data=b"", method="POST")
+            req = urllib.request.Request(url, data=b"", method="POST",
+                                         headers={"X-Lab-Token": token})
             with urllib.request.urlopen(req, timeout=10) as resp:
                 self._log(f"Escaneo disparado (HTTP {resp.status}).", "done")
                 self._log("Nmap corre adentro del contenedor de n8n contra 172.20.0.0/24.", "info")
@@ -735,6 +760,8 @@ class Launcher(tk.Tk):
             body = e.read().decode(errors="replace")
             self._log(f"HTTP {e.code} {e.reason}", "error")
             self._log(f"  Respuesta: {body[:200]}", "error")
+            if e.code == 403:
+                self._log("  n8n rechazó el encabezado X-Lab-Token (credencial 'Lab Webhook Token').", "warn")
             if e.code == 404:
                 self._log("  El webhook 'nmap-interno' no existe en el workflow importado.", "warn")
                 self._log("  Reimportá workflows/workflowV4_windows.json en n8n.", "warn")

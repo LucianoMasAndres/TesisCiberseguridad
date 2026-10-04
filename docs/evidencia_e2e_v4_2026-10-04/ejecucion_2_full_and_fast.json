@@ -1,0 +1,270 @@
+{
+  "ejecucion": {
+    "id": 76,
+    "estado": "success",
+    "modo": "webhook",
+    "inicio_utc": "2026-10-04 10:38:22.218",
+    "fin_utc": "2026-10-04 11:06:09.861"
+  },
+  "nodos": [
+    {
+      "nodo": "Webhook Escaneo Interno",
+      "estado": "success",
+      "inicio": "2026-10-04T10:38:22.249Z",
+      "duracion_ms": 1
+    },
+    {
+      "nodo": "NmapScan",
+      "estado": "success",
+      "inicio": "2026-10-04T10:38:22.251Z",
+      "duracion_ms": 19172
+    },
+    {
+      "nodo": "ClassifyAssets",
+      "estado": "success",
+      "inicio": "2026-10-04T10:38:41.423Z",
+      "duracion_ms": 20
+    },
+    {
+      "nodo": "¿Hay hosts?",
+      "estado": "success",
+      "inicio": "2026-10-04T10:38:41.443Z",
+      "duracion_ms": 10
+    },
+    {
+      "nodo": "CreateTarget",
+      "estado": "success",
+      "inicio": "2026-10-04T10:38:41.453Z",
+      "duracion_ms": 464
+    },
+    {
+      "nodo": "CreateTask",
+      "estado": "success",
+      "inicio": "2026-10-04T10:38:41.917Z",
+      "duracion_ms": 503
+    },
+    {
+      "nodo": "StartTask",
+      "estado": "success",
+      "inicio": "2026-10-04T10:38:42.421Z",
+      "duracion_ms": 568
+    },
+    {
+      "nodo": "Telegram Scan Iniciado",
+      "estado": "success",
+      "inicio": "2026-10-04T10:38:42.989Z",
+      "duracion_ms": 952
+    },
+    {
+      "nodo": "PollStatus",
+      "estado": "success",
+      "inicio": "2026-10-04T10:38:43.941Z",
+      "duracion_ms": 1637770
+    },
+    {
+      "nodo": "¿Timeout?",
+      "estado": "success",
+      "inicio": "2026-10-04T11:06:01.723Z",
+      "duracion_ms": 160
+    },
+    {
+      "nodo": "DownloadReport",
+      "estado": "success",
+      "inicio": "2026-10-04T11:06:01.884Z",
+      "duracion_ms": 2383
+    },
+    {
+      "nodo": "ReportXmlToJson",
+      "estado": "success",
+      "inicio": "2026-10-04T11:06:04.268Z",
+      "duracion_ms": 1787
+    },
+    {
+      "nodo": "ParseFindings",
+      "estado": "success",
+      "inicio": "2026-10-04T11:06:06.056Z",
+      "duracion_ms": 358
+    },
+    {
+      "nodo": "BuildReport",
+      "estado": "success",
+      "inicio": "2026-10-04T11:06:06.414Z",
+      "duracion_ms": 45
+    },
+    {
+      "nodo": "Telegram Reporte Final",
+      "estado": "success",
+      "inicio": "2026-10-04T11:06:06.461Z",
+      "duracion_ms": 1017
+    },
+    {
+      "nodo": "Cleanup",
+      "estado": "success",
+      "inicio": "2026-10-04T11:06:07.479Z",
+      "duracion_ms": 1295
+    },
+    {
+      "nodo": "Send Email",
+      "estado": "success",
+      "inicio": "2026-10-04T11:06:08.774Z",
+      "duracion_ms": 209
+    },
+    {
+      "nodo": "Cleanup",
+      "estado": "success",
+      "inicio": "2026-10-04T11:06:08.983Z",
+      "duracion_ms": 877
+    }
+  ],
+  "descubrimiento": {
+    "subred": "172.20.0.0/24",
+    "hosts": 12
+  },
+  "clasificacion": [
+    {
+      "ip": "172.20.0.10",
+      "puertos": [
+        80,
+        443
+      ],
+      "puntaje": 9,
+      "clase": "Normal"
+    },
+    {
+      "ip": "172.20.0.11",
+      "puertos": [
+        80
+      ],
+      "puntaje": 5,
+      "clase": "Normal"
+    },
+    {
+      "ip": "172.20.0.12",
+      "puertos": [
+        22,
+        80
+      ],
+      "puntaje": 14,
+      "clase": "Alto"
+    },
+    {
+      "ip": "172.20.0.13",
+      "puertos": [
+        22,
+        445,
+        3306
+      ],
+      "puntaje": 28,
+      "clase": "Critico"
+    },
+    {
+      "ip": "172.20.0.14",
+      "puertos": [
+        22,
+        5432
+      ],
+      "puntaje": 20,
+      "clase": "Alto"
+    },
+    {
+      "ip": "172.20.0.15",
+      "puertos": [
+        80,
+        389
+      ],
+      "puntaje": 12,
+      "clase": "Alto"
+    },
+    {
+      "ip": "172.20.0.16",
+      "puertos": [
+        22
+      ],
+      "puntaje": 9,
+      "clase": "Normal"
+    },
+    {
+      "ip": "172.20.0.17",
+      "puertos": [
+        23,
+        445,
+        161
+      ],
+      "puntaje": 26,
+      "clase": "Critico"
+    },
+    {
+      "ip": "172.20.0.18",
+      "puertos": [
+        8080
+      ],
+      "puntaje": 5,
+      "clase": "Normal"
+    },
+    {
+      "ip": "172.20.0.19",
+      "puertos": [
+        21,
+        22
+      ],
+      "puntaje": 16,
+      "clase": "Alto"
+    },
+    {
+      "ip": "172.20.0.20",
+      "puertos": [
+        22,
+        445
+      ],
+      "puntaje": 17,
+      "clase": "Alto"
+    },
+    {
+      "ip": "172.20.0.21",
+      "puertos": [
+        21,
+        80,
+        6379
+      ],
+      "puntaje": 23,
+      "clase": "Critico"
+    }
+  ],
+  "enviados_a_greenbone": "172.20.0.12, 172.20.0.13, 172.20.0.14, 172.20.0.15, 172.20.0.17, 172.20.0.19, 172.20.0.20, 172.20.0.21",
+  "telegram_inicio": {
+    "ok": true,
+    "message_id": 55,
+    "fecha_unix": 1791110324,
+    "texto": "Escaneo OpenVAS iniciado sobre 8 activo(s) clasificados Alto/Critico (de 12 descubiertos). Te aviso cuando termine (puede tardar entre 15 y 90 min)."
+  },
+  "telegram_reporte": {
+    "ok": true,
+    "message_id": 56,
+    "fecha_unix": 1791111968,
+    "texto": "🛡️ Reporte de Red Unificado\n\n📋 Hosts: 172.20.0.21, 172.20.0.19, 172.20.0.17, 172.20.0.13, 172.20.0.20, 172.20.0.12, 172.20.0.15, 172.20.0.14\n📅 Fecha: 2026-10-04T10:38:42Z\n📊 Total Hallazgos: 35\n\n🔴 Crítica: 6\n🟠 Alta: 1\n🟡 Media: 7\n🟢 Baja: 21\n\nThis message was sent automatically with n8n"
+  },
+  "reporte": {
+    "asunto": "Reporte de Red (8 Hosts) - 🔴 CRITICO",
+    "hosts": "172.20.0.21, 172.20.0.19, 172.20.0.17, 172.20.0.13, 172.20.0.20, 172.20.0.12, 172.20.0.15, 172.20.0.14",
+    "fecha_escaneo": "2026-10-04T10:38:42Z",
+    "total_hallazgos": 35,
+    "critica": 6,
+    "alta": 1,
+    "media": 7,
+    "baja": 21,
+    "cuerpo_html_caracteres": 11163
+  },
+  "correo": {
+    "aceptados": [
+      "lab@security.local"
+    ],
+    "rechazados": [],
+    "respuesta_smtp": "250 2.0.0 Ok: queued as 0xGGztui6zrmLKf0oaHYr7",
+    "tamano_bytes": 12858
+  },
+  "limpieza": {
+    "cleaned": true,
+    "task_id": "15efe13f-a136-484c-9ecf-ca3cb047351d",
+    "target_id": "82d5a963-9eb9-4024-9b7d-05cfad8001f0"
+  }
+}

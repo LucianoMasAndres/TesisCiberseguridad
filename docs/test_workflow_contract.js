@@ -2,7 +2,7 @@
 // integridad de los workflows. Sin laboratorio: solo lee los archivos.
 //
 //  1. El webhook que dispara run_experiment.js existe en V4 y entra por el nodo
-//     Code (clasificacion por criticidad): es el camino de la campana del
+//     ClassifyAssets (clasificacion por criticidad): es el camino de la campana del
 //     14/08/2026, en la que Greenbone recibio solo los activos Alto/Critico
 //     (ver docs/evidencia_campana_gvm/).
 //  2. En cada workflow, toda conexion y toda referencia $('Nodo') apunta a un
@@ -32,7 +32,7 @@ function check(label, cond, detail) {
   check(`run_experiment.js dispara un webhook de V4 (/webhook/${hookPath})`, !!hook,
     `los webhooks de V4 son: ${v4.nodes.filter((n) => n.type === 'n8n-nodes-base.webhook').map((n) => n.parameters.path).join(', ')}`);
   const next = hook && (v4.connections[hook.name]?.main?.[0] || []).map((c) => c.node);
-  check('ese webhook entra por el nodo de clasificacion (Code)', !!next && next.includes('Code'),
+  check('ese webhook entra por el nodo de clasificacion (ClassifyAssets)', !!next && next.includes('ClassifyAssets'),
     `siguiente nodo: ${JSON.stringify(next)}`);
 }
 
@@ -61,9 +61,18 @@ for (const f of ['workflowV4_windows.json', 'workflowV3_linux.json']) {
   const limpia = v4.nodes.find((n) => n.name === 'Telegram Red Limpia');
   const code = (limpia && limpia.parameters.jsCode) || '';
   // "Red limpia" no puede afirmar que no hubo hosts cuando si los hubo y todos
-  // eran Normal: el mensaje tiene que leer el resultado del nodo Code.
+  // eran Normal: el mensaje tiene que leer el resultado del nodo ClassifyAssets.
   check('Telegram Red Limpia distingue "sin hosts" de "hosts, ninguno Alto/Critico"',
-    /\$\('Code'\)/.test(code) && /Normal/.test(code), 'el mensaje no consulta la clasificacion del nodo Code');
+    /\$\('ClassifyAssets'\)/.test(code) && /Normal/.test(code), 'el mensaje no consulta la clasificacion del nodo ClassifyAssets');
+
+  // El nodo de correo (emailSend 2.x) lee el cuerpo del parametro "html" cuando
+  // emailFormat es html. Con otro nombre de parametro el correo sale vacio.
+  for (const f of ['workflowV4_windows.json', 'workflowV3_linux.json']) {
+    const mail = load(f).nodes.find((n) => n.type === 'n8n-nodes-base.emailSend');
+    check(`${f}: Send Email envia el cuerpo del reporte (parametro html)`,
+      mail.parameters.emailFormat === 'html' && /email_body/.test(mail.parameters.html || '') && mail.parameters.message === undefined,
+      `parametros: ${Object.keys(mail.parameters).join(', ')}`);
+  }
 
   // Perfiles de Greenbone: solo configuraciones del feed Community.
   // "Full and very deep" (708f25c4-...-8094) y "Full and very deep ultimate"

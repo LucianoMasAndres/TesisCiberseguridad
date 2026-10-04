@@ -4,8 +4,8 @@
 // terminal, clasifica los activos a mano, y opera la interfaz web de Greenbone
 // a mano. Este script no automatiza esos pasos -- automatiza UNICAMENTE el
 // registro de los timestamps de cada hito, para que la remedicion quede con
-// bitacora real en el repositorio (ver hallazgo B2, ronda 10 de auditoria
-// independiente: la campana manual original no dejo ningun registro crudo).
+// bitacora real en el repositorio (la campana manual original no dejo ningun
+// registro crudo).
 //
 // RECOMENDADO: docs/cronometro_manual.py (Python) hace lo mismo pero cada
 // hito se puede marcar solo (encadenando `python docs/marcar.py` al final

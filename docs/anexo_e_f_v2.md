@@ -2,7 +2,7 @@
 
 ## Metodología de diseño (por qué esta vez es consistente)
 
-La auditoría de 2026-08-04 (hallazgos C1, C2, A4) detectó que la versión anterior del
+La versión anterior del
 algoritmo (`SERVICE_WEIGHTS` + `classifyAsset`) no reproducía la clasificación publicada
 en el Anexo F: 7 de 12 activos se clasificaban distinto a lo declarado, y la categoría
 "Crítico" era matemáticamente inalcanzable (máximo posible 19 puntos, umbral `> 20`).
@@ -41,7 +41,7 @@ se declara a mano. Cualquiera puede reproducir la tabla completa corriendo
 
 ## Umbrales de clasificación
 
-Para evitar la ambigüedad del hallazgo A4 (prosa decía "10–20 → Alto", código usaba
+Para evitar la ambigüedad de la versión anterior (la prosa decía "10–20 → Alto", el código usaba
 `score > 10`), esta vez la definición es única y sin zonas grises:
 
 - `score ≤ 10` → **Normal**
@@ -190,7 +190,7 @@ abajo), y se agregó el nodo `NmapScan` al workflow (`workflows/workflowV4_windo
 que ejecuta descubrimiento + escaneo de puertos **desde dentro del contenedor de
 n8n**, reemplazando la dependencia rota de `scan.ps1` en el host Windows.
 
-Se corrió el pipeline completo (`NmapScan` → `Code`) tal como está en el archivo
+Se corrió el pipeline completo (`NmapScan` → `Code`, el nodo que hoy se llama `ClassifyAssets`) tal como está en el archivo
 del workflow, contra el laboratorio real (`docs/test_e2e_pipeline.js`):
 
 ```
@@ -222,7 +222,7 @@ nunca ocurre en este contexto, y falla. Sin este contenedor corriendo, el activo
 `.17` perdía el puerto 23 y clasificaba Alto (14) en vez de Crítico (26) — la
 primera corrida del test end-to-end lo detectó automáticamente por discrepancia
 contra el ground truth, exactamente el tipo de verificación cruzada que la
-auditoría original nunca hizo.
+versión anterior del trabajo no tenía.
 
 ## Nota operativa: contenedor `mail-16` requirió reinicio (2026-08-14)
 
@@ -269,8 +269,8 @@ en `docker-compose.yml`. Tras recrear el contenedor, la conectividad TCP al
 laboratorio quedó confirmada.
 
 **Por qué importa:** este es exactamente el tipo de suposición de conectividad
-nunca verificada que llevó al hallazgo C3 de la auditoría original (tiempos de
-ciclo incompatibles con lo declarado) — sin este chequeo, las 5 repeticiones del
+nunca verificada que en la versión anterior del trabajo produjo tiempos de
+ciclo incompatibles con lo declarado — sin este chequeo, las 5 repeticiones del
 experimento habrían corrido "exitosamente" en segundos y producido una tabla de
 resultados con cero hallazgos, reproduciendo exactamente el mismo patrón de
 "el sistema completa pero no mide lo que dice medir" que hundió el capítulo V
@@ -316,8 +316,8 @@ Alto/Crítico.
 
 **Lección metodológica:** esta variabilidad NO se hubiera detectado sin comparar
 la clasificación de cada repetición contra el ground truth conocido — es
-exactamente el tipo de control cruzado que la auditoría 2026-08-04 echó en
-falta en el trabajo original (§3.8, validez interna).
+exactamente el tipo de control cruzado que faltaba en la versión anterior
+del trabajo (§3.8, validez interna).
 
 ## Verificación de reproducibilidad
 

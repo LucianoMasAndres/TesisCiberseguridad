@@ -1,0 +1,171 @@
+{
+  "ejecucion": {
+    "id": 81,
+    "estado": "success",
+    "modo": "webhook",
+    "inicio_utc": "2026-10-04 11:08:32.219",
+    "fin_utc": "2026-10-04 11:11:39.888"
+  },
+  "nodos": [
+    {
+      "nodo": "Webhook Nmap",
+      "estado": "success",
+      "inicio": "2026-10-04T11:08:32.235Z",
+      "duracion_ms": 0
+    },
+    {
+      "nodo": "ClassifyAssets",
+      "estado": "success",
+      "inicio": "2026-10-04T11:08:32.235Z",
+      "duracion_ms": 18
+    },
+    {
+      "nodo": "¿Hay hosts?",
+      "estado": "success",
+      "inicio": "2026-10-04T11:08:32.253Z",
+      "duracion_ms": 1
+    },
+    {
+      "nodo": "CreateTarget",
+      "estado": "success",
+      "inicio": "2026-10-04T11:08:32.254Z",
+      "duracion_ms": 528
+    },
+    {
+      "nodo": "CreateTask",
+      "estado": "success",
+      "inicio": "2026-10-04T11:08:32.783Z",
+      "duracion_ms": 467
+    },
+    {
+      "nodo": "StartTask",
+      "estado": "success",
+      "inicio": "2026-10-04T11:08:33.251Z",
+      "duracion_ms": 482
+    },
+    {
+      "nodo": "Telegram Scan Iniciado",
+      "estado": "success",
+      "inicio": "2026-10-04T11:08:33.733Z",
+      "duracion_ms": 932
+    },
+    {
+      "nodo": "PollStatus",
+      "estado": "success",
+      "inicio": "2026-10-04T11:08:34.665Z",
+      "duracion_ms": 181611
+    },
+    {
+      "nodo": "¿Timeout?",
+      "estado": "success",
+      "inicio": "2026-10-04T11:11:36.277Z",
+      "duracion_ms": 5
+    },
+    {
+      "nodo": "DownloadReport",
+      "estado": "success",
+      "inicio": "2026-10-04T11:11:36.283Z",
+      "duracion_ms": 485
+    },
+    {
+      "nodo": "ReportXmlToJson",
+      "estado": "success",
+      "inicio": "2026-10-04T11:11:36.768Z",
+      "duracion_ms": 30
+    },
+    {
+      "nodo": "ParseFindings",
+      "estado": "success",
+      "inicio": "2026-10-04T11:11:36.799Z",
+      "duracion_ms": 16
+    },
+    {
+      "nodo": "BuildReport",
+      "estado": "success",
+      "inicio": "2026-10-04T11:11:36.816Z",
+      "duracion_ms": 14
+    },
+    {
+      "nodo": "Telegram Reporte Final",
+      "estado": "success",
+      "inicio": "2026-10-04T11:11:36.830Z",
+      "duracion_ms": 1032
+    },
+    {
+      "nodo": "Cleanup",
+      "estado": "success",
+      "inicio": "2026-10-04T11:11:37.862Z",
+      "duracion_ms": 981
+    },
+    {
+      "nodo": "Send Email",
+      "estado": "success",
+      "inicio": "2026-10-04T11:11:38.844Z",
+      "duracion_ms": 79
+    },
+    {
+      "nodo": "Cleanup",
+      "estado": "success",
+      "inicio": "2026-10-04T11:11:38.923Z",
+      "duracion_ms": 965
+    }
+  ],
+  "descubrimiento": null,
+  "clasificacion": [
+    {
+      "ip": "172.20.0.13",
+      "puertos": [
+        22,
+        3306,
+        445
+      ],
+      "puntaje": 28,
+      "clase": "Critico"
+    },
+    {
+      "ip": "172.20.0.11",
+      "puertos": [
+        80
+      ],
+      "puntaje": 5,
+      "clase": "Normal"
+    }
+  ],
+  "enviados_a_greenbone": "172.20.0.13",
+  "telegram_inicio": {
+    "ok": true,
+    "message_id": 57,
+    "fecha_unix": 1791112115,
+    "texto": "Escaneo OpenVAS iniciado sobre 1 activo(s) clasificados Alto/Critico (de 2 descubiertos). Te aviso cuando termine (puede tardar entre 15 y 90 min)."
+  },
+  "telegram_reporte": {
+    "ok": true,
+    "message_id": 58,
+    "fecha_unix": 1791112298,
+    "texto": "🛡️ Reporte de Red Unificado\n\n📋 Hosts: 172.20.0.13\n📅 Fecha: 2026-10-04T11:08:33Z\n📊 Total Hallazgos: 1\n\n🔴 Crítica: 0\n🟠 Alta: 0\n🟡 Media: 0\n🟢 Baja: 1\n\nThis message was sent automatically with n8n"
+  },
+  "reporte": {
+    "asunto": "Reporte de Red (1 Hosts) - 🔵 INFO",
+    "hosts": "172.20.0.13",
+    "fecha_escaneo": "2026-10-04T11:08:33Z",
+    "total_hallazgos": 1,
+    "critica": 0,
+    "alta": 0,
+    "media": 0,
+    "baja": 1,
+    "cuerpo_html_caracteres": 1349
+  },
+  "correo": {
+    "aceptados": [
+      "lab@security.local"
+    ],
+    "rechazados": [],
+    "respuesta_smtp": "250 2.0.0 Ok: queued as 477pvXDM70pfNsBbcLFCqR",
+    "tamano_bytes": 2185
+  },
+  "limpieza": {
+    "cleaned": true,
+    "task_id": "2b434e5f-4f0d-44de-ab6c-cf19acc0026a",
+    "target_id": "98192373-788b-4a11-9fd4-2ea0d771c3c0"
+  }
+}

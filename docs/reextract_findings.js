@@ -39,8 +39,7 @@ function parseReportResults(xml) {
     const host = (r.match(/<host>([^<]*)/) || [])[1] || 'desconocido';
     const name = (r.match(/<name>([^<]*)<\/name>/) || [])[1] || '';
     const severity = parseFloat((r.match(/<severity>([^<]*)<\/severity>/) || [])[1] || '0');
-    // Mismo fix que docs/run_experiment.js (hallazgo M1, ronda 10 de
-    // auditoria independiente): el CVE vive en <nvt><refs><ref type="cve"
+    // Mismo fix que docs/run_experiment.js: el CVE vive en <nvt><refs><ref type="cve"
     // id="CVE-..."/></refs></nvt>, no en un <cve> directo del resultado.
     const cveRefs = [...r.matchAll(/<ref type="cve" id="([^"]*)"/g)].map(m => m[1]);
     const cveLegacy = (r.match(/<cve>([^<]*)<\/cve>/) || [])[1] || '';

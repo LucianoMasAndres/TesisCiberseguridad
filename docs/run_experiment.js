@@ -6,13 +6,16 @@
 // Corre DENTRO del contenedor n8n-security-lab:
 //   docker exec -u node n8n-security-lab node /tmp/run_experiment.js > /tmp/experiment_log.jsonl 2>&1 &
 
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 const fs = require('fs');
 
 const REPETICIONES = 5;
 const SCAN_CONFIG_FULL_AND_FAST = 'daba56c8-73ec-11df-a475-002264764cea';
 const GVM_CLI = '/home/node/gvm-env/bin/gvm-cli --gmp-username admin --gmp-password admin123 socket --socketpath /run/gvmd/gvmd.sock';
 const RESULTS_PATH = '/tmp/experiment_results.jsonl';
+// Secreto de los webhooks (encabezado X-Lab-Token): lo genera el contenedor en
+// su primer arranque, ver n8n_custom/lab-entrypoint.sh.
+const webhookToken = () => fs.readFileSync('/home/node/.n8n/lab_webhook_token', 'utf8').trim();
 const SERVICE_WEIGHTS = {
   21: 7, 22: 9, 23: 12, 25: 4, 80: 5, 161: 6, 389: 7, 443: 4,
   445: 8, 587: 4, 3306: 11, 5432: 11, 6379: 11, 8080: 5,
@@ -160,7 +163,7 @@ function parseReportResults(xml) {
     const host = (r.match(/<host>([^<]*)/) || [])[1] || 'desconocido';
     const name = (r.match(/<name>([^<]*)<\/name>/) || [])[1] || '';
     const severity = parseFloat((r.match(/<severity>([^<]*)<\/severity>/) || [])[1] || '0');
-    // Bug real encontrado (hallazgo M1, ronda 10 de auditoria independiente):
+    // Bug real encontrado:
     // el GMP de Greenbone actual ya no emite <cve> como hijo directo del
     // resultado, publica los CVE dentro de <nvt><refs><ref type="cve"
     // id="CVE-..."/></refs></nvt> (puede haber mas de uno). El regex viejo
@@ -193,18 +196,19 @@ async function runRepetition(n) {
 
   log('T1->T2: disparando webhook con perfil Full and fast');
   // Webhook "Webhook Nmap" de workflowV4 (/webhook/nmap): recibe el payload
-  // JSON de arriba (hosts con sus puertos) y lo pasa al nodo Code, que aplica
+  // JSON de arriba (hosts con sus puertos) y lo pasa al nodo ClassifyAssets, que aplica
   // classifyAsset y envia a Greenbone solo los activos Alto/Critico. Es el
   // camino de la campana del 14/08/2026 (commit 47ff2f4); los targets creados
   // en esa campana listan solo los Alto/Critico de cada repeticion (ver
   // docs/evidencia_campana_gvm/). Entre el 17/08 (commit 34e8353) y el 29/09 este script apunto
   // por error a /webhook/nmap-v3 (workflowV3, sin clasificacion: manda a
   // Greenbone todos los hosts activos); los datos de
-  // docs/experiment_results.jsonl no provienen de esa variante. Contrato
+  // docs/experiment_results.jsonl no provienen de esa variante. El nodo se
+  // llamaba Code en la version de la campana. Contrato
   // verificado por docs/test_workflow_contract.js.
-  execSync(
-    `wget -q -O - --header="Content-Type: application/json" --post-file=/tmp/webhook_payload.json "http://localhost:5678/webhook/nmap?scan_config=${SCAN_CONFIG_FULL_AND_FAST}"`
-  ).toString();
+  execFileSync('wget', ['-q', '-O', '-', '--header=Content-Type: application/json',
+    `--header=X-Lab-Token: ${webhookToken()}`, '--post-file=/tmp/webhook_payload.json',
+    `http://localhost:5678/webhook/nmap?scan_config=${SCAN_CONFIG_FULL_AND_FAST}`]).toString();
   const t2 = new Date();
 
   // Bug real encontrado y corregido (2026-08-17): un unico sleep(15000) mas

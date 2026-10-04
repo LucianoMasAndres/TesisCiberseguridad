@@ -35,7 +35,7 @@ _, top1 = box(2.5, 13, 5, 1.2, "Entrada: lista de puertos\nabiertos del activo")
 bot1 = (5, 13)
 
 # Nodo 2
-_, top2 = box(2.5, 10.8, 5, 1.2, "score = Σ SERVICE_WEIGHTS[puerto]\n(peso 1 si el puerto no está catalogado)")
+_, top2 = box(2.5, 10.8, 5, 1.2, "score = Σ SERVICE_WEIGHTS[puerto]\n(peso 1 para los puertos no catalogados)")
 arrow(bot1, (5, 12), )
 bot2 = (5, 10.8)
 

@@ -1,0 +1,2 @@
+# Los scripts de shell se copian a contenedores Linux: siempre LF.
+*.sh text eol=lf

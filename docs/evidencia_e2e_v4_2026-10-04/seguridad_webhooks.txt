@@ -1,0 +1,37 @@
+Verificacion de los controles de los webhooks sobre el laboratorio desplegado
+Fecha (UTC): 2026-10-04T10:42:26Z. El valor del encabezado X-Lab-Token se omite.
+
+1. Sin encabezado, o con un valor incorrecto: n8n responde 403 y no ejecuta el flujo
+   POST /webhook/nmap sin encabezado          -> HTTP 403
+   POST /webhook/nmap con X-Lab-Token: malo   -> HTTP 403
+   POST /webhook/nmap-interno sin encabezado          -> HTTP 403
+   POST /webhook/nmap-interno con X-Lab-Token: malo   -> HTTP 403
+   POST /webhook/nmap-v3 sin encabezado          -> HTTP 403
+   POST /webhook/nmap-v3 con X-Lab-Token: malo   -> HTTP 403
+
+2. Peticion autenticada con una direccion manipulada (inyeccion de comandos)
+   objetivos en Greenbone antes: 58
+   POST /webhook/nmap  cuerpo: {"hosts":[{"ip":"172.20.0.13\"; touch /tmp/inyeccion_1; \"","ports":[22,3306,445]}]}
+   -> HTTP 200 (el webhook responde al recibir; el resultado esta en la ejecucion)
+   ejecucion 77 error | ultimo nodo: ClassifyAssets | error: "172.20.0.13\"; touch /tmp/inyeccion_1; \"" [line 24]
+   /tmp/inyeccion_1 en el contenedor: no existe
+   objetivos en Greenbone despues: 58
+
+3. Peticion autenticada con una direccion fuera de la subred del laboratorio
+   POST /webhook/nmap  cuerpo: {"hosts":[{"ip":"172.20.0.13","ports":[22,3306,445]},{"ip":"8.8.8.8","ports":[22,3306]}]}
+   -> HTTP 200
+   ejecucion 78 error | ultimo nodo: ClassifyAssets | error: "8.8.8.8" [line 24]
+   objetivos en Greenbone despues: 58
+
+4. Peticion autenticada con un perfil de escaneo ajeno a la lista (hosts validos)
+   objetivos en Greenbone antes: 57
+   POST /webhook/nmap?scan_config=$(touch /tmp/inyeccion_2)  cuerpo: {"hosts":[{"ip":"172.20.0.13","ports":[22,3306,445]}]}
+   -> HTTP 200
+   ejecucion 79 error | ultimo nodo: CreateTarget | error: scan_config no es uno de los perfiles admitidos [line 37]
+   /tmp/inyeccion_2 en el contenedor: no existe
+   objetivos en Greenbone despues: 57
+
+5. Un perfil valido pero no ofrecido por el Launcher (Host Discovery, 2d3f051c-55ba-11e3-bf43-406186ea4fc5)
+   -> HTTP 200
+   ejecucion 80 error | ultimo nodo: CreateTarget | error: scan_config no es uno de los perfiles admitidos [line 37]
+   objetivos en Greenbone despues: 57

@@ -1,6 +1,6 @@
 // Test unitario del parseo de XML de Nmap, sin laboratorio: ejecuta el codigo
 // del nodo NmapScan (workflows/workflowV4_windows.json) y la funcion
-// runDiscoveryAndPortScan de docs/run_experiment.js con un execSync simulado
+// runDiscoveryAndPortScan de docs/run_experiment.js con un child_process simulado
 // que devuelve salidas reales de nmap capturadas del laboratorio
 // (docs/fixtures/). Cubre los dos formatos de <host> que emite nmap:
 //   - descubrimiento (-sn): "<host>" sin atributos
@@ -24,19 +24,30 @@ const EXPECTED_PORTS = {
   '172.20.0.21': [21, 80, 6379],
 };
 
-// execSync simulado: -sn devuelve el descubrimiento, el resto el escaneo de
-// puertos. Registra las IPs pasadas al escaneo de puertos.
-function makeFakeChildProcess(calls) {
+// child_process simulado: -sn devuelve el descubrimiento, el resto el escaneo
+// de puertos. Registra las IPs pasadas al escaneo de puertos. El nodo NmapScan
+// llama a execFile (asincronico, arreglo de argumentos); run_experiment.js, a
+// execSync. Las variantes sincronicas se registran aparte para poder comprobar
+// que NmapScan no las usa.
+function makeFakeChildProcess(calls, syncCalls = []) {
+  const execSync = (cmd) => {
+    calls.push(cmd);
+    syncCalls.push(cmd);
+    return Buffer.from(cmd.includes(' -sn ') ? DISCOVERY_XML : PORTSCAN_XML);
+  };
   return {
-    execSync(cmd) {
+    execSync,
+    execFileSync: (file, args) => execSync(`${file} ${args.join(' ')}`),
+    execFile: (file, args, opts, cb) => {
+      const cmd = `${file} ${args.join(' ')}`;
       calls.push(cmd);
-      return Buffer.from(cmd.includes(' -sn ') ? DISCOVERY_XML : PORTSCAN_XML);
+      setImmediate(() => (cb || opts)(null, cmd.includes(' -sn ') ? DISCOVERY_XML : PORTSCAN_XML));
     },
   };
 }
 
-function fakeRequire(calls) {
-  return (mod) => (mod === 'child_process' ? makeFakeChildProcess(calls) : require(mod));
+function fakeRequire(calls, syncCalls) {
+  return (mod) => (mod === 'child_process' ? makeFakeChildProcess(calls, syncCalls) : require(mod));
 }
 
 let failures = 0;
@@ -60,14 +71,22 @@ function checkHosts(label, hosts, calls) {
   }
 }
 
+(async () => {
 // 1. Nodo NmapScan del workflow V4 (el codigo tal como esta en el JSON)
 {
   const wf = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'workflows', 'workflowV4_windows.json'), 'utf8'));
   const code = wf.nodes.find((n) => n.name === 'NmapScan').parameters.jsCode;
   const calls = [];
-  const fn = new Function('items', 'require', `return (function(){${code}})()`);
-  const out = fn([{}], fakeRequire(calls));
+  const syncCalls = [];
+  const fn = new Function('items', 'require', `return (async () => {${code}\n})()`);
+  const out = await fn([{}], fakeRequire(calls, syncCalls));
   checkHosts('NmapScan (V4)', out[0].json.hosts, calls);
+  // El escaneo de puertos del laboratorio tarda mas que el heartbeat del Task
+  // Runner de n8n (N8N_RUNNERS_HEARTBEAT_INTERVAL=120 s). Una llamada sincronica
+  // bloquea el event loop del runner, que deja de responder, y n8n aborta la
+  // tarea ("runner became unresponsive").
+  check('NmapScan (V4): nmap se invoca de forma asincronica (no bloquea el Task Runner)',
+    calls.length === 2 && syncCalls.length === 0, `llamadas sincronicas: ${syncCalls.length} de ${calls.length}`);
 }
 
 // 2. runDiscoveryAndPortScan de docs/run_experiment.js
@@ -86,3 +105,4 @@ function checkHosts(label, hosts, calls) {
 
 console.log(failures === 0 ? '\nTODOS LOS CASOS PASAN' : `\n${failures} FALLOS`);
 process.exit(failures === 0 ? 0 : 1);
+})();

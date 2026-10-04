@@ -50,7 +50,7 @@ for src, dst, text, y in messages:
 ax.text(6.0, 1.4,
         "Los nodos Code del flujo (JavaScript) invocan gvm-cli por el socket de gvmd.\n"
         "PollStatus consulta get_tasks() cada 60 s (máximo 90 min) hasta status=Done;\n"
-        "DownloadPDF pide get_reports() con rows=1000, que evita la paginación\n"
+        "DownloadReport pide get_reports() con rows=1000, que evita la paginación\n"
         "por defecto de GMP (10 resultados).",
         ha='center', va='center', fontsize=7.8, style='italic', color='#555555')
 

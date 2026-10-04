@@ -14,4 +14,12 @@ void main() {
     expect(find.text('Escanear red'), findsOneWidget);
     expect(find.byIcon(Icons.bolt), findsOneWidget);
   });
+
+  testWidgets('ScanTriggerPage pide el token del laboratorio', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const AuraApp());
+
+    expect(find.text('Token del laboratorio (X-Lab-Token)'), findsOneWidget);
+  });
 }

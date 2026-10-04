@@ -22,6 +22,10 @@ Media: 1777.5 s ( 29 min 37 s ) | Desv. estandar: 101.5 s | CV: 5.71 %
 Min: 1672.2 | Max: 1944.3
 Descubrimiento - media: 94.9 s (rango: 19.2 - 170.6 )
 
+=== SENSIBILIDAD: incluyendo la(s) repeticion(es) 4 ===
+Media: 1768.7 s ( 29 min 29 s ) | Desv. estandar: 92.5 s | CV: 5.23 %
+Coincidencia de clasificacion: 46/55 (83.6%)
+
 === MATRIZ DE CONFUSION (clasificacion de criticidad, excluyendo repeticion(es) 4 y host fantasma) ===
 Filas: clase esperada (Anexo F) | Columnas: clase obtenida
              Normal  Alto  Critico

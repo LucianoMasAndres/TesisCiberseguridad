@@ -2,8 +2,7 @@
 FROM alpine:3.20 AS builder
 
 # --- Stage 2: Build the custom n8n image ---
-# Fijado por digest (no :latest) para reproducibilidad exacta — ver hallazgo
-# "Uso de :latest" de la auditoria 2026-08-04.
+# Fijado por digest (no :latest) para reproducibilidad exacta.
 FROM n8nio/n8n@sha256:cf11c96b0d0089bb24459bf97b445fd7008f41543b673cce4d955f7c0ed8752d
 
 USER root
@@ -18,13 +17,14 @@ COPY --from=builder /usr/share/apk /usr/share/apk
 # 2. Setup permissions
 RUN chown -R root:root /lib/libapk.so* /lib/libz.so* /sbin/apk /etc/apk
 
-# 3. Install tools (Added 'tini' here)
+# 3. Install tools (Added 'tini' here). Nmap queda en la serie 7.95, la de la
+#    imagen usada en la campana (docs/versiones_entorno.md).
 RUN mkdir -p /var/cache/apk \
     && /sbin/apk update \
     && /sbin/apk add --no-cache \
     tini \
-    nmap \
-    nmap-scripts \
+    "nmap~7.95" \
+    "nmap-scripts~7.95" \
     libcap \
     python3 \
     py3-pip \
@@ -32,9 +32,9 @@ RUN mkdir -p /var/cache/apk \
     curl \
     ca-certificates
 
-# El contenedor corre como usuario no privilegiado 'node' (ver docs/anexo_e_f_v2.md
-# y hallazgo A8 de la auditoria 2026-08-04: Nmap requiere privilegios para -sS/-sU/-sn,
-# y sin ellos degrada silenciosamente a un escaneo TCP connect incompleto).
+# El contenedor corre como usuario no privilegiado 'node' (ver docs/anexo_e_f_v2.md).
+# Nmap requiere privilegios para -sS/-sU/-sn, y sin ellos degrada silenciosamente
+# a un escaneo TCP connect incompleto.
 # Se probo setcap (Linux capabilities) primero, pero no se propaga de forma
 # confiable dentro de este entorno de contenedor (limitacion conocida de ciertos
 # backends de Docker Desktop con filesystems overlay). Se usa en su lugar el bit
@@ -42,11 +42,20 @@ RUN mkdir -p /var/cache/apk \
 # recomienda como alternativa (https://nmap.org/book/install.html).
 RUN chmod u+s /usr/bin/nmap
 
+# Punto de entrada del laboratorio: genera el secreto de los webhooks y lo
+# registra como credencial Header Auth antes de iniciar n8n (ver el script).
+# El sed quita los finales de linea CRLF de un checkout hecho en Windows.
+COPY lab-entrypoint.sh /lab-entrypoint.sh
+RUN sed -i 's/\r$//' /lab-entrypoint.sh && chmod 755 /lab-entrypoint.sh
+
 USER node
 
-# 4. Create Python virtual environment and install gvm-tools
+# 4. Create Python virtual environment and install gvm-tools. Versiones fijadas:
+#    las de la imagen usada en la campana (docs/versiones_entorno.md).
 RUN python3 -m venv /home/node/gvm-env \
-    && /home/node/gvm-env/bin/pip install --no-cache-dir gvm-tools
+    && /home/node/gvm-env/bin/pip install --no-cache-dir gvm-tools==26.0.7 python-gvm==27.6.0
 
 # Add virtual environment to PATH
 ENV PATH="/home/node/gvm-env/bin:$PATH"
+
+ENTRYPOINT ["tini", "--", "/lab-entrypoint.sh"]

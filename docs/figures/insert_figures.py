@@ -6,8 +6,7 @@ ejecutado una vez. Los numeros de figura (7, 9, 8 para las tres ultimas) y
 los nombres de archivo reflejan la numeracion final del documento, que
 quedo corrida respecto de la numeracion interna original de los scripts
 gen_fig_*.py porque se insertaron 4 capturas de pantalla (Figuras 3-6)
-entre la Figura 2 y lo que originalmente era "Figura 3" (hallazgo menor,
-ronda 10 de auditoria independiente)."""
+entre la Figura 2 y lo que originalmente era "Figura 3"."""
 import docx
 from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH

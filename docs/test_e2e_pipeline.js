@@ -1,4 +1,4 @@
-// Test end-to-end REAL: ejecuta el codigo de los nodos NmapScan y Code tal como
+// Test end-to-end REAL: ejecuta el codigo de los nodos NmapScan y ClassifyAssets tal como
 // estan en workflows/workflowV4_windows.json, contra el laboratorio real de 12
 // activos (lab-targets/docker-compose.lab-targets.yml). No es una simulacion:
 // corre nmap de verdad contra contenedores de verdad.
@@ -19,14 +19,15 @@ const path = process.env.WORKFLOW_PATH || (fs.existsSync(repoWorkflow) ? repoWor
 const wf = JSON.parse(fs.readFileSync(path, 'utf8'));
 
 const nmapScanCode = wf.nodes.find(n => n.name === 'NmapScan').parameters.jsCode;
-const classifyCode = wf.nodes.find(n => n.name === 'Code').parameters.jsCode;
+const classifyCode = wf.nodes.find(n => n.name === 'ClassifyAssets').parameters.jsCode;
 
+(async () => {
 console.log('=== Ejecutando NmapScan (nmap real contra lab-net) ===');
-const nmapFn = new Function('items', 'process', 'require', 'return (function(){' + nmapScanCode + '})()');
-const nmapResult = nmapFn([{}], process, require);
+const nmapFn = new Function('items', 'process', 'require', 'return (async () => {' + nmapScanCode + '\n})()');
+const nmapResult = await nmapFn([{}], process, require);
 console.log(JSON.stringify(nmapResult[0].json, null, 2));
 
-console.log('=== Ejecutando Code (clasificacion) sobre el resultado real de NmapScan ===');
+console.log('=== Ejecutando ClassifyAssets (clasificacion) sobre el resultado real de NmapScan ===');
 const classifyFn = new Function('items', 'return (function(){' + classifyCode + '})()');
 const classifyResult = classifyFn([{ json: nmapResult[0].json }]);
 console.log(JSON.stringify(classifyResult[0].json, null, 2));
@@ -51,3 +52,4 @@ for (const ip of Object.keys(esperado)) {
 }
 console.log(fallos === 0 ? '=== E2E TEST: PASA (pipeline real, nmap real, clasificacion real) ===' : `=== E2E TEST: ${fallos} FALLOS ===`);
 process.exit(fallos === 0 ? 0 : 1);
+})();

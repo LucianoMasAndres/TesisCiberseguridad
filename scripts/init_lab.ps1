@@ -14,7 +14,7 @@ Write-Host "Directorio del proyecto: $ProjectDir"
 #    depende el stack principal (ver docker-compose.yml, lab-net: external).
 #    Sin este paso, "docker compose up" del stack principal falla en una
 #    maquina limpia con "network lab-net declared as external, but could
-#    not be found" (hallazgo B3, ronda 10 de auditoria independiente).
+#    not be found".
 $LabTargetsCompose = Join-Path $ProjectDir "lab-targets\docker-compose.lab-targets.yml"
 Write-Host "Levantando lab-targets (12 activos objetivo)..."
 docker compose -f $LabTargetsCompose up -d --build
@@ -112,7 +112,7 @@ if (Test-Path $WorkflowFile) {
     # Primero se copia el archivo adentro del contenedor y recien despues se
     # intenta el import por CLI (igual que init_lab.sh). Antes este script
     # solo copiaba y no importaba, por lo que habia que hacerlo a mano desde
-    # la interfaz de n8n (hallazgo B3, ronda 10 de auditoria independiente).
+    # la interfaz de n8n.
     docker cp $WorkflowFile "n8n-security-lab:/home/node/.n8n/workflows/workflowV4_windows.json" 2>$null
     docker exec n8n-security-lab n8n import:workflow --input="/home/node/.n8n/workflows/workflowV4_windows.json" 2>$null
     Write-Host "Workflow importado. Abri n8n, activalo y configura las credenciales de Telegram."
@@ -123,7 +123,7 @@ if (Test-Path $WorkflowFile) {
 Write-Host ""
 Write-Host "Laboratorio Operativo!"
 Write-Host "---------------------------------------------------"
-Write-Host "  n8n:     http://localhost:5678"
+Write-Host "  n8n:     http://localhost:5678  (solo en 127.0.0.1)"
 Write-Host "  OpenVAS: http://localhost:9392  (admin / admin123)"
 Write-Host "  Mailpit: http://127.0.0.1:8025"
 Write-Host "---------------------------------------------------"
