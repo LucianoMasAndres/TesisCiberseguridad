@@ -13,6 +13,8 @@ comparaciones de la tesis: son ejecuciones de verificación funcional.
 |---|---|
 | `ejecucion_2_full_and_fast.json` | La ejecución de referencia: flujo completo por el webhook de escaneo interno, perfil «Full and fast» |
 | `correo_mailpit_ejecucion_2.html` | Cuerpo HTML del correo de esa ejecución, tal como lo recibió Mailpit |
+| `telegram_reporte_ejecucion_2.png` | Captura del mensaje de Telegram con el reporte de esa ejecución (Figura 4 de la tesis) |
+| `mailpit_correo_ejecucion_2.png` | Captura del correo de esa ejecución en la interfaz de Mailpit (Figura 5 de la tesis) |
 | `ejecucion_3_webhook_nmap.json` | Ejecución por el webhook externo (`/webhook/nmap`) con la versión etiquetada, perfil de descubrimiento |
 | `ejecucion_1_previa.json` | Ejecución anterior a dos correcciones (ver abajo) |
 | `seguridad_webhooks.txt` | Peticiones sin encabezado, con encabezado incorrecto y con entradas manipuladas, y su resultado |
