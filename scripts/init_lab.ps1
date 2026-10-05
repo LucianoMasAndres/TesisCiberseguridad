@@ -104,6 +104,35 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "Usuario 'admin' creado con password 'admin123'."
 }
 
+# 4b. Esperar a que el escaner cargue las pruebas (VT). gvmd puede estar listo
+#     y ospd-openvas no: si la carga inicial falla, ospd-openvas no reintenta
+#     y un analisis lanzado en ese estado termina en minutos sin resultados.
+Write-Host "Esperando a que el escaner (ospd-openvas) cargue las pruebas de vulnerabilidad..."
+$VtsOk = $false
+$VtsReinicios = 0
+for ($i = 0; $i -lt 120; $i++) {   # 10 minutos maximo
+    $ultima = docker compose logs --no-log-prefix ospd-openvas 2>&1 |
+        Select-String -Pattern "Loading VTs|Finished loading VTs|VTs were up to date|Updating VTs failed" |
+        Select-Object -Last 1
+    $linea = "$ultima"
+    if ($linea -match "Finished loading VTs|VTs were up to date") { $VtsOk = $true; break }
+    if ($linea -match "Updating VTs failed" -and $VtsReinicios -lt 2) {
+        $VtsReinicios++
+        Write-Host "  La carga de pruebas fallo; reiniciando ospd-openvas (intento $VtsReinicios)..."
+        docker compose restart ospd-openvas 2>$null | Out-Null
+    }
+    Write-Host -NoNewline "."
+    Start-Sleep -Seconds 5
+}
+Write-Host ""
+if ($VtsOk) {
+    Write-Host "El escaner cargo las pruebas."
+} else {
+    Write-Host "AVISO: el escaner no confirmo la carga de las pruebas. No lances un analisis todavia:"
+    Write-Host "  mira 'docker compose logs ospd-openvas' y, si dice 'Updating VTs failed',"
+    Write-Host "  ejecuta 'docker compose restart ospd-openvas'."
+}
+
 # 5. Importar workflow en n8n
 $WorkflowFile = Join-Path $ProjectDir "workflows\workflowV4_windows.json"
 if (Test-Path $WorkflowFile) {
@@ -124,7 +153,7 @@ Write-Host ""
 Write-Host "Laboratorio Operativo!"
 Write-Host "---------------------------------------------------"
 Write-Host "  n8n:     http://localhost:5678  (solo en 127.0.0.1)"
-Write-Host "  OpenVAS: http://localhost:9392  (admin / admin123)"
+Write-Host "  OpenVAS: http://127.0.0.1:9392  (admin / admin123)"
 Write-Host "  Mailpit: http://127.0.0.1:8025"
 Write-Host "---------------------------------------------------"
 Write-Host ""

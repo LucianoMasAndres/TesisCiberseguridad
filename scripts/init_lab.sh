@@ -88,6 +88,37 @@ else
     echo "✅ Usuario 'admin' creado con password 'admin123'."
 fi
 
+# 4b. Esperar a que el escáner cargue las pruebas (VT). gvmd puede estar listo
+#     y ospd-openvas no: si la carga inicial falla, ospd-openvas no reintenta
+#     y un análisis lanzado en ese estado termina en minutos sin resultados.
+echo "⏳ Esperando a que el escáner (ospd-openvas) cargue las pruebas de vulnerabilidad..."
+vts_estado() {
+    docker compose logs --no-log-prefix ospd-openvas 2>&1         | grep -E "Loading VTs|Finished loading VTs|VTs were up to date|Updating VTs failed" | tail -1
+}
+VTS_OK=0
+VTS_REINICIOS=0
+for _ in $(seq 1 120); do   # 10 minutos máximo
+    case "$(vts_estado)" in
+        *"Finished loading VTs"*|*"VTs were up to date"*) VTS_OK=1; break ;;
+        *"Updating VTs failed"*)
+            if [ $VTS_REINICIOS -lt 2 ]; then
+                VTS_REINICIOS=$((VTS_REINICIOS+1))
+                echo "   La carga de pruebas falló; reiniciando ospd-openvas (intento $VTS_REINICIOS)..."
+                docker compose restart ospd-openvas > /dev/null 2>&1
+            fi ;;
+    esac
+    echo -n "."
+    sleep 5
+done
+echo ""
+if [ $VTS_OK -eq 1 ]; then
+    echo "✅ El escáner cargó las pruebas."
+else
+    echo "⚠️  El escáner no confirmó la carga de las pruebas. No lances un análisis todavía:"
+    echo "   mirá 'docker compose logs ospd-openvas' y, si dice 'Updating VTs failed',"
+    echo "   ejecutá 'docker compose restart ospd-openvas'."
+fi
+
 # 5. Importar workflow en n8n (si existe el archivo)
 # Se importa workflowV4_windows.json, igual que scripts/init_lab.ps1: pese al
 # nombre histórico, V4 no depende del sistema operativo del host (Nmap, gvm-cli
@@ -117,7 +148,7 @@ echo ""
 echo "✨ ¡Laboratorio Operativo!"
 echo "---------------------------------------------------"
 echo "➡️  n8n:     http://localhost:5678  (solo en 127.0.0.1)"
-echo "➡️  OpenVAS: http://localhost:9392  (admin / admin123)"
+echo "➡️  OpenVAS: http://127.0.0.1:9392  (admin / admin123)"
 echo "➡️  Mailpit: http://127.0.0.1:8025"
 echo "---------------------------------------------------"
 echo ""

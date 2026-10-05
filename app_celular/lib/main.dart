@@ -6,7 +6,7 @@ void main() {
 }
 
 const _scanProfiles = {
-  'Rápido — Solo descubrimiento (~5 min)': '8715c877-47a0-438d-98a3-27c7a6ab2196',
+  'Rápido — Descubrimiento de red (~5 min)': '8715c877-47a0-438d-98a3-27c7a6ab2196',
   'Normal — Full & Fast (~30 min)': 'daba56c8-73ec-11df-a475-002264764cea',
 };
 

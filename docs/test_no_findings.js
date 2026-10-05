@@ -7,9 +7,13 @@
 // porque entonces no habria reporte final, correo ni limpieza de la tarea y del
 // objetivo en Greenbone.
 //
-//  1. El nodo de parseo devuelve siempre al menos un item cuando el reporte se
-//     pudo leer. Si el reporte no tiene la estructura esperada, falla con un
-//     error: un reporte ilegible no es un analisis sin hallazgos.
+//  1. El nodo de parseo devuelve siempre al menos un item cuando Greenbone
+//     evaluo los activos. Si el reporte no tiene la estructura esperada, falla
+//     con un error: un reporte ilegible no es un analisis sin hallazgos.
+//  1b. Si el reporte no registra ningun resultado, ni siquiera informativo, el
+//     escaner no evaluo nada (por ejemplo, arranco sin las pruebas cargadas):
+//     tampoco es un analisis sin hallazgos y el nodo falla con un error. El caso
+//     real esta en docs/fixtures/gmp_report_escaner_sin_vts.xml (5/10/2026).
 //  2. El nodo que arma el reporte produce, sin hallazgos, un reporte completo:
 //     todos los campos que leen Telegram y el correo, con los activos analizados.
 //  3. Con hallazgos, el reporte no cambia.
@@ -42,9 +46,15 @@ async function runNode(src, { items = [{ json: {} }], refs = {} } = {}) {
   }
 }
 
-// Reporte de get_reports tal como lo entrega el nodo XML de n8n.
-const reporte = (results) => ({ get_reports_response: { report: {
-  id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', creation_time: '2026-10-04T10:05:01Z', report: { results } } } });
+// Reporte de get_reports tal como lo entrega el nodo XML de n8n. result_count.full
+// cuenta todos los resultados del reporte, incluidos los informativos (severidad 0)
+// que el filtro de la consulta deja fuera de la lista.
+const reporte = (results, full = 197) => ({ get_reports_response: { report: {
+  id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', creation_time: '2026-10-04T10:05:01Z',
+  report: { result_count: full === null ? undefined : { _: String(full), full: String(full), filtered: '0' }, results } } } });
+// result_count del reporte real de un escaner que arranco sin las pruebas cargadas.
+const xmlSinVts = fs.readFileSync(path.join(__dirname, 'fixtures', 'gmp_report_escaner_sin_vts.xml'), 'utf8');
+const fullSinVts = Number((xmlSinVts.match(/<result_count>\d+<full>(\d+)<\/full>/) || [])[1]);
 const resultado = (severity) => ({ host: { _: '172.20.0.13' }, port: '22/tcp', severity: String(severity),
   name: 'Weak MAC Algorithm(s) Supported (SSH)', description: 'd', nvt: { solution: 's' } });
 
@@ -53,6 +63,11 @@ const SIN_HALLAZGOS = [
   ['todos los resultados son informativos (severidad 0)', reporte({ result: [resultado(0), resultado('0.0')] })],
   ['un unico resultado informativo', reporte({ result: resultado(0) })],
   ['la seccion de resultados llega vacia', reporte('')],
+];
+const NO_EVALUADOS = [
+  ['el reporte real de un escaner sin pruebas cargadas no registra resultados', reporte({ start: '1', max: '1000' }, fullSinVts)],
+  ['el reporte no registra ningun resultado', reporte({}, 0)],
+  ['el reporte no informa cuantos resultados registro', reporte({}, null)],
 ];
 const ILEGIBLES = [
   ['falta el reporte', { get_reports_response: {} }],
@@ -93,6 +108,14 @@ const FLUJOS = [
         JSON.stringify({ total: j.total_hallazgos, hosts: j.hosts_string, subject: j.subject }));
     }
 
+    // Un analisis en el que el escaner no evaluo nada no se informa como "sin
+    // hallazgos": el nodo falla y la tarea queda en Greenbone.
+    for (const [nombre, json] of NO_EVALUADOS) {
+      const p = await runNode(code(parseo), { items: [{ json }] });
+      check(`${f}: ${parseo} falla con un error cuando ${nombre}`, !!p.error && /no registr[oó] ning[uú]n resultado/i.test(p.error.message),
+        p.error ? p.error.message : `devolvio ${JSON.stringify(p.result)}`);
+    }
+
     // Un reporte ilegible no se informa como "sin hallazgos": el nodo falla.
     for (const [nombre, json] of ILEGIBLES) {
       const p = await runNode(code(parseo), { items: [{ json }] });
@@ -110,6 +133,17 @@ const FLUJOS = [
     check(`${f}: ${armado} cuenta los hallazgos reales`,
       j.total_hallazgos === 2 && j.critical_count === 1 && j.low_count === 1 && j.hosts_string === '172.20.0.13'
       && /CRITICO/.test(String(j.subject)), r.error ? r.error.message : JSON.stringify({ total: j.total_hallazgos, subject: j.subject }));
+  }
+
+  // El asunto del correo no rotula INFO un reporte con hallazgos de severidad alta.
+  for (const { f, parseo, armado } of FLUJOS) {
+    const w = load(f);
+    const code = (name) => w.nodes.find((n) => n.name === name).parameters.jsCode;
+    const p = await runNode(code(parseo), { items: [{ json: reporte({ result: [resultado(7.5), resultado(2.6)] }) }] });
+    const r = await runNode(code(armado), { items: p.result || [] });
+    const subject = String((r.result && r.result[0] && r.result[0].json.subject) || '');
+    check(`${f}: el asunto del reporte distingue la severidad alta`, /ALTO/.test(subject) && !/INFO|CRITICO/.test(subject),
+      r.error ? r.error.message : subject);
   }
 
   // V3 adjunta el reporte crudo al correo (fileAttachments: data): sin el

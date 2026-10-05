@@ -169,7 +169,7 @@ Si importás el workflow manualmente: `http://localhost:5678` → **Workflows** 
 
 | Perfil | Velocidad | Profundidad |
 |---|---|---|
-| Rápido — Solo descubrimiento | ~5 min | Perfil «Discovery» de Greenbone: descubrimiento de red (hosts, servicios y sistema operativo), sin el conjunto completo de pruebas de vulnerabilidad |
+| Rápido — Descubrimiento de red | ~5 min | Perfil «Discovery» de Greenbone: descubrimiento de red (hosts, servicios y sistema operativo), sin el conjunto completo de pruebas de vulnerabilidad |
 | Normal — Full & Fast | ~30 min | Escaneo completo balanceado |
 
 "Full and very deep" y "Full and very deep ultimate" no se ofrecen: pertenecen al Greenbone Enterprise Feed y no existen en la Community Edition que usa este laboratorio.
@@ -250,7 +250,7 @@ Todos los scripts resuelven sus rutas respecto de su propia ubicación, así que
 | `node docs/analyze_manual_arm.js` | Lista las repeticiones del brazo manual (`docs/manual_arm_results.jsonl`) por operador; no promedia operadores con condiciones distintas |
 | `node docs/test_classify.js` | Verifica `classifyAsset` contra el ground truth del Anexo F (12/12) y en los umbrales (10, 11, 20 y 21 puntos) |
 | `node docs/test_webhook_security.js` | Verifica la validación de entradas de los webhooks, que ningún nodo use un shell, la autenticación por encabezado y la publicación del puerto en loopback |
-| `node docs/test_no_findings.js` | Verifica que un análisis sin hallazgos de severidad mayor que 0 no corte el flujo: el nodo de parseo devuelve un ítem centinela y el reporte «sin hallazgos» sale completo, de modo que la notificación final, el correo y la limpieza se ejecutan; y que un reporte ilegible dé un error en vez de «sin hallazgos» (V4 y V3) |
+| `node docs/test_no_findings.js` | Verifica que un análisis sin hallazgos de severidad mayor que 0 no corte el flujo: el nodo de parseo devuelve un ítem centinela y el reporte «sin hallazgos» sale completo, de modo que la notificación final, el correo y la limpieza se ejecutan; y que un reporte ilegible, o uno sin ningún resultado registrado (el escáner no evaluó nada), dé un error en vez de «sin hallazgos» (V4 y V3) |
 | `node docs/test_nmap_parsing.js` | Verifica el parseo de XML de Nmap (NmapScan de V4 y `run_experiment.js`) con salidas reales capturadas del laboratorio (`docs/fixtures/`) |
 | `node docs/test_workflow_contract.js` | Verifica que el webhook que usa `run_experiment.js` exista en V4 y entre por la clasificación, y que los workflows no tengan conexiones o referencias rotas |
 | `node docs/test_scripts_cwd.js` | Verifica que los scripts de análisis corran desde cualquier directorio y reproduzcan `analysis_output.txt` |
@@ -312,7 +312,7 @@ TesisCiberseguridad/
 | `chat not found` en Telegram | El Chat ID es incorrecto. Obtenelo con `/getUpdates` |
 | `Unauthorized` en Telegram | El token es incorrecto o fue revocado. Generá uno nuevo con BotFather |
 | `gvmd` en estado `unhealthy` | Casi siempre `pg-gvm` no está corriendo: `docker compose up -d` |
-| Greenbone termina en segundos sin hallazgos | `ospd-openvas` caído o sin ruta a `lab-net`: `docker compose up -d` y ver `docs/anexo_e_f_v2.md` |
+| Greenbone termina en pocos minutos sin resultados y el flujo falla con «Greenbone no registro ningun resultado» | El escáner no evaluó los activos. La causa observada: `ospd-openvas` arrancó sin cargar las pruebas (`docker compose logs ospd-openvas` muestra «Updating VTs failed») y no reintenta solo. `docker compose restart ospd-openvas`, esperar «VTs were up to date» o «Finished loading VTs» y repetir el análisis. Los scripts de inicio y el Launcher esperan esa carga y reinician el escáner si falla. Otra causa: `ospd-openvas` sin ruta a `lab-net` (`docker compose up -d` y ver `docs/anexo_e_f_v2.md`) |
 | OpenVAS no levanta el socket | Revisá logs: `docker logs greenbone-community-edition-gvmd-1` |
 | GSA no carga en el browser | Usá `http://127.0.0.1:9392` (no localhost, no HTTPS) |
 | En Windows el script no corre | Abrí PowerShell como Administrador y ejecutá `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` |

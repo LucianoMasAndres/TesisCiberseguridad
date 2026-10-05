@@ -7,6 +7,7 @@ Requiere: python3-tk, docker, docker compose v2
 import os
 import json
 import queue
+import re
 import shutil
 import subprocess
 import threading
@@ -35,7 +36,7 @@ DOCKER_DOWNLOAD_URL = {
 # Solo configuraciones del feed Community. "Full and very deep" y "Full and very
 # deep ultimate" pertenecen al Greenbone Enterprise Feed y no existen en esta pila.
 SCAN_PROFILES = {
-    "Rápido  — Solo descubrimiento (~5 min)":   "8715c877-47a0-438d-98a3-27c7a6ab2196",
+    "Rápido  — Descubrimiento de red (~5 min)":   "8715c877-47a0-438d-98a3-27c7a6ab2196",
     "Normal  — Full & Fast (~30 min)":           "daba56c8-73ec-11df-a475-002264764cea",
 }
 
@@ -507,6 +508,33 @@ class Launcher(tk.Tk):
                 capture_output=True
             )
             self._log("Usuario admin creado con password admin123.", "success")
+
+        # gvmd puede estar listo y el escaner no: si la carga inicial de las
+        # pruebas (VT) falla, ospd-openvas no reintenta y un analisis lanzado
+        # en ese estado termina en minutos sin resultados.
+        self._log("Esperando a que el escáner (ospd-openvas) cargue las pruebas...", "info")
+        vts_ok, reinicios = False, 0
+        for i in range(120):
+            logs = subprocess.run(
+                ["docker", "compose", "logs", "--no-log-prefix", "ospd-openvas"],
+                cwd=SCRIPT_DIR, capture_output=True, text=True, errors="replace"
+            )
+            marcas = [l for l in (logs.stdout + logs.stderr).splitlines()
+                      if re.search(r"Loading VTs|Finished loading VTs|VTs were up to date|Updating VTs failed", l)]
+            ultima = marcas[-1] if marcas else ""
+            if "Finished loading VTs" in ultima or "VTs were up to date" in ultima:
+                vts_ok = True
+                break
+            if "Updating VTs failed" in ultima and reinicios < 2:
+                reinicios += 1
+                self._log(f"  La carga de pruebas falló; reiniciando ospd-openvas (intento {reinicios})...", "warn")
+                subprocess.run(["docker", "compose", "restart", "ospd-openvas"], cwd=SCRIPT_DIR, capture_output=True)
+            time.sleep(5)
+        if vts_ok:
+            self._log("El escáner cargó las pruebas.", "success")
+        else:
+            self._log("AVISO: el escáner no confirmó la carga de las pruebas. No lances un análisis todavía: "
+                      "revisá 'docker compose logs ospd-openvas'.", "warn")
 
         self._log("¡Laboratorio operativo!", "done")
         self._log("  n8n     → http://localhost:5678", "info")
