@@ -38,7 +38,7 @@ Pruebas 4 y 5: 2026-10-04T11:08Z, despues de agregar a CreateTarget la comprobac
    ejecucion 80 error | ultimo nodo: CreateTarget | error: scan_config no es uno de los perfiles admitidos [line 37]
    objetivos en Greenbone despues: 57
 
-Prueba 6: 2026-10-04T11:36Z, con la version de la etiqueta.
+Prueba 6: 2026-10-04T11:36Z, con el flujo del commit 95ba80f.
 
 6. Peticion autenticada con "hosts" mal formado (un texto en lugar de una lista)
    POST /webhook/nmap  cuerpo: {"hosts":"172.20.0.13"}

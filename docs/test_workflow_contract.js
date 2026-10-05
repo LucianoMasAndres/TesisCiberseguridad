@@ -74,6 +74,20 @@ for (const f of ['workflowV4_windows.json', 'workflowV3_linux.json']) {
       `parametros: ${Object.keys(mail.parameters).join(', ')}`);
   }
 
+  // El aviso de escaneo no completado pide revisar la tarea en Greenbone: esa
+  // rama no puede terminar en Cleanup, que la envia a la papelera.
+  const trasAviso = ((v4.connections['Telegram Scan Timeout'] || {}).main || []).flat().map((c) => c.node);
+  check('V4: la rama de escaneo no completado no borra la tarea que pide revisar', !trasAviso.includes('Cleanup'),
+    `despues del aviso corre: ${trasAviso.join(', ')}`);
+
+  // curl se invoca de forma sincronica: sin --max-time, un canal que no responde
+  // bloquea el Task Runner mas alla de su intervalo de latido y n8n aborta la tarea.
+  for (const f of ['workflowV4_windows.json', 'workflowV3_linux.json']) {
+    const sinLimite = load(f).nodes.filter((n) => /'curl'/.test((n.parameters || {}).jsCode || '')
+      && !/'--max-time', '\d+'/.test(n.parameters.jsCode)).map((n) => n.name);
+    check(`${f}: toda llamada a curl tiene tiempo maximo (--max-time)`, sinLimite.length === 0, sinLimite.join(', '));
+  }
+
   // Perfiles de Greenbone: solo configuraciones del feed Community.
   // "Full and very deep" (708f25c4-...-8094) y "Full and very deep ultimate"
   // (74db13d6-...) son del Enterprise Feed; el UUID 708f25c4-...-8a11 no existe.

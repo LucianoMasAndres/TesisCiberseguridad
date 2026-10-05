@@ -64,13 +64,21 @@ o que tenga más de 254 elementos y cuenta una sola vez las direcciones repetida
 `BuildReport` escapa el HTML de los textos del reporte. La ejecución 3 corrió con
 todas ellas (commit `95ba80f`).
 
-La versión etiquetada agrega tres cambios posteriores a todas las ejecuciones de
-esta carpeta. Ninguna los ejercitó sobre el laboratorio; los cubren las pruebas
-automatizadas `docs/test_webhook_security.js` y `docs/test_no_findings.js`:
-`ClassifyAssets` rechaza un cuerpo sin `hosts` y cuenta una sola vez los puertos
-repetidos, y `ParseFindings` entrega un ítem centinela cuando Greenbone no informa
-hallazgos de severidad mayor que 0, para que `BuildReport` arme el reporte «sin
-hallazgos» y el flujo llegue a la notificación final, al correo y a `Cleanup`.
+La versión etiquetada agrega cambios posteriores a todas las ejecuciones de esta
+carpeta. Ninguna los ejercitó sobre el laboratorio; los cubren las pruebas
+automatizadas `docs/test_webhook_security.js`, `docs/test_no_findings.js` y
+`docs/test_workflow_contract.js`:
+
+- `ClassifyAssets` rechaza un cuerpo sin `hosts` y cuenta una sola vez los puertos
+  repetidos.
+- `ParseFindings` entrega un ítem centinela cuando Greenbone no informa hallazgos
+  de severidad mayor que 0, para que `BuildReport` arme el reporte «sin hallazgos»
+  y el flujo llegue a la notificación final, al correo y a `Cleanup`. Si el reporte
+  no tiene la sección de resultados, el nodo falla con un error en vez de informar
+  «sin hallazgos».
+- La rama de escaneo no completado (timeout, `Stopped` o `Interrupted`) ya no pasa
+  por `Cleanup`: la tarea y el objetivo quedan en Greenbone para revisarlos.
+- Las llamadas a `curl` de los nodos de Telegram tienen un tiempo máximo de 20 s.
 
 ## Ejecución 3 (webhook externo, commit `95ba80f`)
 

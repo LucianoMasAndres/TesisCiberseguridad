@@ -7,7 +7,9 @@
 // porque entonces no habria reporte final, correo ni limpieza de la tarea y del
 // objetivo en Greenbone.
 //
-//  1. El nodo de parseo devuelve siempre al menos un item.
+//  1. El nodo de parseo devuelve siempre al menos un item cuando el reporte se
+//     pudo leer. Si el reporte no tiene la estructura esperada, falla con un
+//     error: un reporte ilegible no es un analisis sin hallazgos.
 //  2. El nodo que arma el reporte produce, sin hallazgos, un reporte completo:
 //     todos los campos que leen Telegram y el correo, con los activos analizados.
 //  3. Con hallazgos, el reporte no cambia.
@@ -50,7 +52,13 @@ const SIN_HALLAZGOS = [
   ['el reporte no trae resultados', reporte({})],
   ['todos los resultados son informativos (severidad 0)', reporte({ result: [resultado(0), resultado('0.0')] })],
   ['un unico resultado informativo', reporte({ result: resultado(0) })],
-  ['el reporte no tiene la estructura esperada', { get_reports_response: {} }],
+  ['la seccion de resultados llega vacia', reporte('')],
+];
+const ILEGIBLES = [
+  ['falta el reporte', { get_reports_response: {} }],
+  ['falta la seccion de resultados', { get_reports_response: { report: { id: 'x', report: {} } } }],
+  ['la respuesta es un error de GMP', { get_reports_response: { status: '404', status_text: 'Failed to find report' } }],
+  ['la respuesta esta vacia', {}],
 ];
 const CAMPOS = ['email_body', 'subject', 'hosts_string', 'scan_date', 'total_hallazgos',
   'critical_count', 'high_count', 'medium_count', 'low_count'];
@@ -83,6 +91,13 @@ const FLUJOS = [
         && j.hosts_string === '172.20.0.13, 172.20.0.12' && /sin hallazgos/i.test(String(j.subject))
         && /no inform[oó] hallazgos/i.test(String(j.email_body)),
         JSON.stringify({ total: j.total_hallazgos, hosts: j.hosts_string, subject: j.subject }));
+    }
+
+    // Un reporte ilegible no se informa como "sin hallazgos": el nodo falla.
+    for (const [nombre, json] of ILEGIBLES) {
+      const p = await runNode(code(parseo), { items: [{ json }] });
+      check(`${f}: ${parseo} falla con un error cuando ${nombre}`, !!p.error && /no se pudo leer el reporte/i.test(p.error.message),
+        p.error ? p.error.message : `devolvio ${JSON.stringify(p.result)}`);
     }
 
     // Con hallazgos, el reporte no cambia: el centinela no se cuenta.
