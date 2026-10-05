@@ -15,7 +15,7 @@ comparaciones de la tesis: son ejecuciones de verificación funcional.
 | `correo_mailpit_ejecucion_2.html` | Cuerpo HTML del correo de esa ejecución, tal como lo recibió Mailpit |
 | `telegram_reporte_ejecucion_2.png` | Captura del mensaje de Telegram con el reporte de esa ejecución (Figura 4 de la tesis) |
 | `mailpit_correo_ejecucion_2.png` | Captura del correo de esa ejecución en la interfaz de Mailpit (Figura 5 de la tesis) |
-| `ejecucion_3_webhook_nmap.json` | Ejecución por el webhook externo (`/webhook/nmap`) con la versión etiquetada, perfil de descubrimiento |
+| `ejecucion_3_webhook_nmap.json` | Ejecución por el webhook externo (`/webhook/nmap`) con el flujo del commit `95ba80f`, perfil de descubrimiento |
 | `n8n_lienzo_ejecucion_3.png` | Captura de la vista de ejecuciones de n8n con el lienzo de la ejecución 3 (Figura 3 de la tesis) |
 | `ejecucion_1_previa.json` | Ejecución anterior a dos correcciones (ver abajo) |
 | `seguridad_webhooks.txt` | Peticiones sin encabezado, con encabezado incorrecto y con entradas manipuladas, y su resultado |
@@ -34,7 +34,7 @@ SMTP. No incluyen los encabezados de la petición ni el identificador de chat.
 - Enviados a Greenbone: 8 activos (172.20.0.12, 172.20.0.13, 172.20.0.14, 172.20.0.15, 172.20.0.17, 172.20.0.19, 172.20.0.20, 172.20.0.21).
 - Reporte: 35 hallazgos con severidad mayor que 0 (6 de severidad crítica, 1 alta, 7 media y 21 baja, según los rangos del nodo `BuildReport`).
 - Telegram: mensaje de inicio `ok: true` (message_id 55) y mensaje de reporte `ok: true` (message_id 56).
-- Correo: aceptado por Mailpit (`250 2.0.0 Ok: queued as 0xGGztui6zrmLKf0oaHYr7`), 12858 bytes; asunto «Reporte de Red (8 Hosts) - 🔴 CRITICO»; cuerpo HTML de 11680 caracteres.
+- Correo: aceptado por Mailpit (`250 2.0.0 Ok: queued as 0xGGztui6zrmLKf0oaHYr7`), 12858 bytes; asunto «Reporte de Red (8 Hosts) - 🔴 CRITICO»; cuerpo HTML de 11163 caracteres en la salida del nodo `BuildReport` (`cuerpo_html_caracteres` del resumen JSON); el archivo `correo_mailpit_ejecucion_2.html`, guardado desde Mailpit, tiene 11680.
 
 | Nodo | Estado | Duración |
 |---|---|---|
@@ -57,14 +57,22 @@ SMTP. No incluyen los encabezados de la petición ni el identificador de chat.
 | Send Email | success | 209 ms |
 | Cleanup | success | 877 ms |
 
-El código de esta ejecución es el de la etiqueta `tfi-2026-10-04` salvo tres
-comprobaciones que se agregaron después: `CreateTarget` valida el perfil de escaneo
+El código de esta ejecución es anterior al de la etiqueta `tfi-2026-10-04`. Le
+faltan tres comprobaciones que se agregaron después: `CreateTarget` valida el perfil de escaneo
 antes de crear el objetivo; `ClassifyAssets` rechaza un `hosts` que no sea una lista
 o que tenga más de 254 elementos y cuenta una sola vez las direcciones repetidas; y
 `BuildReport` escapa el HTML de los textos del reporte. La ejecución 3 corrió con
-todas ellas.
+todas ellas (commit `95ba80f`).
 
-## Ejecución 3 (webhook externo, versión etiquetada)
+La versión etiquetada agrega tres cambios posteriores a todas las ejecuciones de
+esta carpeta. Ninguna los ejercitó sobre el laboratorio; los cubren las pruebas
+automatizadas `docs/test_webhook_security.js` y `docs/test_no_findings.js`:
+`ClassifyAssets` rechaza un cuerpo sin `hosts` y cuenta una sola vez los puertos
+repetidos, y `ParseFindings` entrega un ítem centinela cuando Greenbone no informa
+hallazgos de severidad mayor que 0, para que `BuildReport` arme el reporte «sin
+hallazgos» y el flujo llegue a la notificación final, al correo y a `Cleanup`.
+
+## Ejecución 3 (webhook externo, commit `95ba80f`)
 
 - Disparo: `POST /webhook/nmap?scan_config=8715c877-47a0-438d-98a3-27c7a6ab2196` (perfil de descubrimiento) con tres elementos en el cuerpo: 172.20.0.13 (Crítico) repetido y 172.20.0.11 (Normal).
 - De 11:37:01 a 11:40:08 UTC: 3:06 min. Estado: `success`; 16 nodos, todos con éxito.
@@ -82,6 +90,8 @@ todas ellas.
 - Son ejecuciones sueltas: no miden variabilidad ni reemplazan a la campaña.
 - Los hallazgos no son comparables con los de la campaña: cambió el feed y, desde el
   31/08/2026, Greenbone informa Debian 11 como sistema operativo sin soporte
-  (severidad 10,0) en seis activos.
+  (severidad 10,0) en los activos en que identifica ese sistema operativo: siete
+  en la ejecución 1 y seis en la ejecución 2 (172.20.0.12, .13, .14, .17, .19 y
+  .20). La imagen Debian 11 del laboratorio es la base de ocho activos.
 - La verificación de los controles cubre los vectores descritos en
   `seguridad_webhooks.txt`; no es una prueba de penetración.

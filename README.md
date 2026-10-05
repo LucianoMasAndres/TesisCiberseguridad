@@ -206,7 +206,7 @@ El laboratorio es deliberadamente vulnerable (los 12 activos de `lab-targets/`),
 |---|---|
 | Los webhooks (`/webhook/nmap`, `/webhook/nmap-interno` y `/webhook/nmap-v3`) exigen el encabezado `X-Lab-Token`; sin él, n8n responde 403 y el flujo no corre | Nodos Webhook de `workflows/*.json` + `n8n_custom/lab-entrypoint.sh` |
 | El puerto 5678 se publica solo en `127.0.0.1`; la LAN es una opción explícita (`N8N_BIND_ADDRESS=0.0.0.0`) | `docker-compose.yml` |
-| V4 solo acepta direcciones IPv4 de `172.20.0.1` a `172.20.0.254`: la petición entera se rechaza si un host no cumple, si `hosts` no es una lista o si tiene más de 254 elementos | Nodos `ClassifyAssets`, `CreateTarget` y `CreateTask` |
+| V4 solo acepta direcciones IPv4 de `172.20.0.1` a `172.20.0.254`: la petición entera se rechaza si un host no cumple, si falta `hosts`, si no es una lista o si tiene más de 254 elementos; un puerto repetido cuenta una sola vez en el puntaje | Nodos `ClassifyAssets`, `CreateTarget` y `CreateTask` |
 | `scan_config` se compara contra una lista de dos perfiles, antes de crear nada en Greenbone | Nodos `CreateTarget` y `CreateTask` |
 | Los textos del reporte de Greenbone se escapan antes de insertarlos en el HTML del correo | Nodo `BuildReport` |
 | Ningún nodo arma comandos para un shell: `nmap`, `gvm-cli` y `curl` se invocan con `execFileSync`/`execFile` y arreglo de argumentos | Todos los nodos de código |
@@ -250,6 +250,7 @@ Todos los scripts resuelven sus rutas respecto de su propia ubicación, así que
 | `node docs/analyze_manual_arm.js` | Lista las repeticiones del brazo manual (`docs/manual_arm_results.jsonl`) por operador; no promedia operadores con condiciones distintas |
 | `node docs/test_classify.js` | Verifica `classifyAsset` contra el ground truth del Anexo F (12/12) y en los umbrales (10, 11, 20 y 21 puntos) |
 | `node docs/test_webhook_security.js` | Verifica la validación de entradas de los webhooks, que ningún nodo use un shell, la autenticación por encabezado y la publicación del puerto en loopback |
+| `node docs/test_no_findings.js` | Verifica que un análisis sin hallazgos de severidad mayor que 0 no corte el flujo: el nodo de parseo devuelve un ítem centinela y el reporte «sin hallazgos» sale completo, de modo que la notificación final, el correo y la limpieza se ejecutan (V4 y V3) |
 | `node docs/test_nmap_parsing.js` | Verifica el parseo de XML de Nmap (NmapScan de V4 y `run_experiment.js`) con salidas reales capturadas del laboratorio (`docs/fixtures/`) |
 | `node docs/test_workflow_contract.js` | Verifica que el webhook que usa `run_experiment.js` exista en V4 y entre por la clasificación, y que los workflows no tengan conexiones o referencias rotas |
 | `node docs/test_scripts_cwd.js` | Verifica que los scripts de análisis corran desde cualquier directorio y reproduzcan `analysis_output.txt` |

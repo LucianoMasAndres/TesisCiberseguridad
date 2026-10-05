@@ -67,8 +67,10 @@ restringe Nmap a la serie 7.95.
   digest de arriba, pero no se anotó la versión del feed que reporta gvmd
   (`get_feeds`). Ese digest ya no resuelve en el registro. La imagen presente en el
   equipo desde el 17/08/2026 es otra (`sha256:b986fac3152c…`, feed 202608170616), y
-  es la que usaron la remedición manual de septiembre de 2026 y las corridas de
-  control.
+  es la que usaron la repetición del operador 1 de la remedición manual de
+  septiembre de 2026 y las corridas de control. El operador 2 trabajó en otro
+  equipo, con su propia instancia del laboratorio: la versión del feed de esa
+  instancia no se registró.
 - **Etiquetas de tres imágenes.** El 17/08/2026 (commit `e27bc4d`) `gpg-data` y
   `redis-server` pasaron de `:latest` a `:stable`, y `gvm-tools`, de `:latest` a
   `:stable`; sus digests actuales difieren de los de la tabla.

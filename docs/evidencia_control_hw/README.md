@@ -1,4 +1,4 @@
-# Corridas de control del brazo manual (19 y 20/08/2026)
+# Corridas de control del brazo manual (20/08/2026)
 
 Mismo host que la campaña automatizada del 14/08/2026. Ver el §5.1 de la tesis.
 

@@ -122,6 +122,19 @@ const MALICIOSAS = [
     const vacio = await runNode(src, { items: [{ json: { body: { hosts: [] } } }] });
     check('ClassifyAssets acepta la lista vacia (red limpia)', !!vacio.result && vacio.result[0].json.encontrados === false,
       vacio.error && vacio.error.message);
+    // Un cuerpo sin "hosts" no es una red limpia: es una peticion mal formada.
+    for (const [nombre, json] of [['un objeto vacio', { body: {} }], ['un texto', { body: 'hola' }],
+      ['una lista', { body: [{ ip: '172.20.0.13', ports: [22] }] }], ['otro campo', { body: { host: ['172.20.0.13'] } }], ['nada', {}]]) {
+      const r = await runNode(src, { items: [{ json }] });
+      check(`ClassifyAssets rechaza un cuerpo sin hosts (${nombre}) en vez de informar red limpia`, !!r.error,
+        `acepto: ${JSON.stringify(r.result && r.result[0].json.encontrados)}`);
+    }
+    // Un puerto repetido cuenta una vez: 80 pesa 5 (Normal), no 15 (Alto).
+    const dup = await runNode(src, { items: [{ json: { body: { hosts: [{ ip: '172.20.0.11', ports: [80, 80, 80] }] } } }] });
+    const d = dup.result && dup.result[0].json;
+    check('ClassifyAssets no suma dos veces un puerto repetido', !!d && d.encontrados === false && d.clasificacion[0].score === 5
+      && d.clasificacion[0].classification === 'Normal' && d.clasificacion[0].ports.length === 1,
+      dup.error ? dup.error.message : JSON.stringify(d && d.clasificacion));
   }
 
   // 2a. CreateTarget: defensa en profundidad, sin shell
