@@ -1,0 +1,10 @@
+== mail-16 antes de la ejecucion 127 (2026-10-05T14:22:05Z, recien reiniciado a las 14:21:52Z): nmap -n -Pn -p 22,25,587 172.20.0.16 desde el contenedor de n8n
+22/tcp  open  ssh
+25/tcp  open  smtp
+587/tcp open  submission
+
+== mail-16 despues de la ejecucion 127 (2026-10-05T17:42:16Z), sin reinicios intermedios
+StartedAt=2026-10-05T14:21:52.707917484Z RestartCount=0 Status=running
+22/tcp  open     ssh
+25/tcp  filtered smtp
+587/tcp filtered submission

@@ -65,7 +65,8 @@ o que tenga más de 254 elementos y cuenta una sola vez las direcciones repetida
 todas ellas (commit `95ba80f`).
 
 La versión etiquetada agrega cambios posteriores a todas las ejecuciones de esta
-carpeta. Ninguna los ejercitó sobre el laboratorio; los cubren las pruebas
+carpeta (una ejecución completa con ella está en `docs/evidencia_e2e_v4_2026-10-05/`).
+Ninguna de las de esta carpeta los ejercitó sobre el laboratorio; los cubren las pruebas
 automatizadas `docs/test_webhook_security.js`, `docs/test_no_findings.js` y
 `docs/test_workflow_contract.js`:
 
@@ -74,8 +75,8 @@ automatizadas `docs/test_webhook_security.js`, `docs/test_no_findings.js` y
 - `ParseFindings` entrega un ítem centinela cuando Greenbone no informa hallazgos
   de severidad mayor que 0, para que `BuildReport` arme el reporte «sin hallazgos»
   y el flujo llegue a la notificación final, al correo y a `Cleanup`. Si el reporte
-  no tiene la sección de resultados, el nodo falla con un error en vez de informar
-  «sin hallazgos».
+  no tiene la sección de resultados, o no registra ningún resultado (el escáner no
+  evaluó nada), el nodo falla con un error en vez de informar «sin hallazgos».
 - La rama de escaneo no completado (timeout, `Stopped` o `Interrupted`) ya no pasa
   por `Cleanup`: la tarea y el objetivo quedan en Greenbone para revisarlos.
 - Las llamadas a `curl` de los nodos de Telegram tienen un tiempo máximo de 20 s.

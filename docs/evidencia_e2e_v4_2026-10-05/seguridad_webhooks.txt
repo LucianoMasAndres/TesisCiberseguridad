@@ -1,0 +1,21 @@
+== Recomprobacion de los controles de entrada con el codigo de la etiqueta (2026-10-05T17:42:18Z)
+sin encabezado  POST /webhook/nmap -> 403
+token invalido  POST /webhook/nmap -> 403
+sin encabezado  POST /webhook/nmap-interno -> 403
+token invalido  POST /webhook/nmap-interno -> 403
+sin encabezado  POST /webhook/nmap-v3 -> 403
+token invalido  POST /webhook/nmap-v3 -> 403
+
+== Peticiones autenticadas a POST /webhook/nmap (X-Lab-Token correcto). n8n responde 200 al recibir y la ejecucion se resuelve despues; estado final segun el historial de n8n:
+A. orden inyectada en la direccion (172.20.0.13"; id; ")
+   ejecucion 128 (2026-10-05 17:42:20.498 UTC): error; ultimo nodo: ClassifyAssets; nodos ejecutados: 2; error: "172.20.0.13\"; id; \"" [line 24]
+B. direccion externa (8.8.8.8)
+   ejecucion 129 (2026-10-05 17:42:20.694 UTC): error; ultimo nodo: ClassifyAssets; nodos ejecutados: 2; error: "8.8.8.8" [line 24]
+C. cuerpo sin hosts ({})
+   ejecucion 130 (2026-10-05 17:42:20.859 UTC): error; ultimo nodo: ClassifyAssets; nodos ejecutados: 2; error: hosts debe ser una lista [line 40]
+D. perfil ajeno a la lista (708f25c4-...-8094, Enterprise Feed)
+   ejecucion 131 (2026-10-05 17:42:21.081 UTC): error; ultimo nodo: CreateTarget; nodos ejecutados: 4; error: scan_config no es uno de los perfiles admitidos [line 37]
+E. puertos repetidos en un activo Normal ([80,80,80] en 172.20.0.11)
+   ejecucion 132 (2026-10-05 17:42:21.338 UTC): success; ultimo nodo: Telegram Red Limpia; nodos ejecutados: 4; error: - clasificacion=[{"ip": "172.20.0.11", "ports": [80], "score": 5, "classification": "Normal"}] encontrados=False
+
+Ejecuciones creadas por las seis peticiones sin credencial valida: 0 (el historial pasa de la 127 a la 128, que es el caso A).

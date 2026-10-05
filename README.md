@@ -261,6 +261,7 @@ Evidencia cruda:
 - `docs/manual_arm_results.jsonl`: remedición del brazo manual (n=2), con la evidencia de cada operador en `docs/evidencia_manual_operador1/` y `docs/evidencia_manual_operador2/`.
 - `docs/evidencia_control_hw/`: corridas de control manuales del 20/08/2026.
 - `docs/evidencia_e2e_v4_2026-10-04/`: una ejecución completa de V4 (17 nodos, con sus notificaciones) y la verificación de los controles de los webhooks sobre el laboratorio, del 4/10/2026. No forma parte de la campaña.
+- `docs/evidencia_e2e_v4_2026-10-05/`: una ejecución completa de V4 con el código de la etiqueta (17 nodos, 12 de 12 activos clasificados, notificaciones entregadas), la recomprobación de los controles de los webhooks, el registro del escáner que arrancó sin cargar sus pruebas y el estado de `mail-16` antes y después del análisis, del 5/10/2026. Tampoco forma parte de la campaña.
 - `docs/versiones_entorno.md`: digests de las imágenes y versiones de Nmap, gvm-tools y Greenbone con las que se midió la campaña.
 
 ### Limitaciones conocidas del artefacto

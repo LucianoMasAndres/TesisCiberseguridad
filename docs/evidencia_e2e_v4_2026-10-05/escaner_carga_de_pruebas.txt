@@ -1,0 +1,14 @@
+== docker compose logs ospd-openvas: carga de pruebas (VT) en los arranques del 4/10 y del 5/10/2026 (UTC)
+OSPD[7] 2026-10-04 09:37:46,499: INFO: (ospd_openvas.daemon) Loading VTs. Scans will be [requested|queued] until VTs are loaded. This may take a few minutes, please wait...
+OSPD[7] 2026-10-04 09:38:09,278: ERROR: (ospd_openvas.openvas) OpenVAS Scanner failed to load VTs. Command '['openvas', '--update-vt-info']' returned non-zero exit status 1.
+OSPD[7] 2026-10-04 09:38:09,279: ERROR: (ospd_openvas.daemon) Updating VTs failed.
+OSPD[7] 2026-10-04 09:40:05,956: INFO: (ospd_openvas.daemon) Loading VTs. Scans will be [requested|queued] until VTs are loaded. This may take a few minutes, please wait...
+OSPD[7] 2026-10-04 09:41:39,127: INFO: (ospd_openvas.daemon) Finished loading VTs. The VT cache has been updated from version 0 to 202608170616.
+OSPD[7] 2026-10-05 12:45:37,809: INFO: (ospd_openvas.daemon) Loading VTs. Scans will be [requested|queued] until VTs are loaded. This may take a few minutes, please wait...
+OSPD[7] 2026-10-05 12:46:09,962: ERROR: (ospd_openvas.openvas) OpenVAS Scanner failed to load VTs. Command '['openvas', '--update-vt-info']' returned non-zero exit status 1.
+OSPD[7] 2026-10-05 12:46:09,962: ERROR: (ospd_openvas.daemon) Updating VTs failed.
+OSPD[7] 2026-10-05 13:05:26,194: INFO: (ospd_openvas.daemon) Loading VTs. Scans will be [requested|queued] until VTs are loaded. This may take a few minutes, please wait...
+OSPD[7] 2026-10-05 13:07:54,017: INFO: (ospd_openvas.daemon) VTs were up to date. Feed version is 202608170616.
+
+== reinicio manual de ospd-openvas tras la falla del 5/10: docker inspect
+StartedAt=2026-10-05T13:05:14.059365193Z
